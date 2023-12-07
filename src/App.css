@@ -1,38 +1,47 @@
-.App {
-  text-align: center;
+html {
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+body {
+    font-family: 'Saira Semi Condensed';
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+a {
+    text-decoration: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.ModalLoginSignUp {
+    animation: animatePopDown 0.3s ease-out;
+}
+.ModalView {
+    animation: animatePopOpen 0.3s ease-out;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.multilineConcat {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* number of lines to show */
+            line-clamp: 3; 
+    -webkit-box-orient: vertical;
 }
 
-.App-link {
-  color: #61dafb;
+
+
+
+
+
+
+
+
+
+
+/* ANIMATION */
+@keyframes animatePopDown {
+    from {transform: translateY(-100%); opacity: 50} 
+    to {transform: translateY(0); opacity: 100}
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+@keyframes animatePopOpen {
+    from {transform: scale(0)}
+    to {transform: scale(1)}
 }
