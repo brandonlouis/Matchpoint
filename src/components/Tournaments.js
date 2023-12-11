@@ -38,10 +38,6 @@ export default function Tournaments() {
         return updatedTournamentList
     }
 
-    const viewTournament=(id)=>{
-        window.location.href = `/ViewTournament?id=${id}`;
-    }
-
     const searchTournament = async (e) => {
         e.preventDefault()
         try {
@@ -76,7 +72,7 @@ export default function Tournaments() {
                     {tournamentList.map((tournament) => (
                         <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)' sx={{opacity: (tournament.date?.end.toDate() < new Date()) && '0.5'}}>
                             <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%'}} >
-                                <CardActionArea onClick={() => viewTournament(tournament.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
+                                <CardActionArea onClick={() => window.location.href = `/ViewTournament?id=${tournament.id}`} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                     <CardContent sx={{padding:'0'}}>
                                         <Stack>
                                             <Box height='180px' width='350px'>

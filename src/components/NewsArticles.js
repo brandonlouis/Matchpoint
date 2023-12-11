@@ -36,10 +36,6 @@ export default function NewsArticles() {
         return updatedNewsArticleList
     }
 
-    const viewNewsArticle=(id)=>{
-        window.location.href = `/ViewNewsArticle?id=${id}`;
-    }
-
     const searchNewsArticle = async (e) => { // Handle search functionality
         e.preventDefault()
         try {
@@ -78,7 +74,7 @@ export default function NewsArticles() {
                     {newsArticleList.map((newsArticle) => (
                         <Grid key={newsArticle.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
                             <Card sx={{borderRadius:'15px', height:'100%'}} >
-                                <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
+                                <CardActionArea onClick={() => window.location.href = `/ViewNewsArticle?id=${newsArticle.id}`} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                     <CardContent sx={{padding:'0'}}>
                                         <Stack>
                                             <Box height='200px' width='350px'>
