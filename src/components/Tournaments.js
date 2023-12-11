@@ -74,7 +74,7 @@ export default function Tournaments() {
                 </Box>
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {tournamentList.map((tournament) => (
-                        <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                        <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)' sx={{opacity: (tournament.date?.end.toDate() < new Date()) && '0.5'}}>
                             <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%'}} >
                                 <CardActionArea onClick={() => viewTournament(tournament.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                     <CardContent sx={{padding:'0'}}>

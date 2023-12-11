@@ -148,10 +148,12 @@ export default function Navbar() {
                     <Box display='flex' alignItems='center'>
                         <Button style={{margin:'28px 0', padding:'0', display:'flex', gap:'15px', borderRadius:'25px'}} onClick={(e) => {setAnchorEl(e.currentTarget)}}>
                             <img height='50px' style={{borderRadius:'100%'}} src={localStorage['fullName'] !== 'undefined' ? require('../img/account/users.png') : require('../img/account/admin.png')}/>
-                            <Typography variant='action' maxWidth='150px' overflow='hidden' whiteSpace='nowrap' textOverflow='ellipsis'>
-                                {localStorage['fullName'] !== 'undefined' ? localStorage['fullName'] : 'Admin'}
-                            </Typography>
-                            <ArrowDropDownIcon sx={{fontSize:'25px', color:'black'}} />
+                            <Box display='flex'>
+                                <Typography variant='action' maxWidth='150px' overflow='hidden' whiteSpace='nowrap' textOverflow='ellipsis'>
+                                    {localStorage['fullName'] !== 'undefined' ? localStorage['fullName'] : 'Admin'}
+                                </Typography>
+                                <ArrowDropDownIcon sx={{fontSize:'25px', color:'black'}} />
+                            </Box>
                         </Button>
 
 

@@ -175,7 +175,9 @@ export default function ViewTournament() {
                         
                         <Box display='flex' justifyContent='center' marginTop='25px'>
 
-                        { tournamentDetails.date?.start.toDate() <= Date.now() && tournamentDetails.date?.end.toDate() >= Date.now() ? ( // If tournament is live
+                        {tournamentDetails.date?.end.toDate() < Date.now() ? ( // If tournament has ended
+                            <></>
+                            ) : tournamentDetails.date?.start.toDate() <= Date.now() && tournamentDetails.date?.end.toDate() >= Date.now() ? ( // If tournament is live
                             <Button sx={{ width: '300px' }} variant="red" onClick={() => {viewMatch(tournamentID)}}>View Match</Button>
                             ) : !user ? ( // If user is not logged in
                                 <Button variant="red" disabled>Login to register for this tournament</Button>
