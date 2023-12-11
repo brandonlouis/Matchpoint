@@ -17,7 +17,7 @@ a {
     animation: animatePopOpen 0.3s ease-out;
 }
 
-.multilineConcat {
+.tripleLineConcat {
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 3; /* number of lines to show */
@@ -25,7 +25,13 @@ a {
     -webkit-box-orient: vertical;
 }
 
-
+.doubleLineConcat {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* number of lines to show */
+            line-clamp: 2; 
+    -webkit-box-orient: vertical;
+}
 
 
 

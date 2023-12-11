@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Button, Card, CardActionArea, CardContent, Grid, Modal, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Modal, Stack, TextField, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import AddIcon from '@mui/icons-material/Add';
 import { db } from '../../config/firebase';
@@ -8,6 +8,7 @@ import { getDocs, getDoc, doc, collection, query, orderBy, where, addDoc, delete
 export default function ManageSports() {
     const [openViewModal, setOpenViewModal] = useState(false)
     const [openAddModal, setOpenAddModal] = useState(false)
+    const [openConfirmation, setOpenConfirmation] = useState(false)
 
     const [originalName, setOriginalName] = useState('')
     const [sportsList, setSportsList] = useState([])
@@ -20,7 +21,6 @@ export default function ManageSports() {
     const [editMode, setEditMode] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
 
-    // TODO: Handle search functionality
 
     useEffect(() => { // Handle retrieving account list on initial load
         const getSports = async () => {
@@ -106,6 +106,25 @@ export default function ManageSports() {
         }
     }
 
+    const searchSport = async (e) => {
+        e.preventDefault()
+        try {
+            if (searchCriteria === '') { // If search criteria is empty, retrieve all records
+                const q = query(collection(db, 'sports'), orderBy('name'))
+                const data = await getDocs(q)
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                setSportsList(resList)
+            } else { // If search criteria is not empty, retrieve accounts that match the search criteria
+                const q = query(collection(db, 'sports'), orderBy('name'))
+                const data = await getDocs(q)
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(sport => sport.name.includes(searchCriteria.toLowerCase()))
+                setSportsList(resList)
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
     
     return (
         <>
@@ -115,8 +134,8 @@ export default function ManageSports() {
                     <Typography variant='h3'>Manage Sports</Typography>
                     <Box display='flex' gap='15px'>
                         <Button style={{height:'45px', width:'65px'}} onClick={() => setOpenAddModal(true)} variant='green'><AddIcon sx={{fontSize:'35px'}}/></Button>
-                        <form style={{display:'flex'}}>
-                            <TextField className='searchTextField' placeholder='SEARCH'/>
+                        <form style={{display:'flex'}} onSubmit={searchSport}>
+                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
                             <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
                         </form>
                     </Box>
@@ -144,7 +163,7 @@ export default function ManageSports() {
                         <TextField value={sportName.toUpperCase()} onChange={(e) => setSportName(e.target.value)} className='inputTextField' variant='outlined' label='Sport Name' inputProps={{pattern:'^[^0-9]+$'}} disabled/>
                         <Box display='flex' flexDirection='row' justifyContent='space-between'>
                             <Button onClick={() => toggleEditMode()} sx={{width:'145px'}} variant='blue'>Edit</Button>
-                            <Button onClick={() => deleteSport(sportID)} sx={{width:'80px'}} variant='red'>Delete</Button>
+                            <Button onClick={() => setOpenConfirmation(true)} sx={{width:'80px'}} variant='red'>Delete</Button>
                         </Box>
                     </Stack>
                     :
@@ -177,6 +196,23 @@ export default function ManageSports() {
                 </form>
             </Box>
         </Modal>
+
+        <React.Fragment>
+            <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
+                <DialogTitle>
+                    <Typography variant='h5'>Delete Sport</Typography>
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this sport?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{padding:'0 24px 16px'}}>
+                    <Button onClick={() => deleteSport(sportID)} variant='blue'>Yes</Button>
+                    <Button onClick={() => setOpenConfirmation(false)} variant='red' autoFocus>No</Button>
+                </DialogActions>
+            </Dialog>
+        </React.Fragment>
         </>
     )
 }

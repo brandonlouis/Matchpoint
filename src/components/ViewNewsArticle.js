@@ -63,7 +63,7 @@ export default function ViewNewsArticle() {
 
     return (
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='80%' gap='20px'>
+            <Stack width='65%' gap='20px'>
                 <img src={newsArticleDetails.imgURL}/>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Stack gap='50px' width='100%'>
@@ -102,7 +102,7 @@ export default function ViewNewsArticle() {
                                                                 <Typography sx={{textTransform:'uppercase'}}  variant='subtitle4'>{newsArticle.date[0]} {newsArticle.date[1]}, {newsArticle.date[2]}</Typography>
                                                             </Box>
                                                             <Box display='flex'>
-                                                                <Typography textAlign='left' variant='h4'>{newsArticle.title}</Typography>
+                                                                <Typography className='tripleLineConcat' textAlign='left' variant='h4'>{newsArticle.title}</Typography>
                                                             </Box>
                                                         </Stack>
                                                     </Stack>

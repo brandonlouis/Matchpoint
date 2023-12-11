@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Button, Stack, Typography } from '@mui/material'
-import { db, auth } from '../config/firebase';
+import { db } from '../config/firebase';
+import { UserAuth } from '../config/authContext'
 import { getDoc, doc } from 'firebase/firestore';
 
 export default function ViewTournament() {
     const tournamentID = new URLSearchParams(window.location.search).get("id")
-    
+
+    const { user } = UserAuth()
     const [tournamentDetails, setTournamentDetails] = useState({})
 
+    
     useEffect(() => {
         const getTournament = async () => {
             try {
@@ -42,36 +45,50 @@ export default function ViewTournament() {
 
     return (
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='80%' gap='20px'>
+            <Stack width='65%' gap='20px'>
                 <img src={tournamentDetails.imgURL}/>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Stack gap='50px' width='100%'>
                         <Typography variant='h2'>
-                            {tournamentDetails.date?.start.toDate() <= Date.now() && tournamentDetails.date?.end.toDate() >= Date.now() && <span style={{color:'#CB3E3E'}}>LIVE NOW: </span>}
+                            {tournamentDetails.date?.end.toDate() < Date.now() ? (
+                                <span style={{ color: '#888' }}>ENDED: </span>
+                            ) : tournamentDetails.date?.start.toDate() <= Date.now() && tournamentDetails.date?.end.toDate() >= Date.now() ? (
+                                <span style={{ color: '#CB3E3E' }}>LIVE NOW: </span>
+                            ) : null}
                             {tournamentDetails.title}
                         </Typography>
                         
                         <Box display='flex' justifyContent='space-between'>
                             <Box width='325px' display='flex' alignItems='center' gap='20px'>
-                                <img width='70px' src={require('../img/icons/trophy.png')} />
+                                <img width='60px' src={require('../img/icons/trophy.png')} />
                                 <Stack>
                                     <Typography color='#CB3E3E' variant='subtitle1'>Grand Prize</Typography>
                                     <Typography textTransform='capitalize' variant='subtitle1'>{tournamentDetails.prizes?.first}</Typography>
                                 </Stack>
                             </Box>
                             <Box width='325px' display='flex' alignItems='center' gap='20px'>
-                                <img width='70px' src={require('../img/icons/calendar.png')} />
+                                <img width='60px' src={require('../img/icons/calendar.png')} />
                                 <Stack>
                                     <Typography color='#CB3E3E' variant='subtitle1'>Tournament Date</Typography>
-                                    {tournamentDetails.stringDate?.start[2] === tournamentDetails.stringDate?.end[2] ? 
-                                        <Typography variant='subtitle1'>{tournamentDetails.stringDate?.start[0]} {tournamentDetails.stringDate?.start[1]} — {tournamentDetails.stringDate?.end[1]}, {tournamentDetails.stringDate?.end[2]}</Typography>
-                                        :
-                                        <Typography variant='subtitle1'>{tournamentDetails.stringDate?.start[0]} {tournamentDetails.stringDate?.start[1]}, {tournamentDetails.stringDate?.start[2]} — {tournamentDetails.stringDate?.end[0]} {tournamentDetails.stringDate?.end[1]}, {tournamentDetails.stringDate?.end[2]}</Typography>
-                                    }
+                                    <Typography textTransform='uppercase' variant='subtitle1'>
+                                        {tournamentDetails.date?.start.toDate().toDateString() === tournamentDetails.date?.end.toDate().toDateString() ? (
+                                            `${tournamentDetails.stringDate?.start[0]} ${tournamentDetails.stringDate?.start[1]}, ${tournamentDetails.stringDate?.start[2]}`
+                                        ) : (
+                                            tournamentDetails.stringDate?.start[2] === tournamentDetails.stringDate?.end[2] ? (
+                                                tournamentDetails.stringDate.start[0] === tournamentDetails.stringDate.end[0] ? (
+                                                    `${tournamentDetails.stringDate.start[0]} ${tournamentDetails.stringDate.start[1]} — ${tournamentDetails.stringDate.end[1]}, ${tournamentDetails.stringDate.end[2]}`
+                                                ): (
+                                                    `${tournamentDetails.stringDate.start[0]} ${tournamentDetails.stringDate.start[1]} — ${tournamentDetails.stringDate.end[0]} ${tournamentDetails.stringDate.end[1]}, ${tournamentDetails.stringDate.end[2]}`
+                                                )
+                                            ) : (
+                                                `${tournamentDetails.stringDate?.start[0]} ${tournamentDetails.stringDate?.start[1]}, ${tournamentDetails.stringDate?.start[2]} — ${tournamentDetails.stringDate?.end[0]} ${tournamentDetails.stringDate?.end[1]}, ${tournamentDetails.stringDate?.end[2]}`
+                                            )
+                                        )}
+                                    </Typography>
                                 </Stack>
                             </Box>
                             <Box width='325px' display='flex' alignItems='center' gap='20px'>
-                                <img width='70px' src={require('../img/icons/location.png')} />
+                                <img width='60px' src={require('../img/icons/location.png')} />
                                 <Stack>
                                     <Typography color='#CB3E3E' variant='subtitle1'>Venue</Typography>
                                     <Typography textTransform='capitalize' variant='subtitle1'>{tournamentDetails.venue}</Typography>
@@ -160,9 +177,9 @@ export default function ViewTournament() {
 
                         { tournamentDetails.date?.start.toDate() <= Date.now() && tournamentDetails.date?.end.toDate() >= Date.now() ? ( // If tournament is live
                             <Button sx={{ width: '300px' }} variant="red" onClick={() => {viewMatch(tournamentID)}}>View Match</Button>
-                            ) : !auth.currentUser ? ( // If user is not logged in
+                            ) : !user ? ( // If user is not logged in
                                 <Button variant="red" disabled>Login to register for this tournament</Button>
-                            ) : auth.currentUser && !auth.currentUser.email.includes('@matchpoint.com') ? ( // If user is logged in but not admin
+                            ) : user && !user.email.includes('@matchpoint.com') ? ( // If user is logged in but not admin
                                 <Button variant="red">Register for this tournament</Button>
                             ) : <></>
                         }

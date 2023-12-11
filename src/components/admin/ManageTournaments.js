@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Button, Card, CardActionArea, CardContent, Grid, Modal, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Modal, Stack, TextField, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../../config/firebase';
-import { getDoc, getDocs, doc, collection } from 'firebase/firestore';
+import { getDoc, getDocs, updateDoc, doc, collection } from 'firebase/firestore';
 
 export default function ManageTournaments() {
     const [openModal, setOpenModal] = useState(false)
+    const [openConfirmation, setOpenConfirmation] = useState(false)
 
     const [tournamentList, setTournamentList] = useState([])
     const [tournamentDetails, setTournamentDetails] = useState({})
     
     const [searchCriteria, setSearchCriteria] = useState('')
 
-    // TODO: Handle search and SUSPEND functionality
 
     useEffect(() => { // Handle retrieving tournament list on initial load
         const getTournaments = async () => {
@@ -34,7 +34,7 @@ export default function ManageTournaments() {
 
             return {
                 ...tournament,
-                date: {
+                stringDate: {
                   start: startDate,
                   end: endDate,
                 },
@@ -48,7 +48,7 @@ export default function ManageTournaments() {
 
         return {
             ...tournament,
-            date: {
+            stringDate: {
                 start: startDate,
                 end: endDate,
             }
@@ -67,6 +67,35 @@ export default function ManageTournaments() {
         }
     }
 
+    const suspendTournament = async (id) => { // Handle suspend record
+        try {
+            await updateDoc(doc(db, 'tournaments', id), {
+                status: 0
+            })
+            alert('Tournament suspended successfully')
+            window.location.reload()
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
+    const searchTournament = async (e) => {
+        e.preventDefault()
+        try {
+            if (searchCriteria === '') { // If search criteria is empty, retrieve all records
+                const data = await getDocs(collection(db, 'tournaments'))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                setTournamentList(processDateListDate(resList))
+            } else {
+                const data = await getDocs(collection(db, 'tournaments'))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((tournament) => tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport == searchCriteria.toLowerCase())
+                setTournamentList(processDateListDate(resList))
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
 
     return (
         <>
@@ -75,15 +104,17 @@ export default function ManageTournaments() {
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>Manage Tournaments</Typography>
                     <Box display='flex'>
-                        <TextField className='searchTextField' placeholder='SEARCH'/>
-                        <Button variant='search'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                        <form style={{display:'flex'}} onSubmit={searchTournament}>
+                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                        </form>
                     </Box>
                 </Box>
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {tournamentList.map((tournament) => (
-                        <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                            <Card sx={{bgcolor:'#EEE', borderRadius:'15px'}} >
-                                <CardActionArea onClick={() => viewTournament(tournament.id)}>
+                        <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)' sx={{opacity: (tournament.status == 0 || tournament.date?.end.toDate() < new Date()) && '0.5'}}>
+                            <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%'}} >
+                                <CardActionArea onClick={() => viewTournament(tournament.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                     <CardContent sx={{padding:'0'}}>
                                         <Stack>
                                             <Box height='180px' width='350px'>
@@ -92,14 +123,32 @@ export default function ManageTournaments() {
                                             <Stack height='100%' padding='15px 25px 30px' gap='15px'>
                                                 <Box display='flex' justifyContent='space-between'>
                                                     <Typography textTransform='uppercase' variant='subtitle4'>{tournament.sport}</Typography>
-                                                    {tournament.date.start[2] === tournament.date.end[2] ? 
-                                                        <Typography textTransform='uppercase' variant='subtitle4'>{tournament.date.start[0]} {tournament.date.start[1]} — {tournament.date.end[1]}, {tournament.date.end[2]}</Typography>
-                                                        :
-                                                        <Typography textTransform='uppercase' variant='subtitle4'>{tournament.date.start[0]} {tournament.date.start[1]}, {tournament.date.start[2]} — {tournament.date.end[0]} {tournament.date.end[1]}, {tournament.date.end[2]}</Typography>
-                                                    }
+                                                    <Typography textTransform='uppercase' variant='subtitle4'>
+                                                        {tournament.date.start.toDate().toDateString() === tournament.date.end.toDate().toDateString() ? (
+                                                            `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]}, ${tournament.stringDate.start[2]}`
+                                                        ) : (
+                                                            tournament.stringDate.start[2] === tournament.stringDate.end[2] ? (
+                                                                tournament.stringDate.start[0] === tournament.stringDate.end[0] ? (
+                                                                    `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]} — ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
+                                                                ): (
+                                                                    `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]} — ${tournament.stringDate.end[0]} ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
+                                                                )
+                                                            ) : (
+                                                                `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]}, ${tournament.stringDate.start[2]} — ${tournament.stringDate.end[0]} ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
+                                                            )
+                                                        )}
+                                                    </Typography>
                                                 </Box>
                                                 <Box display='flex'>
-                                                    <Typography className='multilineConcat' variant='h4'>{tournament.title}</Typography>
+                                                    <Typography className='doubleLineConcat' variant='h4'>
+                                                        {tournament.status === 0 && 
+                                                            <span style={{color:'#CB3E3E'}}>SUSPENDED: </span>
+                                                        }
+                                                        {tournament.date?.end.toDate() < new Date() &&
+                                                            <span style={{color:'#888'}}>ENDED: </span>
+                                                        }
+                                                        {tournament.title}
+                                                    </Typography>
                                                 </Box>
                                             </Stack>
                                         </Stack>
@@ -132,15 +181,17 @@ export default function ManageTournaments() {
                                     <td style={{verticalAlign:'top'}}>
                                         <Typography variant='subtitle2'>Title:</Typography>
                                     </td>
-                                    <td className='multilineConcat'>
-                                        <Typography variant='subtitle3'>{tournamentDetails.title}</Typography>
+                                    <td className='doubleLineConcat'>
+                                        <Typography variant='subtitle3'>
+                                            {tournamentDetails.title}
+                                        </Typography>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td style={{verticalAlign:'top'}}>
                                         <Typography variant='subtitle2'>Description:</Typography>
                                     </td>
-                                    <td className='multilineConcat'>
+                                    <td className='tripleLineConcat'>
                                         <Typography fontWeight='regular' variant='subtitle3'>{tournamentDetails.description}</Typography>
                                     </td>
                                 </tr>
@@ -158,11 +209,19 @@ export default function ManageTournaments() {
                                     </td>
                                     <td>
                                         <Typography variant='subtitle3'>
-                                            {tournamentDetails.date?.start[2] === tournamentDetails.date?.end[2] ? 
-                                                `${tournamentDetails.date?.start[0]} ${tournamentDetails.date?.start[1]} — ${tournamentDetails.date?.end[1]}, ${tournamentDetails.date?.end[2]}`
-                                                :
-                                                `${tournamentDetails.date?.start[0]} ${tournamentDetails.date?.start[1]}, ${tournamentDetails.date?.start[2]} — ${tournamentDetails.date?.end[0]} ${tournamentDetails.date?.end[1]}, ${tournamentDetails.date?.end[2]}`
-                                            }    
+                                            {tournamentDetails.date?.start.toDate().toDateString() === tournamentDetails.date?.end.toDate().toDateString() ? (
+                                                `${tournamentDetails.stringDate?.start[0]} ${tournamentDetails.stringDate?.start[1]}, ${tournamentDetails.stringDate?.start[2]}`
+                                            ) : (
+                                                tournamentDetails.stringDate?.start[2] === tournamentDetails.stringDate?.end[2] ? (
+                                                    tournamentDetails.stringDate.start[0] === tournamentDetails.stringDate.end[0] ? (
+                                                        `${tournamentDetails.stringDate.start[0]} ${tournamentDetails.stringDate.start[1]} — ${tournamentDetails.stringDate.end[1]}, ${tournamentDetails.stringDate.end[2]}`
+                                                    ): (
+                                                        `${tournamentDetails.stringDate.start[0]} ${tournamentDetails.stringDate.start[1]} — ${tournamentDetails.stringDate.end[0]} ${tournamentDetails.stringDate.end[1]}, ${tournamentDetails.stringDate.end[2]}`
+                                                    )
+                                                ) : (
+                                                    `${tournamentDetails.stringDate?.start[0]} ${tournamentDetails.stringDate?.start[1]}, ${tournamentDetails.stringDate?.start[2]} — ${tournamentDetails.stringDate?.end[0]} ${tournamentDetails.stringDate?.end[1]}, ${tournamentDetails.stringDate?.end[2]}`
+                                                )
+                                            )}
                                         </Typography>
                                     </td>
                                 </tr>
@@ -226,11 +285,30 @@ export default function ManageTournaments() {
                                 </tr>
                             </tbody>
                         </table>
-                        <Button fullWidth variant='red' sx={{marginTop:'25px'}}>Suspend Tournament</Button>
+                        {tournamentDetails.status === 1 && tournamentDetails.date?.end.toDate() > new Date() &&
+                            <Button onClick={() => setOpenConfirmation(true)} fullWidth variant='red' sx={{marginTop:'25px'}}>Suspend Tournament</Button>
+                        }
                     </Stack>
                 </Stack>
             </Box>
         </Modal>
+
+        <React.Fragment>
+            <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
+                <DialogTitle>
+                    <Typography variant='h5'>Suspend Tournament</Typography>
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to suspend this tournament?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{padding:'0 24px 16px'}}>
+                    <Button onClick={() => suspendTournament(tournamentDetails.id)} variant='blue'>Yes</Button>
+                    <Button onClick={() => setOpenConfirmation(false)} variant='red' autoFocus>No</Button>
+                </DialogActions>
+            </Dialog>
+        </React.Fragment>
         </>
     )
 }
