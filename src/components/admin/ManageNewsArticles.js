@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Button, Card, CardActionArea, CardContent, Grid, Modal, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Modal, Stack, TextField, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../../config/firebase';
-import { getDoc, getDocs, doc, collection, query, orderBy } from 'firebase/firestore';
+import { getDoc, getDocs, deleteDoc, doc, collection, query, orderBy } from 'firebase/firestore';
 
 export default function ManageNewsArticles() {
     const [openModal, setOpenModal] = useState(false)
+    const [openConfirmation, setOpenConfirmation] = useState(false)
 
     const [newsArticleList, setNewsArticleList] = useState([])
     const [newsArticleDetails, setNewsArticleDetails] = useState({})
     
     const [searchCriteria, setSearchCriteria] = useState('')
 
-    // TODO: Handle search and delete functionality
 
     useEffect(() => { // Handle retrieving tournament list on initial load
         const getNewsArticles = async () => {
@@ -62,6 +62,36 @@ export default function ManageNewsArticles() {
         }
     }
 
+    const deleteNewsArticle = async (id) => {
+        try {
+            await deleteDoc(doc(db, 'newsArticles', id))
+            alert('News Article deleted successfully')
+            window.location.reload()
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
+    const searchNewsArticle = async (e) => { // Handle search functionality
+        e.preventDefault()
+        try {
+            if (searchCriteria === '') { // If search criteria is empty, retrieve all records
+                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
+                const data = await getDocs(q)
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                setNewsArticleList(processListDate(resList))
+            } else {
+                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
+                const data = await getDocs(q)
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const filteredList = resList.filter((newsArticle) => newsArticle.title.toLowerCase().includes(searchCriteria.toLowerCase()) || newsArticle.sport == searchCriteria.toLowerCase())
+                setNewsArticleList(processListDate(filteredList))
+            }
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
 
     return (
         <>
@@ -70,15 +100,17 @@ export default function ManageNewsArticles() {
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>Manage News Articles</Typography>
                     <Box display='flex'>
-                        <TextField className='searchTextField' placeholder='SEARCH'/>
-                        <Button variant='search'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                        <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
+                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                        </form>
                     </Box>
                 </Box>
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {newsArticleList.map((newsArticle) => (
-                        <Grid key={newsArticle.id} item width='350px' height='100%' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                        <Grid key={newsArticle.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
                             <Card sx={{borderRadius:'15px', height:'100%'}} >
-                                <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)}>
+                                <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                     <CardContent sx={{padding:'0'}}>
                                         <Stack>
                                             <Box height='200px' width='350px'>
@@ -90,7 +122,7 @@ export default function ManageNewsArticles() {
                                                     <Typography sx={{textTransform:'uppercase'}}  variant='subtitle4'>{newsArticle.date[0]} {newsArticle.date[1]}, {newsArticle.date[2]}</Typography>
                                                 </Box>
                                                 <Box display='flex'>
-                                                    <Typography className='multilineConcat' variant='h4'>{newsArticle.title}</Typography>
+                                                    <Typography className='tripleLineConcat' variant='h4'>{newsArticle.title}</Typography>
                                                 </Box>
                                             </Stack>
                                         </Stack>
@@ -112,18 +144,26 @@ export default function ManageNewsArticles() {
                         <table style={{tableLayout:'fixed'}}>
                             <tbody>
                                 <tr>
-                                    <td width='130px'>
-                                        <Typography variant='subtitle2'>ID:</Typography>
+                                    <td width='150px'>
+                                        <Typography variant='subtitle2'>Article ID:</Typography>
                                     </td>
                                     <td>
                                         <Typography variant='subtitle3'>{newsArticleDetails.id}</Typography>
                                     </td>
                                 </tr>
                                 <tr>
+                                    <td>
+                                        <Typography variant='subtitle2'>Tournament ID:</Typography>
+                                    </td>
+                                    <td>
+                                        <Typography variant='subtitle3'>{newsArticleDetails.tournamentID}</Typography>
+                                    </td>
+                                </tr>
+                                <tr>
                                     <td style={{verticalAlign:'top'}}>
                                         <Typography variant='subtitle2'>Title:</Typography>
                                     </td>
-                                    <td className='multilineConcat'>
+                                    <td className='doubleLineConcat'>
                                         <Typography variant='subtitle3'>{newsArticleDetails.title}</Typography>
                                     </td>
                                 </tr>
@@ -131,7 +171,7 @@ export default function ManageNewsArticles() {
                                     <td style={{verticalAlign:'top'}}>
                                         <Typography variant='subtitle2'>Description:</Typography>
                                     </td>
-                                    <td className='multilineConcat'>
+                                    <td className='tripleLineConcat'>
                                         <Typography fontWeight='regular' variant='subtitle3'>{newsArticleDetails.description}</Typography>
                                     </td>
                                 </tr>
@@ -169,14 +209,30 @@ export default function ManageNewsArticles() {
                                         <Typography textTransform='capitalize' variant='subtitle3'>{newsArticleDetails.sport}</Typography>
                                     </td>
                                 </tr>
-                                
                             </tbody>
                         </table>
-                        <Button fullWidth variant='red' sx={{marginTop:'25px'}}>Delete News Article</Button>
+                        <Button onClick={() => setOpenConfirmation(true)} fullWidth variant='red' sx={{marginTop:'25px'}}>Delete News Article</Button>
                     </Stack>
                 </Stack>
             </Box>
         </Modal>
+
+        <React.Fragment>
+            <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
+                <DialogTitle>
+                    <Typography variant='h5'>Delete News Article</Typography>
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this news article?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{padding:'0 24px 16px'}}>
+                    <Button onClick={() => deleteNewsArticle(newsArticleDetails.id)} variant='blue'>Yes</Button>
+                    <Button onClick={() => setOpenConfirmation(false)} variant='red' autoFocus>No</Button>
+                </DialogActions>
+            </Dialog>
+        </React.Fragment>
         </>
     )
 }

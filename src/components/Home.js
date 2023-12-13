@@ -14,7 +14,7 @@ export default function Home() {
             try {
                 const q = query(collection(db, 'tournaments'), limit(3)) // Order list by date in descending order
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.date.end.toDate() >= new Date() && tournament.status !== 0) // Filter out tournaments that have already ended or are cancelled
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && tournament.date.end.toDate() > new Date()) // Filter out tournaments that have already ended or are cancelled
                 setTournamentList(processTournamentDate(resList))
             } catch (err) {
                 console.error(err)
@@ -52,7 +52,7 @@ export default function Home() {
 
             return {
                 ...tournament,
-                date: {
+                stringDate: {
                   start: startDate,
                   end: endDate,
                 },
@@ -141,8 +141,8 @@ export default function Home() {
                     <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                         {tournamentList.map((tournament) => (
                             <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                                <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
-                                    <CardActionArea onClick={() => viewTournament(tournament.id)}>
+                                <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%'}} >
+                                    <CardActionArea onClick={() => viewTournament(tournament.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                         <CardContent sx={{padding:'0'}}>
                                             <Stack>
                                                 <Box height='180px' width='350px'>
@@ -151,14 +151,19 @@ export default function Home() {
                                                 <Stack height='100%' padding='15px 25px 30px' gap='15px'>
                                                     <Box display='flex' justifyContent='space-between'>
                                                         <Typography textTransform='uppercase' variant='subtitle4'>{tournament.sport}</Typography>
-                                                        {tournament.date.start[2] === tournament.date.end[2] ? 
-                                                            <Typography textTransform='uppercase' variant='subtitle4'>{tournament.date.start[0]} {tournament.date.start[1]} — {tournament.date.end[1]}, {tournament.date.end[2]}</Typography>
+                                                        {tournament.stringDate.start[2] === tournament.stringDate.end[2] ? 
+                                                            <Typography textTransform='uppercase' variant='subtitle4'>{tournament.stringDate.start[0]} {tournament.stringDate.start[1]} — {tournament.stringDate.end[1]}, {tournament.stringDate.end[2]}</Typography>
                                                             :
-                                                            <Typography textTransform='uppercase' variant='subtitle4'>{tournament.date.start[0]} {tournament.date.start[1]}, {tournament.date.start[2]} — {tournament.date.end[0]} {tournament.date.end[1]}, {tournament.date.end[2]}</Typography>
+                                                            <Typography textTransform='uppercase' variant='subtitle4'>{tournament.stringDate.start[0]} {tournament.stringDate.start[1]}, {tournament.stringDate.start[2]} — {tournament.stringDate.end[0]} {tournament.stringDate.end[1]}, {tournament.stringDate.end[2]}</Typography>
                                                         }
                                                     </Box>
                                                     <Box display='flex'>
-                                                        <Typography textAlign='left' variant='h4'>{tournament.title}</Typography>
+                                                        <Typography className='doubleLineConcat' textAlign='left' variant='h4'>
+                                                            {tournament.date?.start.toDate() <= Date.now() && tournament.date?.end.toDate() >= Date.now() && 
+                                                                <span style={{ color: '#CB3E3E' }}>LIVE NOW: </span>
+                                                            }
+                                                            {tournament.title}
+                                                        </Typography>
                                                     </Box>
                                                 </Stack>
                                             </Stack>
@@ -182,8 +187,8 @@ export default function Home() {
                     <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                         {newsArticleList.map((newsArticle) => (
                             <Grid key={newsArticle.id} item width='265px' height='100%' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                                <Card sx={{textAlign:'center', borderRadius:'15px', height:'100%'}} >
-                                    <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)}>
+                                <Card sx={{borderRadius:'15px', height:'100%'}} >
+                                    <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                         <CardContent sx={{padding:'0'}}>
                                             <Stack>
                                                 <Box height='200px' width='265px'>
@@ -195,7 +200,7 @@ export default function Home() {
                                                         <Typography sx={{textTransform:'uppercase'}}  variant='subtitle4'>{newsArticle.date[0]} {newsArticle.date[1]}, {newsArticle.date[2]}</Typography>
                                                     </Box>
                                                     <Box display='flex'>
-                                                        <Typography textAlign='left' variant='h4'>{newsArticle.title}</Typography>
+                                                        <Typography className='tripleLineConcat' textAlign='left' variant='h4'>{newsArticle.title}</Typography>
                                                     </Box>
                                                 </Stack>
                                             </Stack>

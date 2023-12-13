@@ -9,6 +9,7 @@ export default function NewsArticles() {
     const [newsArticleList, setNewsArticleList] = useState([])
     const [searchCriteria, setSearchCriteria] = useState('')
 
+    
     useEffect(() => { // Handle retrieving tournament list on initial load
         const getNewsArticles = async () => {
             try {
@@ -35,8 +36,24 @@ export default function NewsArticles() {
         return updatedNewsArticleList
     }
 
-    const viewNewsArticle=(id)=>{
-        window.location.href = `/ViewNewsArticle?id=${id}`;
+    const searchNewsArticle = async (e) => { // Handle search functionality
+        e.preventDefault()
+        try {
+            if (searchCriteria === '') { // If search criteria is empty, retrieve all records
+                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
+                const data = await getDocs(q)
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                setNewsArticleList(processDate(resList))
+            } else {
+                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
+                const data = await getDocs(q)
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const filteredList = resList.filter((newsArticle) => newsArticle.title.toLowerCase().includes(searchCriteria.toLowerCase()) || newsArticle.sport == searchCriteria.toLowerCase())
+                setNewsArticleList(processDate(filteredList))
+            }
+        } catch (err) {
+            console.error(err)
+        }
     }
 
 
@@ -47,15 +64,17 @@ export default function NewsArticles() {
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>News Articles</Typography>
                     <Box display='flex'>
-                        <TextField className='searchTextField' placeholder='SEARCH'/>
-                        <Button variant='search'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                        <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
+                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                        </form>
                     </Box>
                 </Box>
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {newsArticleList.map((newsArticle) => (
-                        <Grid key={newsArticle.id} item width='350px' height='100%' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                        <Grid key={newsArticle.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
                             <Card sx={{borderRadius:'15px', height:'100%'}} >
-                                <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)}>
+                                <CardActionArea onClick={() => window.location.href = `/ViewNewsArticle?id=${newsArticle.id}`} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                     <CardContent sx={{padding:'0'}}>
                                         <Stack>
                                             <Box height='200px' width='350px'>
@@ -67,7 +86,7 @@ export default function NewsArticles() {
                                                     <Typography sx={{textTransform:'uppercase'}}  variant='subtitle4'>{newsArticle.date[0]} {newsArticle.date[1]}, {newsArticle.date[2]}</Typography>
                                                 </Box>
                                                 <Box display='flex'>
-                                                    <Typography className='multilineConcat' variant='h4'>{newsArticle.title}</Typography>
+                                                    <Typography className='tripleLineConcat' variant='h4'>{newsArticle.title}</Typography>
                                                 </Box>
                                             </Stack>
                                         </Stack>
