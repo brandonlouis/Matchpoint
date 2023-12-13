@@ -272,7 +272,7 @@ export default function ManageAccountProfile() {
                                                 <Typography variant='body1'>Not in a team</Typography>
                                                 <Box display='flex' gap='10px'>
                                                     <Button sx={{height:'30px'}} variant='blue'>Join a Team</Button>
-                                                    <Button sx={{height:'30px'}} variant='blue'>Create a Team</Button>
+                                                    <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href = `/CreateTeam`}>Create a Team</Button>
                                                 </Box>
                                             </>
                                         }
