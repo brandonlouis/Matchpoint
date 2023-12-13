@@ -21,6 +21,7 @@ import ManageNewsArticles from './components/admin/ManageNewsArticles';
 import ManageSports from './components/admin/ManageSports';
 
 import ManageAccountProfile from './components/users/ManageAccountProfile';
+import CreateTeam from './components/users/CreateTeam';
 
 import Footer from './components/Footer';
 
@@ -371,6 +372,7 @@ function App() {
                     <Route path="/ManageSports" element={<AdminRoute><ManageSports /></AdminRoute>} />
 
                     <Route path="/ManageAccountProfile" element={<UserRoute><ManageAccountProfile /></UserRoute>} />
+                    <Route path="/CreateTeam" element={<UserRoute><CreateTeam /></UserRoute>} />
                 </Routes>
                 <Footer/>
             </Router>
