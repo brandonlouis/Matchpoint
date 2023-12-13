@@ -5,7 +5,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthContextProvider } from './config/authContext';
 import AdminRoute from './components/accessControl/AdminRoute';
 import UserRoute from './components/accessControl/UserRoute';
-import EventCoordRoute from './components/accessControl/EventCoordRoute';
 import Navbar from './components/Navbar';
 
 import Home from './components/Home';
@@ -20,7 +19,9 @@ import EditAccount from './components/admin/EditAccount';
 import ManageTournaments from './components/admin/ManageTournaments';
 import ManageNewsArticles from './components/admin/ManageNewsArticles';
 import ManageSports from './components/admin/ManageSports';
-import ManageApplications from './components/admin/ManageApplications';
+
+import ManageAccountProfile from './components/users/ManageAccountProfile';
+import CreateTeam from './components/users/CreateTeam';
 
 import Footer from './components/Footer';
 
@@ -351,31 +352,33 @@ const theme = createTheme({
 })
 
 function App() {
-  return (
-    <ThemeProvider theme={theme}>
-        <AuthContextProvider>
-        <Router>
-            <Navbar/>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/Tournaments" element={<Tournaments />} />
-                <Route path="/ViewTournament" element={<ViewTournament />} />
-                <Route path="/ViewMatch" element={<ViewMatch />} />
-                <Route path="/NewsArticles" element={<NewsArticles />} />
-                <Route path="/ViewNewsArticle" element={<ViewNewsArticle />} />
-                
-                <Route path="/ManageAccounts" element={<AdminRoute><ManageAccounts /></AdminRoute>} />
-                <Route path="/EditAccount" element={<AdminRoute><EditAccount /></AdminRoute>} />
-                <Route path="/ManageTournaments" element={<AdminRoute><ManageTournaments /></AdminRoute>} />
-                <Route path="/ManageNewsArticles" element={<AdminRoute><ManageNewsArticles /></AdminRoute>} />
-                <Route path="/ManageSports" element={<AdminRoute><ManageSports /></AdminRoute>} />
-                <Route path="/ManageApplications" element={<AdminRoute><ManageApplications /></AdminRoute>} />
-            </Routes>
-            <Footer/>
-        </Router>
-        </AuthContextProvider>
-    </ThemeProvider>
-  );
+    return (
+        <ThemeProvider theme={theme}>
+            <AuthContextProvider>
+            <Router>
+                <Navbar/>
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/Tournaments" element={<Tournaments />} />
+                    <Route path="/ViewTournament" element={<ViewTournament />} />
+                    <Route path="/ViewMatch" element={<ViewMatch />} />
+                    <Route path="/NewsArticles" element={<NewsArticles />} />
+                    <Route path="/ViewNewsArticle" element={<ViewNewsArticle />} />
+                    
+                    <Route path="/ManageAccounts" element={<AdminRoute><ManageAccounts /></AdminRoute>} />
+                    <Route path="/EditAccount" element={<AdminRoute><EditAccount /></AdminRoute>} />
+                    <Route path="/ManageTournaments" element={<AdminRoute><ManageTournaments /></AdminRoute>} />
+                    <Route path="/ManageNewsArticles" element={<AdminRoute><ManageNewsArticles /></AdminRoute>} />
+                    <Route path="/ManageSports" element={<AdminRoute><ManageSports /></AdminRoute>} />
+
+                    <Route path="/ManageAccountProfile" element={<UserRoute><ManageAccountProfile /></UserRoute>} />
+                    <Route path="/CreateTeam" element={<UserRoute><CreateTeam /></UserRoute>} />
+                </Routes>
+                <Footer/>
+            </Router>
+            </AuthContextProvider>
+        </ThemeProvider>
+    );
 }
 
 export default App;
