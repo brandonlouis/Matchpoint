@@ -9,7 +9,7 @@ Requirements:
 ## Setup
 
 1. Put `serviceAccountKey.json` into `/server` folder
-2. In the terminal, make sure you are in `/matchpoint` folder
+2. In the terminal, make sure you are in `/Matchpoint` folder
 3. Type `npm install` in terminal
 4. Navigate into `/server` folder
 5. Type `npm install` again
@@ -20,7 +20,7 @@ Requirements:
 
 ## Run
 
-1. In the terminal, make sure you are in `/matchpoint` folder
+1. In the terminal, make sure you are in `/Matchpoint` folder
 2. Type `npm start` in terminal
 3. Navigate into `/server` folder
 4. Type `node server.js` in terminal
