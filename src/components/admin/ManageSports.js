@@ -200,7 +200,7 @@ export default function ManageSports() {
         <React.Fragment>
             <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
                 <DialogTitle>
-                    <Typography variant='h5'>Delete Sport</Typography>
+                    Delete Sport
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>

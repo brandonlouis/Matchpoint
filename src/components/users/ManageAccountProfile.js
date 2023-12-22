@@ -37,6 +37,7 @@ export default function ManageAccountProfile() {
     }
     const [errorMessage, setErrorMessage] = useState('')
 
+    
     useEffect(() => {
         const getSports = async () => {
             try {
@@ -140,6 +141,7 @@ export default function ManageAccountProfile() {
     const saveChanges = async () => {
         try {
             await changeEmail(email.toLowerCase())
+            await changePassword(newPassword)
             await updateDoc(doc(db, 'accounts', user.uid), {
                 username: username.toLowerCase(),
                 fullName: fullName.trim().toLowerCase(),
@@ -222,8 +224,6 @@ export default function ManageAccountProfile() {
                                         <TextField value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className='inputTextField' variant='outlined' label='Confirm Password' type='password'/>
                                     </>
                                 }
-                                
-
 
                                 <Stack marginTop='25px' gap='5px'>
                                     <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
@@ -272,7 +272,7 @@ export default function ManageAccountProfile() {
                                                 <Typography variant='body1'>Not in a team</Typography>
                                                 <Box display='flex' gap='10px'>
                                                     <Button sx={{height:'30px'}} variant='blue'>Join a Team</Button>
-                                                    <Button sx={{height:'30px'}} variant='blue'>Create a Team</Button>
+                                                    <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/CreateTeam'}>Create a Team</Button>
                                                 </Box>
                                             </>
                                         }

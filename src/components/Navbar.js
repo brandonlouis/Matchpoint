@@ -7,8 +7,7 @@ import { UserAuth } from '../config/authContext'
 import { getDocs, collection, doc, setDoc, where, query, orderBy } from 'firebase/firestore'
 
 export default function Navbar() {
-    const { createUser } = UserAuth()
-    const { user, moreUserInfo, login, logout } = UserAuth()
+    const { createUser, user, moreUserInfo, login, logout } = UserAuth()
 
     const [loginSignUp, setLoginSignUp] = useState('login') // ['login', 'signUp']
     const [openModal, setOpenModal] = useState(false)
@@ -37,6 +36,8 @@ export default function Navbar() {
         'auth/invalid-email': "Invalid Email address",
         'auth/weak-password': "Password must be at least 6 characters long",
         'auth/invalid-credential': "Incorrect Email or Password",
+        'auth/wrong-password': "Incorrect Email or Password",
+        'auth/user-not-found': "Incorrect Email or Password",
         'auth/too-many-requests': "Too many invalid attempts, please try again later",
 
         // Outside of firebase error codes
@@ -99,6 +100,12 @@ export default function Navbar() {
                         region: regRegion,
                         sportInterests: regSports.slice().sort()
                     })
+                    setDoc(doc(db, "profiles", userCredential.user.uid), {
+                        first: 0,
+                        second: 0,
+                        third: 0,
+                        tournamentsParticipated: 0
+                    })
                     alert('Account created successfully')
                     setOpenModal(false) // Close modal after account creation
                 })
@@ -114,6 +121,7 @@ export default function Navbar() {
             await login(loginEmail, loginPassword)
             window.location.reload()
         } catch (err) {
+            console.log(err)
             setErrorMessage(errorMessageContent[err.code])
         }
     }

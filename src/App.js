@@ -15,7 +15,6 @@ import NewsArticles from './components/NewsArticles';
 import ViewNewsArticle from './components/ViewNewsArticle';
 
 import ManageAccounts from './components/admin/ManageAccounts';
-import EditAccount from './components/admin/EditAccount';
 import ManageTournaments from './components/admin/ManageTournaments';
 import ManageNewsArticles from './components/admin/ManageNewsArticles';
 import ManageSports from './components/admin/ManageSports';
@@ -348,6 +347,20 @@ const theme = createTheme({
                 },
             },
         },
+        MuiDialog: {
+            styleOverrides: {
+                root: {
+                    "& .MuiDialog-paper": {
+                        borderRadius: '15px',
+                    },
+                    "& .MuiDialogTitle-root": {
+                        fontFamily: 'Saira Semi Condensed',
+                        fontWeight: 'bold',
+                        color: '#222',
+                    },
+                },
+            },
+        },
     },
 })
 
@@ -366,7 +379,6 @@ function App() {
                     <Route path="/ViewNewsArticle" element={<ViewNewsArticle />} />
                     
                     <Route path="/ManageAccounts" element={<AdminRoute><ManageAccounts /></AdminRoute>} />
-                    <Route path="/EditAccount" element={<AdminRoute><EditAccount /></AdminRoute>} />
                     <Route path="/ManageTournaments" element={<AdminRoute><ManageTournaments /></AdminRoute>} />
                     <Route path="/ManageNewsArticles" element={<AdminRoute><ManageNewsArticles /></AdminRoute>} />
                     <Route path="/ManageSports" element={<AdminRoute><ManageSports /></AdminRoute>} />

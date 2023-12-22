@@ -220,7 +220,7 @@ export default function ManageNewsArticles() {
         <React.Fragment>
             <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
                 <DialogTitle>
-                    <Typography variant='h5'>Delete News Article</Typography>
+                    Delete News Article
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>

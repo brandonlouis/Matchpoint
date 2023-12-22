@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Modal, Stack, TextField, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import { useNavigate } from 'react-router-dom';
 import { db } from '../../config/firebase';
 import { getDocs, getDoc, doc, collection, query, orderBy, deleteDoc } from 'firebase/firestore';
 import axios from 'axios';
@@ -46,6 +45,7 @@ export default function ManageAccounts() {
         try {
             await axios.post('http://localhost/deleteUser', { id })
             await deleteDoc(doc(db, 'accounts', id))
+            await deleteDoc(doc(db, 'profiles', id))
             alert('Account deleted successfully')
             window.location.reload()
           } catch (err) {
@@ -57,7 +57,8 @@ export default function ManageAccounts() {
         e.preventDefault()
         try {
             if (searchCriteria === '') { // If search criteria is empty, retrieve all accounts
-                const data = await getDocs(collection(db, 'accounts'))
+                const q = query(collection(db, 'accounts'), orderBy('username'))
+                const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(account => account.type !== 'admin')
                 setAccountsList(resList)
             } else { // If search criteria is not empty, retrieve accounts that match the search criteria
@@ -69,11 +70,6 @@ export default function ManageAccounts() {
         } catch (err) {
             console.error(err)
         }
-    }
-
-    const navigate = useNavigate()
-    const editAccount=(param)=>{
-        navigate('/EditAccount',{state:{id:param}}) // Handle navigation while passing user ID as parameter
     }
 
     
@@ -183,10 +179,7 @@ export default function ManageAccounts() {
                         </table>
                     </Stack>
 
-                    <Box display='flex' flexDirection='row' justifyContent='space-between'>
-                        <Button onClick={() => editAccount(accountDetails.id)} sx={{width:'170px'}} variant='blue'>Edit Account</Button>
-                        <Button onClick={() => setOpenConfirmation(true)} sx={{width:'170px'}} variant='red'>Delete Account</Button>
-                    </Box>
+                    <Button onClick={() => setOpenConfirmation(true)} variant='red' fullWidth>Delete Account</Button>
                 </Stack>
             </Box>
         </Modal>
@@ -194,7 +187,7 @@ export default function ManageAccounts() {
         <React.Fragment>
             <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
                 <DialogTitle>
-                    <Typography variant='h5'>Delete Account</Typography>
+                    Delete Account
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>

@@ -296,7 +296,7 @@ export default function ManageTournaments() {
         <React.Fragment>
             <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
                 <DialogTitle>
-                    <Typography variant='h5'>Suspend Tournament</Typography>
+                    Suspend Tournament
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
