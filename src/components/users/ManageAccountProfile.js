@@ -76,7 +76,7 @@ export default function ManageAccountProfile() {
         }
         const getTeam = async () => {
             try {
-                const q = query(collection(db, 'teams'), or(where('leader', '==', user.uid), where('members', 'array-contains', user.uid)))
+                const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data()}))
                 setTeamInfo(resList)
@@ -131,30 +131,35 @@ export default function ManageAccountProfile() {
                     }
                 }
 
-                saveChanges()
+                try {
+                    await changeEmail(email.toLowerCase())
+                    await changePassword(newPassword)
+                    await updateDoc(doc(db, 'accounts', user.uid), {
+                        username: username.toLowerCase(),
+                        fullName: fullName.trim().toLowerCase(),
+                        email: email.toLowerCase(),
+                        gender: gender.toLowerCase(),
+                        region: region,
+                        sportInterests: sports.slice().sort()
+                    })
+                    alert('Account updated successfully')
+                    toggleEditMode(false)
+                } catch (err) {
+                    console.error(err)
+                }
             }
         } catch (err) {
             console.error(err)
         }
     }
 
-    const saveChanges = async () => {
-        try {
-            await changeEmail(email.toLowerCase())
-            await changePassword(newPassword)
-            await updateDoc(doc(db, 'accounts', user.uid), {
-                username: username.toLowerCase(),
-                fullName: fullName.trim().toLowerCase(),
-                email: email.toLowerCase(),
-                gender: gender.toLowerCase(),
-                region: region,
-                sportInterests: sports.slice().sort()
-            })
-            alert('Account updated successfully')
-            toggleEditMode(false)
-        } catch (err) {
-            console.error(err)
-        }
+    const revertChanges = () => {
+        setUsername(originalDetails.username)
+        setFullName(originalDetails.fullName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '))
+        setEmail(originalDetails.email)
+        setGender(originalDetails.gender)
+        setRegion(originalDetails.region)
+        setSports(originalDetails.sportInterests)
     }
 
     const toggleEditMode = (val) => {
@@ -227,11 +232,12 @@ export default function ManageAccountProfile() {
 
                                 <Stack marginTop='25px' gap='5px'>
                                     <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
-                                    <Box display='flex' gap='20px' sx={{justifyContent: 'flex-start'}}>
+                                    
+                                    <Box display='flex' gap='50px' justifyContent='flex-start'>
                                         {editMode ?
                                             <>
                                                 <Button sx={{width:'250px'}} variant='blue' type='submit'>Save Changes</Button>
-                                                <Button sx={{width:'120px'}} variant='red' onClick={() => toggleEditMode(false)}>Back</Button>
+                                                <Button sx={{width:'120px'}} variant='red' onClick={() => {toggleEditMode(false); revertChanges()}}>Back</Button>
                                             </>
                                             :
                                             <Button onClick={(e) => {e.preventDefault(); toggleEditMode(true)}} sx={{width:'250px'}} variant='blue'>Edit Account</Button>
@@ -247,7 +253,7 @@ export default function ManageAccountProfile() {
                             <Typography variant='h3'>Profile</Typography>
                         </Box>
                         <Box display='flex' gap='50px'>
-                            <Stack alignItems='center' justifyContent='center' gap='15px' padding='30px'>
+                            <Stack alignItems='center' justifyContent='center' gap='10px' padding='30px'>
                                 <Stack gap='5px'>
                                     <Typography variant='h5'>@{moreUserInfo?.username}</Typography>
                                     <Typography textTransform='capitalize' textAlign='center' variant='subtitle4'>{moreUserInfo?.fullName}</Typography>
@@ -258,14 +264,14 @@ export default function ManageAccountProfile() {
                             <Stack gap='50px' width='100%'>
                                 <Stack gap='25px'>
                                     <Stack gap='10px'>
-                                        <Typography textTransform='uppercase' letterSpacing='5px' variant='h5'>Team</Typography>
+                                        <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
                                         <hr width='100%'/>
                                     </Stack>
                                     <Box display='flex' justifyContent='space-between' alignItems='center'>
                                         {teamInfo[0] ?
                                             <>
-                                                <Typography variant='body1'>@{teamInfo[0].handle}</Typography>
-                                                <Button sx={{height:'30px'}} variant='blue'>View Team</Button>
+                                                <Typography variant='body1'  color='#222'>@{teamInfo[0].handle}</Typography>
+                                                <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/ManageTeam'}>View Team</Button>
                                             </>
                                             : 
                                             <>
@@ -281,7 +287,7 @@ export default function ManageAccountProfile() {
 
                                 <Stack gap='25px'>
                                     <Stack gap='10px'>
-                                        <Typography textTransform='uppercase' letterSpacing='5px' variant='h5'>Statistics</Typography>
+                                        <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
                                         <hr width='100%'/>
                                     </Stack>
                                     <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
@@ -290,22 +296,22 @@ export default function ManageAccountProfile() {
                                             <Box display='flex' gap='25px'>
                                                 <Box display='flex' gap='5px'>
                                                     <img width='25px' src={require('../../img/icons/first.png')}/>
-                                                    <Typography variant='body1'>{profileInfo?.first}</Typography>
+                                                    <Typography variant='body1' color='#222'>{profileInfo?.first}</Typography>
                                                 </Box>
                                                 <Box display='flex' gap='5px'>
                                                     <img width='25px' src={require('../../img/icons/second.png')}/>
-                                                    <Typography variant='body1'>{profileInfo?.second}</Typography>
+                                                    <Typography variant='body1' color='#222'>{profileInfo?.second}</Typography>
                                                 </Box>
                                                 <Box display='flex' gap='5px'>
                                                     <img width='25px' src={require('../../img/icons/third.png')}/>
-                                                    <Typography variant='body1'>{profileInfo?.third}</Typography>
+                                                    <Typography variant='body1' color='#222'>{profileInfo?.third}</Typography>
                                                 </Box>
                                             </Box>
                                         </Stack>
                                         <Stack width='100%'>
                                             <Typography fontWeight='bold' variant='body1'>Tournaments Played</Typography>
                                             <Box display='flex'>
-                                                <Typography variant='body1'>{profileInfo?.tournamentsParticipated}</Typography>
+                                                <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
                                             </Box>
                                         </Stack>
                                     </Box>

@@ -2,22 +2,25 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Button, Checkbox, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material'
 import { db } from '../../config/firebase'
-import { getDocs, collection, addDoc, query, where, orderBy  } from 'firebase/firestore'
+import { UserAuth } from '../../config/authContext'
+import { getDocs, collection, doc, addDoc, setDoc, query, where, orderBy  } from 'firebase/firestore'
 
 export default function CreateTeam() {    
+    const { user } = UserAuth()
+
     const [handle, setHandle] = useState('')
     const [name, setName] = useState('')
     const [region, setRegion] = useState('')
-    const regions = ["North", "Central", "East", "West", "North-East"]
-    const [sports, setSports] = useState([]);
-
-    const [sportsList, setSportsList] = useState([])
+    const [sports, setSports] = useState([])
     const [capacity, setCapacity] = useState('')
     const [gender, setGender] = useState('')
-    const genders = ["male", "female", "mixed"]
-    const [privacy, setprivacy] = useState('')
-    const privacies = ["private", "public"]
+    const [privacy, setPrivacy] = useState('')
+    const [sportsList, setSportsList] = useState([])
     
+    const genders = ["male", "female", "mixed"]
+    const regions = ["North", "Central", "East", "West", "North-East"]
+    const privacies = ["private", "public"]
+ 
     const [errorMessage, setErrorMessage] = useState('')
 
     useEffect(() => {
@@ -53,13 +56,23 @@ export default function CreateTeam() {
                     handle: handle.toLowerCase(),
                     name: name.trim().toLowerCase(),
                     region: region,
-                    sportInterests: sports.slice().sort(),
+                    sports: sports.slice().sort(),
+                    genderReq: gender.toLowerCase(),
                     maxCapacity: capacity,
-                    gender: gender.toLowerCase(),
                     privacy: privacy,
-                });
-                alert('Team has been created')
-                window.location.href = '/ManageAccountProfile'  
+                    leader: user.uid,
+                    members: [user.uid]
+
+                }).then((docRef) => {
+                    setDoc(doc(db, "profiles", docRef.id), {
+                        first: 0,
+                        second: 0,
+                        third: 0,
+                        tournamentsParticipated: 0
+                    })
+                    alert('Team has been created')
+                    window.location.href = '/ManageAccountProfile'  
+                })
             }
         } catch (err) {
             console.error(err)
@@ -114,7 +127,7 @@ export default function CreateTeam() {
 
                                 <FormControl className='dropdownList' fullWidth>
                                     <InputLabel>Privacy</InputLabel>
-                                    <Select label='privacy' value={privacy} onChange={(e) => setprivacy(e.target.value)} required>
+                                    <Select label='privacy' value={privacy} onChange={(e) => setPrivacy(e.target.value)} required>
                                         {privacies.map((privacy) => {
                                             return <MenuItem value={privacy} key={privacy}><Typography variant='action'>{privacy}</Typography></MenuItem>
                                         })}
@@ -125,7 +138,7 @@ export default function CreateTeam() {
                             <Stack marginTop='25px' gap='5px'>
                                 <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
 
-                                <Box display='flex' gap='20px' sx={{justifyContent: 'flex-start'}}>
+                                <Box display='flex' gap='50px' sx={{justifyContent: 'flex-start'}}>
                                     <Button sx={{width:'250px'}} variant='blue' type='submit' >Create Team</Button>
                                     <Button sx={{width:'120px'}} variant='red' onClick={() => window.location.href = `/ManageAccountProfile`}>Back</Button>
                                 </Box>

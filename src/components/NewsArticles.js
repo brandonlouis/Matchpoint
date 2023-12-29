@@ -58,7 +58,6 @@ export default function NewsArticles() {
 
 
     return (
-        <>
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Stack width='80%'>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
@@ -98,6 +97,5 @@ export default function NewsArticles() {
                 </Grid>
             </Stack>
         </Box>
-        </>
     )
 }

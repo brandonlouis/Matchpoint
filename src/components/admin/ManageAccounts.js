@@ -164,15 +164,7 @@ export default function ManageAccounts() {
                                         <Typography variant='subtitle2'>Sport(s):</Typography>
                                     </td>
                                     <td>
-                                        <Typography textTransform='capitalize'variant='subtitle3'>
-                                            {accountDetails.sportInterests?.length > 1 ?
-                                                accountDetails.sportInterests?.map((sport, index, array) => (
-                                                    index === array.length - 1 ? sport : sport + ', '
-                                                )).join('')
-                                                :
-                                                accountDetails.sportInterests
-                                            }
-                                        </Typography>
+                                        <Typography textTransform='capitalize'variant='subtitle3'>{accountDetails?.sportInterests?.join(', ')}</Typography>
                                     </td>
                                 </tr>
                             </tbody>

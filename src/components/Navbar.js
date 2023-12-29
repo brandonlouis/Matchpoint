@@ -145,7 +145,7 @@ export default function Navbar() {
                     <a href='/' style={{marginLeft:'10px'}}><Typography variant='action'>Home</Typography></a>
                     <a href='/Tournaments'><Typography variant='action'>Tournaments</Typography></a>
                     <a href='/NewsArticles'><Typography variant='action'>News Articles</Typography></a>
-                    <a href='#'><Typography variant='action'>Players & Teams</Typography></a>
+                    <a href='/PlayersTeams'><Typography variant='action'>Players & Teams</Typography></a>
                 </Box>
                 {!user ?
                     <Box display='flex' alignItems='center' margin='28px 0' padding='10px' bgcolor='white' borderRadius='15px' boxShadow='0 5px 10px rgba(0, 0, 0, 0.3)'>

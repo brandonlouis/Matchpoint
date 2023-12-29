@@ -13,6 +13,7 @@ import ViewTournament from './components/ViewTournament';
 import ViewMatch from './components/ViewMatch';
 import NewsArticles from './components/NewsArticles';
 import ViewNewsArticle from './components/ViewNewsArticle';
+import PlayersTeams from './components/PlayersTeams';
 
 import ManageAccounts from './components/admin/ManageAccounts';
 import ManageTournaments from './components/admin/ManageTournaments';
@@ -21,6 +22,7 @@ import ManageSports from './components/admin/ManageSports';
 
 import ManageAccountProfile from './components/users/ManageAccountProfile';
 import CreateTeam from './components/users/CreateTeam';
+import ManageTeam from './components/users/ManageTeam';
 
 import Footer from './components/Footer';
 
@@ -164,6 +166,7 @@ const theme = createTheme({
                             backgroundColor: '#B53030',
                         },
                         '&:disabled ': {
+                            backgroundColor: 'grey',
                             color: 'white',
                             opacity: '0.5',
                         },
@@ -197,9 +200,16 @@ const theme = createTheme({
                         fontWeight: 'bold',
                         letterSpacing: '1px',
                         padding: '10px 20px',
+                        height: '45px',
+                        width: '60px',
 
                         '&:hover': {
                             backgroundColor: '#2BA137',
+                        },
+                        '&:disabled ': {
+                            backgroundColor: 'grey',
+                            color: 'white',
+                            opacity: '0.5',
                         },
                     },
                 },
@@ -377,6 +387,7 @@ function App() {
                     <Route path="/ViewMatch" element={<ViewMatch />} />
                     <Route path="/NewsArticles" element={<NewsArticles />} />
                     <Route path="/ViewNewsArticle" element={<ViewNewsArticle />} />
+                    <Route path="/PlayersTeams" element={<PlayersTeams />} />
                     
                     <Route path="/ManageAccounts" element={<AdminRoute><ManageAccounts /></AdminRoute>} />
                     <Route path="/ManageTournaments" element={<AdminRoute><ManageTournaments /></AdminRoute>} />
@@ -385,6 +396,7 @@ function App() {
 
                     <Route path="/ManageAccountProfile" element={<UserRoute><ManageAccountProfile /></UserRoute>} />
                     <Route path="/CreateTeam" element={<UserRoute><CreateTeam /></UserRoute>} />
+                    <Route path="/ManageTeam" element={<UserRoute><ManageTeam /></UserRoute>} />
                 </Routes>
                 <Footer/>
             </Router>
