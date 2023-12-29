@@ -366,7 +366,7 @@ export default function ManageTeam() {
                                     <Stack gap='25px' width='50%'>
                                         <Stack>
                                             <Typography fontWeight='bold' variant='body1'>Region</Typography>
-                                            <Typography variant='body1' color='#222'>{region}</Typography>
+                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{region}</Typography>
                                         </Stack>
                                         <Stack>
                                             <Typography fontWeight='bold' variant='body1'>Gender</Typography>

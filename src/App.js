@@ -14,6 +14,7 @@ import ViewMatch from './components/ViewMatch';
 import NewsArticles from './components/NewsArticles';
 import ViewNewsArticle from './components/ViewNewsArticle';
 import PlayersTeams from './components/PlayersTeams';
+import ViewProfile from './components/ViewProfile';
 
 import ManageAccounts from './components/admin/ManageAccounts';
 import ManageTournaments from './components/admin/ManageTournaments';
@@ -388,6 +389,7 @@ function App() {
                     <Route path="/NewsArticles" element={<NewsArticles />} />
                     <Route path="/ViewNewsArticle" element={<ViewNewsArticle />} />
                     <Route path="/PlayersTeams" element={<PlayersTeams />} />
+                    <Route path="/ViewProfile" element={<ViewProfile />} />
                     
                     <Route path="/ManageAccounts" element={<AdminRoute><ManageAccounts /></AdminRoute>} />
                     <Route path="/ManageTournaments" element={<AdminRoute><ManageTournaments /></AdminRoute>} />

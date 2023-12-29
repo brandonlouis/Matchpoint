@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Box, Button, Checkbox, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material'
 import { db } from '../../config/firebase'
 import { UserAuth } from '../../config/authContext'
-import { getDoc, getDocs, updateDoc, collection, doc, where, query, orderBy, or } from 'firebase/firestore'
+import { getDoc, getDocs, updateDoc, collection, doc, where, query, orderBy } from 'firebase/firestore'
 
 export default function ManageAccountProfile() {
     const { changeEmail, changePassword } = UserAuth()
@@ -277,7 +277,7 @@ export default function ManageAccountProfile() {
                                             <>
                                                 <Typography variant='body1'>Not in a team</Typography>
                                                 <Box display='flex' gap='10px'>
-                                                    <Button sx={{height:'30px'}} variant='blue'>Join a Team</Button>
+                                                    <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'}>Join a Team</Button>
                                                     <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/CreateTeam'}>Create a Team</Button>
                                                 </Box>
                                             </>
