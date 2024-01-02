@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Button, Card, CardActionArea, CardContent, Grid, Stack, Typography } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Grid, Stack, Typography } from '@mui/material'
 import { FacebookShareButton, TwitterShareButton } from 'react-share'
 import { db } from '../config/firebase';
 import { getDoc, getDocs, doc, collection, query, orderBy, limit } from 'firebase/firestore';
@@ -9,6 +9,7 @@ export default function ViewNewsArticle() {
 
     const [newsArticleDetails, setNewsArticleDetails] = useState({})
     const [newsArticleList, setNewsArticleList] = useState([])
+    const [authorName, setAuthorName] = useState('')
 
     useEffect(() => {
         const getNewsArticle = async () => {
@@ -16,6 +17,7 @@ export default function ViewNewsArticle() {
                 const res = await getDoc(doc(db, 'newsArticles', articleID))
                 const resList = res.data()
                 setNewsArticleDetails(processDate(resList))
+                getAuthorName(resList.author)
             } catch (err) {
                 console.error(err)
             }
@@ -30,18 +32,25 @@ export default function ViewNewsArticle() {
                 console.error(err)
             }
         }
+        const getAuthorName = async (author) => {
+            try {
+                const res = await getDoc(doc(db, 'accounts', author))
+                const resList = res.data()
+                setAuthorName(resList.fullName)
+            } catch (err) {
+                console.error(err)
+            }
+        }
         getNewsArticle()
         getNewsArticles()
     }, [])
     
     const processDate = (article) => {
         const date = article.date.toDate().toDateString().split(' ').slice(1)
-        const description = article.description.replaceAll('\\n', '\n')
 
         return {
             ...article,
-            date,
-            description
+            date
         }
     }
     const processListDate = (list) => {
@@ -64,24 +73,26 @@ export default function ViewNewsArticle() {
     return (
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Stack width='65%' gap='20px'>
-                <img src={newsArticleDetails.imgURL}/>
+                <img src={newsArticleDetails.bannerURL}/>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Stack gap='50px' width='100%'>
-                        <Typography variant='h2'>{newsArticleDetails.title}</Typography>
-                        <Box display='flex' justifyContent='space-between'>
-                            <Typography color='#666' fontWeight='600' variant='subtitle2'>
-                                {newsArticleDetails.author}&nbsp;&nbsp;|&nbsp;&nbsp;  {newsArticleDetails.date && newsArticleDetails.date.length === 3 &&
-                                `${newsArticleDetails.date[0]} ${newsArticleDetails.date[1]}, ${newsArticleDetails.date[2]}`
-                                }&nbsp;&nbsp;|&nbsp;&nbsp;
-                                {newsArticleDetails.sport}
-                            </Typography>
-                            <Box display='flex' alignItems='center' gap='10px'>
-                                <Typography color='#666' fontWeight='600' variant='subtitle2'>Share:</Typography>
-                                <FacebookShareButton url={window.location.href}><Button sx={{width:'100px', bgcolor:'#253957'}} variant='blue'><img width='25px' src={require('../img/icons/fbShare.png')}/></Button></FacebookShareButton>
-                                <TwitterShareButton url={window.location.href}><Button sx={{width:'100px', bgcolor:'#17729D'}} variant='blue'><img width='25px' src={require('../img/icons/twitterShare.png')}/></Button></TwitterShareButton>
+                        <Stack gap='15px'>
+                            <Typography variant='h2'>{newsArticleDetails.title}</Typography>
+                            <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                <Typography color='#666' fontWeight='600' variant='subtitle2'>
+                                    {authorName}&nbsp;&nbsp;|&nbsp;&nbsp;  {newsArticleDetails.date && newsArticleDetails.date.length === 3 &&
+                                    `${newsArticleDetails.date[0]} ${newsArticleDetails.date[1]}, ${newsArticleDetails.date[2]}`
+                                    }&nbsp;&nbsp;|&nbsp;&nbsp;
+                                    {newsArticleDetails.sport}
+                                </Typography>
+                                <Box display='flex' alignItems='center' gap='10px'>
+                                    <Typography color='#666' fontWeight='600' variant='subtitle2'>Share:</Typography>
+                                    <FacebookShareButton className='fbShareButton' url={window.location.href}><img width='25px' src={require('../img/icons/fbShare.png')}/></FacebookShareButton>
+                                    <TwitterShareButton className='twitterShareButton' url={window.location.href}><img width='25px' src={require('../img/icons/twitterShare.png')}/></TwitterShareButton>
+                                </Box>
                             </Box>
-                        </Box>
-                        <Typography sx={{whiteSpace:'pre-line'}} variant='body1'>{newsArticleDetails.description}</Typography>
+                        </Stack>
+                        <Typography sx={{whiteSpace:'pre-line'}} variant='body1'>{newsArticleDetails.content}</Typography>
                         <Stack marginTop='100px' gap='35px'>
                             <hr width='100%'/>
                             <Typography variant='h3'>More Articles</Typography>
@@ -94,7 +105,7 @@ export default function ViewNewsArticle() {
                                                 <CardContent sx={{padding:'0'}}>
                                                     <Stack>
                                                         <Box height='200px' width='350px'>
-                                                            <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.imgURL}/>
+                                                            <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.bannerURL}/>
                                                         </Box>
                                                         <Stack bgcolor='white' height='100%' padding='15px 25px 30px' gap='15px'>
                                                             <Box display='flex' justifyContent='space-between'>

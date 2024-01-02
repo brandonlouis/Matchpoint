@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 import { Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Modal, Stack, TextField, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../../config/firebase';
+import { UserAuth } from '../../config/authContext';
 import { getDoc, getDocs, deleteDoc, doc, collection, query, orderBy } from 'firebase/firestore';
+import { ref, getStorage, deleteObject } from 'firebase/storage';
 
-export default function ManageNewsArticles() {
+export default function MyNewsArticles() {
+    const { user } = UserAuth()
+    const navigate = useNavigate()
+
     const [openModal, setOpenModal] = useState(false)
     const [openConfirmation, setOpenConfirmation] = useState(false)
 
     const [newsArticleList, setNewsArticleList] = useState([])
     const [newsArticleDetails, setNewsArticleDetails] = useState({})
-    const [authorName, setAuthorName] = useState('')
-    
+
     const [searchCriteria, setSearchCriteria] = useState('')
 
 
@@ -20,7 +25,8 @@ export default function ManageNewsArticles() {
             try {
                 const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((newsArticle) => newsArticle.author === user.uid) // Filter list by author
+                
                 setNewsArticleList(processListDate(resList))
             } catch (err) {
                 console.error(err)
@@ -56,17 +62,6 @@ export default function ManageNewsArticles() {
             const appendID = resList.data()
             appendID.id = id // Append id to list
             setNewsArticleDetails(processDate(appendID))
-            getAuthorName(appendID.author)
-        } catch (err) {
-            console.error(err)
-        }
-    }
-
-    const getAuthorName = async (author) => {
-        try {
-            const res = await getDoc(doc(db, 'accounts', author))
-            const resList = res.data()
-            setAuthorName(resList.fullName)
         } catch (err) {
             console.error(err)
         }
@@ -75,6 +70,7 @@ export default function ManageNewsArticles() {
     const deleteNewsArticle = async (id) => {
         try {
             await deleteDoc(doc(db, 'newsArticles', id))
+            await deleteObject(ref(getStorage(), `newsArticles/${id}-banner`))
             alert('News Article deleted successfully')
             window.location.reload()
         } catch (err) {
@@ -87,13 +83,17 @@ export default function ManageNewsArticles() {
         try {
             const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
             const data = await getDocs(q)
-            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-            const filteredList = resList.filter((newsArticle) => newsArticle.title.toLowerCase().includes(searchCriteria.toLowerCase()) || newsArticle.sport == searchCriteria.toLowerCase())
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((newsArticle) => newsArticle.author === user.uid) // Filter list by author
+            const filteredList = resList.filter((newsArticle) => newsArticle.title.toLowerCase().includes(searchCriteria.toLowerCase()) || newsArticle.sport == searchCriteria.toLowerCase()) // Filter list by search criteria
             
             setNewsArticleList(processListDate(filteredList))
         } catch (err) {
             console.error(err)
         }
+    }
+
+    const editNewsArticle= (param) =>{
+        navigate('/EditNewsArticle', {state:{id:param}}) // Handle navigation while passing ID as hidden parameter
     }
 
 
@@ -102,8 +102,9 @@ export default function ManageNewsArticles() {
         <Box height='100%' width='100%' minHeight='460px' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Stack width='80%'>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
-                    <Typography variant='h3'>Manage News Articles</Typography>
-                    <Box display='flex'>
+                    <Typography variant='h3'>My News Articles</Typography>
+                    <Box display='flex' gap='15px'>
+                        <Button style={{height:'45px', width:'65px'}} variant='green'><img src={require('../../img/icons/writeArticle.png')} width='30px' onClick={() => window.location.href='/WriteNewsArticle'}/></Button>
                         <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
                             <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
                             <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
@@ -190,14 +191,6 @@ export default function ManageNewsArticles() {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <Typography variant='subtitle2'>Author:</Typography>
-                                    </td>
-                                    <td>
-                                        <Typography textTransform='capitalize' variant='subtitle3'>{authorName}</Typography>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
                                         <Typography variant='subtitle2'>Publish Date:</Typography>
                                     </td>
                                     <td>
@@ -216,7 +209,10 @@ export default function ManageNewsArticles() {
                                 </tr>
                             </tbody>
                         </table>
-                        <Button onClick={() => setOpenConfirmation(true)} fullWidth variant='red' sx={{marginTop:'25px'}}>Delete News Article</Button>
+                        <Box display='flex' justifyContent='space-between' marginTop='25px' gap='50px'>
+                            <Button onClick={() => editNewsArticle(newsArticleDetails.id)} fullWidth variant='blue'>Edit News Article</Button>
+                            <Button onClick={() => setOpenConfirmation(true)} fullWidth variant='red'>Delete News Article</Button>
+                        </Box>
                     </Stack>
                 </Stack>
             </Box>

@@ -33,8 +33,37 @@ a {
     -webkit-box-orient: vertical;
 }
 
+.react-share__ShareButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px;
+    height: 45px;
+    border-radius: 10px;
+}
+.fbShareButton {
+    background-color: #253957 !important;
+}
+.twitterShareButton {
+    background-color: #17729D !important;
+}
 
+.personalizedFilterLabel .MuiTypography-root {
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #222;
+}
 
+.tournamentTab {
+    padding-bottom: 15px;
+    border-bottom: 1px solid transparent;
+    opacity: 0.3;
+}
+.tournamentTab:hover, .active {
+    border-bottom: 1px solid #888;
+    opacity: 1;
+}
 
 
 

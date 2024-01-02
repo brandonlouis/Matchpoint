@@ -12,7 +12,7 @@ export default function Home() {
     useEffect(() => { // Handle retrieving tournament and news article list on load
         const getTournaments = async () => {
             try {
-                const q = query(collection(db, 'tournaments'), limit(3)) // Order list by date in descending order
+                const q = query(collection(db, 'tournaments'), limit(4))
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && tournament.date.end.toDate() > new Date()) // Filter out tournaments that have already ended or are cancelled
                 setTournamentList(processTournamentDate(resList))
@@ -88,7 +88,7 @@ export default function Home() {
                 </Box>
             </Box>
 
-            <Box display='flex' justifyContent='center' height='650px' bgcolor='#EEE'>
+            <Box display='flex' justifyContent='center' padding='100px 0' bgcolor='#EEE'>
                 <Stack width='80%' alignItems='center' justifyContent='center' gap='100px'>
                     <Stack textAlign='center' width='470px' gap='10px'>
                         <Typography variant='h3'>Why choose us?</Typography>
@@ -131,7 +131,7 @@ export default function Home() {
                 </Stack>
             </Box>
 
-            <Box display='flex' justifyContent='center' height='650px'>
+            <Box display='flex' justifyContent='center' padding='130px 0'>
                 <Stack width='80%' justifyContent='center'>
                     <Box display='flex' justifyContent='space-between' alignContent='center'>
                         <Typography variant='h3'>Tournaments</Typography>
@@ -177,22 +177,22 @@ export default function Home() {
                 
             </Box>
 
-            <Box display='flex' justifyContent='center' height='650px' bgcolor='#EEE'>
+            <Box display='flex' justifyContent='center' padding='90px 0' bgcolor='#EEE'>
                 <Stack width='80%' justifyContent='center'>
                     <Box display='flex' justifyContent='space-between' alignContent='center'>
                         <Typography variant='h3'>News Articles</Typography>
                         <a href='/NewsArticles'><Typography color='#006DEE' fontSize='14px' letterSpacing='2px' variant='action'>See More Articles</Typography></a>
                     </Box>
 
-                    <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
+                    <Grid container gap='20px' marginTop='50px'>
                         {newsArticleList.map((newsArticle) => (
-                            <Grid key={newsArticle.id} item width='265px' height='100%' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                            <Grid key={newsArticle.id} item width='265px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
                                 <Card sx={{borderRadius:'15px', height:'100%'}} >
                                     <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                         <CardContent sx={{padding:'0'}}>
                                             <Stack>
                                                 <Box height='200px' width='265px'>
-                                                    <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.imgURL}/>
+                                                    <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.bannerURL}/>
                                                 </Box>
                                                 <Stack bgcolor='white' height='100%' padding='15px 25px 30px' gap='15px'>
                                                     <Box display='flex' justifyContent='space-between'>
@@ -211,7 +211,6 @@ export default function Home() {
                         ))}
                     </Grid>
                 </Stack>
-                
             </Box>
 
             <Box display='flex' justifyContent='center' height='250px' sx={{backgroundImage: `url('${newsletterBG}')`, backgroundRepeat:"no-repeat", backgroundSize:'cover'}}>

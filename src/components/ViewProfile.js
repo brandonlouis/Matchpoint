@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Button, Card, CardActionArea, CardContent, Grid, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Modal, Stack, Typography } from '@mui/material';
 import { db } from '../config/firebase';
 import { UserAuth } from '../config/authContext';
-import { getDoc, getDocs, updateDoc, doc, collection, query, where, documentId } from 'firebase/firestore';
+import { getDoc, getDocs, updateDoc, doc, collection, query, where, orderBy } from 'firebase/firestore';
 
 export default function ViewProfile() {
-    const { user } = UserAuth()
+    const { user, moreUserInfo } = UserAuth()
     const profileID = new URLSearchParams(window.location.search).get("id")
+
+    const [openViewModal, setOpenViewModal] = useState(false)
+    const [openConfirmation, setOpenConfirmation] = useState(false)
 
     const [playerTeamDetails, setPlayerTeamDetails] = useState({})
     const [teamInfo, setTeamInfo] = useState([{}])
     const [profileInfo, setProfileInfo] = useState({})
     const [userTeam, setUserTeam] = useState({})
     const [accountsList, setAccountsList] = useState([{}])
+    const [accountDetails, setAccountDetails] = useState({})
+
 
     useEffect(() => {
         const getPlayerTeam = async () => {
@@ -28,7 +33,7 @@ export default function ViewProfile() {
                     const accountDetails = accountDocSnapshot.data()
                     setPlayerTeamDetails(accountDetails)
                 } else if (teamDocSnapshot.exists()) {
-                    const teamDetails = teamDocSnapshot.data()
+                    const teamDetails = {id: teamDocSnapshot.id, ...teamDocSnapshot.data()}
                     if (user) { // Only retrieve accounts when user is logged in
                         getAccounts(teamDetails)
                     }
@@ -58,20 +63,20 @@ export default function ViewProfile() {
             }
         }
         const getUserTeam = async () => { // Retrieve user's team to check if user belongs in a team
-            try {
-                const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
-                const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-                setUserTeam(resList)
-            } catch (err) {
-                console.error(err)
+            if (user) { // Only retrieve accounts when user is logged in
+                try {
+                    const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
+                    const data = await getDocs(q)
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                    setUserTeam(resList)
+                } catch (err) {
+                    console.error(err)
+                }
             }
         }
         getPlayerTeam()
         getProfile()
-        if (user) { // Only check if user belongs to a team when user is logged in
-            getUserTeam()
-        }
+        getUserTeam()
     }, [])
 
     const joinTeam = async () => {
@@ -87,23 +92,47 @@ export default function ViewProfile() {
 
     const getAccounts = async (membersList) => {
         try {
-            const q = query(collection(db, 'accounts'), where(documentId(), 'in', membersList?.members))
+            const q = query(collection(db, 'accounts'), orderBy('username'))
             const data = await getDocs(q)
-            const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+            const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => membersList?.members?.includes(item.id))
             setAccountsList(resList)
         } catch (err) {
             console.error(err)
         }
     }
-    // TODO: Fix key prop unique ID bug, add "Leave Team" function
+
+    const viewAccount = async (id) => { // Handle view record by populating data to modal
+        setOpenViewModal(true)
+        try {
+            const resList = await getDoc(doc(db, 'accounts', id))
+            const appendID = resList.data()
+            appendID.id = id // Append id to list
+            setAccountDetails(appendID)
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
+    const leaveTeam = async () => {
+        try {
+            await updateDoc(doc(db, 'teams', playerTeamDetails?.id), {
+                members: playerTeamDetails?.members.filter(member => member !== user.uid)
+            })
+            alert('You have left the team')
+            window.location.reload()
+        } catch (err) {
+            console.error(err)
+        }
+    }
 
     
     return (
+        <>
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Box width='80%' display='flex' gap='100px'>
                 {playerTeamDetails.username ?
                     <Stack width='100%' gap='50px'>
-                        <Box display='flex' justifyContent='space-between' alignContent='center'>
+                        <Box display='flex' alignContent='center'>
                             <Typography variant='h3'>Player Profile</Typography>
                         </Box>
                         <Box display='flex' gap='50px'>
@@ -176,7 +205,6 @@ export default function ViewProfile() {
                                         <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
                                         <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
                                     </Box>
-                                    
                                     <hr width='100%'/>
                                     <Box display='flex' marginTop='25px'>
                                         <Stack gap='25px' width='50%'>
@@ -206,16 +234,16 @@ export default function ViewProfile() {
                                     <Box display='flex' justifyContent='space-between'>
                                         <Box display='flex' gap='25px' alignItems='center'>
                                             <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
-                                            {/* <Typography color='#222'>{accountsList.length}/{maxCapacity}</Typography> */}
+                                            <Typography color='#222'>{accountsList.length}/{playerTeamDetails?.maxCapacity}</Typography>
                                         </Box>
-                                        <Button sx={{height:'30px'}} variant='red'>Leave Team</Button>
+                                        <Button sx={{height:'30px'}} variant='red' onClick={() => setOpenConfirmation(true)}>Leave Team</Button>
                                     </Box>
                                     <hr width='100%'/>
                                     <Grid container gap='20px' marginTop='25px' alignItems='center'>
-                                        {accountsList.map((account) => (
-                                            <Grid key={account.id} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                                        {accountsList.map((account, index) => (
+                                            <Grid key={account.id || index} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
                                                 <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
-                                                    <CardActionArea>
+                                                    <CardActionArea onClick={() => viewAccount(account.id)}>
                                                         <CardContent sx={{margin:'16px', overflow:'hidden'}}>
                                                             {playerTeamDetails.leader === account.id && <img src={require('../img/icons/crown.png')} height='20px'/>}
                                                             <Typography variant='h5'>@{account.username}</Typography>
@@ -263,7 +291,7 @@ export default function ViewProfile() {
                         :
                         <Box width='100%' display='flex' gap='100px'>
                             <Stack width='100%' gap='50px'>
-                                <Box display='flex' justifyContent='space-between' alignContent='center'>
+                                <Box display='flex' alignContent='center'>
                                     <Typography variant='h3'>Team Profile</Typography>
                                 </Box>
 
@@ -274,10 +302,9 @@ export default function ViewProfile() {
                                                 <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
                                                 <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
                                             </Box>
-                                            {user && userTeam.length == 0 && parseInt(playerTeamDetails?.members?.length) < playerTeamDetails?.maxCapacity && <Button variant='blue' onClick={joinTeam}>Join Team</Button> }
-                                            {user && userTeam[0]?.leader == user.uid && <Button variant='blue' onClick={() => window.location.href='/ManageTeam'}>Manage Team</Button> }
+                                            {user && userTeam.length == 0 && parseInt(playerTeamDetails?.members?.length) < playerTeamDetails?.maxCapacity && (playerTeamDetails?.genderReq == moreUserInfo.gender || playerTeamDetails?.genderReq == 'mixed') && moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) && <Button variant='blue' sx={{height:'30px'}} onClick={joinTeam}>Join Team</Button> }
+                                            {user && playerTeamDetails?.leader == user.uid && <Button variant='blue' sx={{height:'30px'}} onClick={() => window.location.href='/ManageTeam'}>Manage Team</Button> }
                                         </Box>
-                                        
                                         <hr width='100%'/>
                                         <Box display='flex' marginTop='25px'>
                                             <Box display='flex' justifyContent='space-between' width='100%'>
@@ -339,9 +366,81 @@ export default function ViewProfile() {
                             </Stack>
                         </Box>
                     )
-                    
                 }
             </Box>
         </Box>
+
+        <Modal open={openViewModal} onClose={() => {setOpenViewModal(false)}} disableScrollLock>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='400px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+                <Stack width='100%' gap='40px'>
+                    <Stack gap='15px'>
+                        <Typography textTransform='uppercase' variant='h5'>Member Details:</Typography>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td width='120px'>
+                                        <Typography variant='subtitle2'>Username:</Typography>
+                                    </td>
+                                    <td>
+                                        <Typography variant='subtitle3'>{accountDetails.username}</Typography>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <Typography variant='subtitle2'>Full Name:</Typography>
+                                    </td>
+                                    <td>
+                                        <Typography textTransform='capitalize' variant='subtitle3'>{accountDetails.fullName}</Typography>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <Typography variant='subtitle2'>Gender:</Typography>
+                                    </td>
+                                    <td>
+                                        <Typography textTransform='capitalize' variant='subtitle3'>{accountDetails.gender}</Typography>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <Typography variant='subtitle2'>Region:</Typography>
+                                    </td>
+                                    <td>
+                                        <Typography textTransform='capitalize'variant='subtitle3'>{accountDetails.region}</Typography>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <Typography variant='subtitle2'>Sport(s):</Typography>
+                                    </td>
+                                    <td>
+                                        <Typography textTransform='capitalize'variant='subtitle3'>{accountDetails?.sportInterests?.join(', ')}</Typography>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </Stack>
+                    <Button variant='blue' onClick={() => window.location.href=`/ViewProfile?id=${accountDetails.id}`}>View Profile</Button>
+                </Stack>
+            </Box>
+        </Modal>
+
+        <React.Fragment>
+            <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
+                <DialogTitle>
+                    Leave Team
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to leave this team?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions sx={{padding:'0 24px 16px'}}>
+                    <Button onClick={() => leaveTeam()} variant='blue'>Yes</Button>
+                    <Button onClick={() => setOpenConfirmation(false)} variant='red' autoFocus>No</Button>
+                </DialogActions>
+            </Dialog>
+        </React.Fragment>
+        </>
     )
 }

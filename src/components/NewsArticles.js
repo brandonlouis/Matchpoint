@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Box, Button, Card, CardActionArea, CardContent, Grid, Modal, Stack, TextField, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../config/firebase';
-import { getDocs, collection, query, orderBy, limit } from 'firebase/firestore';
+import { getDocs, collection, query, orderBy } from 'firebase/firestore';
 
 
 export default function NewsArticles() {
@@ -39,18 +39,12 @@ export default function NewsArticles() {
     const searchNewsArticle = async (e) => { // Handle search functionality
         e.preventDefault()
         try {
-            if (searchCriteria === '') { // If search criteria is empty, retrieve all records
-                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
-                const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-                setNewsArticleList(processDate(resList))
-            } else {
-                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
-                const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-                const filteredList = resList.filter((newsArticle) => newsArticle.title.toLowerCase().includes(searchCriteria.toLowerCase()) || newsArticle.sport == searchCriteria.toLowerCase())
-                setNewsArticleList(processDate(filteredList))
-            }
+            const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
+            const data = await getDocs(q)
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+            const filteredList = resList.filter((newsArticle) => newsArticle.title.toLowerCase().includes(searchCriteria.toLowerCase()) || newsArticle.sport == searchCriteria.toLowerCase())
+            
+            setNewsArticleList(processDate(filteredList))
         } catch (err) {
             console.error(err)
         }
@@ -58,7 +52,7 @@ export default function NewsArticles() {
 
 
     return (
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
+        <Box height='100%' width='100%' minHeight='460px' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Stack width='80%'>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>News Articles</Typography>
@@ -77,7 +71,7 @@ export default function NewsArticles() {
                                     <CardContent sx={{padding:'0'}}>
                                         <Stack>
                                             <Box height='200px' width='350px'>
-                                                <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.imgURL}/>
+                                                <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.bannerURL}/>
                                             </Box>
                                             <Stack bgcolor='white' height='100%' padding='15px 25px 30px' gap='15px'>
                                                 <Box display='flex' justifyContent='space-between'>

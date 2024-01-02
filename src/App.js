@@ -5,8 +5,12 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthContextProvider } from './config/authContext';
 import AdminRoute from './components/accessControl/AdminRoute';
 import UserRoute from './components/accessControl/UserRoute';
+import TeamLeaderRoute from './components/accessControl/TeamLeaderRoute';
+import NoTeamRoute from './components/accessControl/NoTeamRoute';
+
 import Navbar from './components/Navbar';
 
+// General Users
 import Home from './components/Home';
 import Tournaments from './components/Tournaments';
 import ViewTournament from './components/ViewTournament';
@@ -16,14 +20,22 @@ import ViewNewsArticle from './components/ViewNewsArticle';
 import PlayersTeams from './components/PlayersTeams';
 import ViewProfile from './components/ViewProfile';
 
+// Admin
 import ManageAccounts from './components/admin/ManageAccounts';
 import ManageTournaments from './components/admin/ManageTournaments';
 import ManageNewsArticles from './components/admin/ManageNewsArticles';
 import ManageSports from './components/admin/ManageSports';
 
+// Registered Users
 import ManageAccountProfile from './components/users/ManageAccountProfile';
 import CreateTeam from './components/users/CreateTeam';
 import ManageTeam from './components/users/ManageTeam';
+import MyNewsArticles from './components/users/MyNewsArticles';
+import WriteNewsArticle from './components/users/WriteNewsArticle';
+import EditNewsArticle from './components/users/EditNewsArticle';
+import MyTournaments from './components/users/MyTournaments';
+import CreateTournament from './components/users/CreateTournament';
+import EditTournament from './components/users/EditTournament';
 
 import Footer from './components/Footer';
 
@@ -280,7 +292,11 @@ const theme = createTheme({
                         borderRadius: '15px 0 0 15px',
                         width:'200px',
                         height: '45px',
-
+                        backgroundColor: '#FFF',
+                        
+                        "& .MuiOutlinedInput-input ": {
+                            padding: '15px',
+                        },
                         "& .MuiInputBase-root": {
                             fontFamily: 'Saira Semi Condensed',
                             fontWeight: 'bold',
@@ -397,8 +413,14 @@ function App() {
                     <Route path="/ManageSports" element={<AdminRoute><ManageSports /></AdminRoute>} />
 
                     <Route path="/ManageAccountProfile" element={<UserRoute><ManageAccountProfile /></UserRoute>} />
-                    <Route path="/CreateTeam" element={<UserRoute><CreateTeam /></UserRoute>} />
-                    <Route path="/ManageTeam" element={<UserRoute><ManageTeam /></UserRoute>} />
+                    <Route path="/CreateTeam" element={<NoTeamRoute><CreateTeam /></NoTeamRoute>} />
+                    <Route path="/ManageTeam" element={<TeamLeaderRoute><ManageTeam /></TeamLeaderRoute>} />
+                    <Route path="/MyNewsArticles" element={<UserRoute><MyNewsArticles /></UserRoute>} />
+                    <Route path="/WriteNewsArticle" element={<UserRoute><WriteNewsArticle /></UserRoute>} />
+                    <Route path="/EditNewsArticle" element={<UserRoute><EditNewsArticle /></UserRoute>} />
+                    <Route path="/MyTournaments" element={<UserRoute><MyTournaments /></UserRoute>} />
+                    <Route path="/CreateTournament" element={<UserRoute><CreateTournament /></UserRoute>} />
+                    <Route path="/EditTournament" element={<UserRoute><EditTournament /></UserRoute>} />
                 </Routes>
                 <Footer/>
             </Router>

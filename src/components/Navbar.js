@@ -121,7 +121,6 @@ export default function Navbar() {
             await login(loginEmail, loginPassword)
             window.location.reload()
         } catch (err) {
-            console.log(err)
             setErrorMessage(errorMessageContent[err.code])
         }
     }
@@ -177,8 +176,8 @@ export default function Navbar() {
                             :
                             <Menu anchorOrigin={{vertical: "bottom", horizontal: "right"}} transformOrigin={{vertical: "top",horizontal: "right"}} anchorEl={anchorEl} open={openAccDropdown} onClose={() => {setAnchorEl(null)}} disableScrollLock>
                                 <MenuItem onClick={() => {window.location.href = '/ManageAccountProfile'}}><img width='18px' src={require('../img/icons/account.png')}/><Typography variant='navDropdown'>Account & Profile</Typography></MenuItem>
-                                <MenuItem onClick={() => {window.location.href = '/Tournaments'}}><img width='18px' src={require('../img/icons/tournament.png')}/><Typography variant='navDropdown'>My Tournaments</Typography></MenuItem>
-                                <MenuItem onClick={() => {window.location.href = '/NewsArticles'}}><img width='18px' src={require('../img/icons/news.png')}/><Typography variant='navDropdown'>My News Articles</Typography></MenuItem>
+                                <MenuItem onClick={() => {window.location.href = '/MyTournaments'}}><img width='18px' src={require('../img/icons/tournament.png')}/><Typography variant='navDropdown'>My Tournaments</Typography></MenuItem>
+                                <MenuItem onClick={() => {window.location.href = '/MyNewsArticles'}}><img width='18px' src={require('../img/icons/news.png')}/><Typography variant='navDropdown'>My News Articles</Typography></MenuItem>
                                 <hr style={{width:'170px', opacity:'.3'}}/>
                                 <MenuItem onClick={() => {setAnchorEl(null); handleLogout()}}><img width='18px' src={require('../img/icons/logout.png')}/><Typography variant='navDropdown'>Logout</Typography></MenuItem>
                             </Menu>

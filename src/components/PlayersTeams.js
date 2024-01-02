@@ -2,19 +2,20 @@ import React, { useEffect, useState } from 'react'
 import { Box, Button, Card, CardActionArea, CardContent, Grid, Stack, TextField, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../config/firebase';
-import { getDocs, collection, query, orderBy, where } from 'firebase/firestore';
+import { getDocs, collection, query, orderBy } from 'firebase/firestore';
 
 export default function PlayersTeams() {
     const [resultList, setResultList] = React.useState([])
 
     const [searchCriteria, setSearchCriteria] = useState('')
 
+    
     useEffect(() => { // Handle retrieving tournament list on initial load
         const getTeams = async () => {
             try {
-                const q = query(collection(db, 'teams'), where('privacy', '==', 'public'))
+                const q = query(collection(db, 'teams'), orderBy('handle'))
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => item.privacy === 'public') // Filter out private teams
                 setResultList(resList)
             } catch (err) {
                 console.error(err)
@@ -26,22 +27,21 @@ export default function PlayersTeams() {
     const searchPlayerTeam = async (e) => { // Handle search functionality
         e.preventDefault()
         try {
-            if (searchCriteria === '') { // If search criteria is empty, retrieve all records
-                const q = query(collection(db, 'teams'), where('privacy', '==', 'public'))
+            if (searchCriteria === '') { // If search criteria is empty, retrieve all team records
+                const q = query(collection(db, 'teams'), orderBy('handle'))
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => item.privacy === 'public') // Filter out private teams
                 setResultList(resList)
             } else {
                 const accQ = query(collection(db, 'accounts'), orderBy('username'))
                 const accData = await getDocs(accQ)
-                const teamQ = query(collection(db, 'teams'), where('privacy', '==', 'public'))
+                const teamQ = query(collection(db, 'teams'), orderBy('handle'))
                 const teamData = await getDocs(teamQ)
 
                 const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-                const teamList = teamData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-                const combinedList = [...accList, ...teamList] // Combine account and team lists to search through both
+                const teamList = teamData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.privacy === 'public') // Filter out private teams
 
-                const filteredList = combinedList.filter((item) => {
+                const filteredList = [...accList, ...teamList].filter((item) => {
                     return (
                         item?.username?.includes(searchCriteria.toLowerCase()) || item?.fullName?.toLowerCase().includes(searchCriteria.toLowerCase()) || item?.handle?.includes(searchCriteria.toLowerCase()) || item?.name?.toLowerCase().includes(searchCriteria.toLowerCase())
                     )
@@ -55,7 +55,7 @@ export default function PlayersTeams() {
 
 
     return (
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
+        <Box height='100%' width='100%' minHeight='280px' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Stack width='80%'>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>Players & Teams</Typography>

@@ -53,7 +53,7 @@ export default function ManageTeam() {
         }
         const getTeam = async () => {
             try {
-                const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
+                const q = query(collection(db, 'teams'), where('leader', '==', user.uid))
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
                 setOriginalDetails(resList)
@@ -66,7 +66,6 @@ export default function ManageTeam() {
                 setMaxCapacity(resList[0]?.maxCapacity)
                 setGenderReq(resList[0]?.genderReq)
                 setPrivacy(resList[0]?.privacy)
-                getAccounts(resList)
             } catch (err) {
                 console.error(err)
             }
@@ -84,17 +83,6 @@ export default function ManageTeam() {
         getTeam()
         getProfile()
     }, [])
-
-    const getAccounts = async (membersList) => {
-        try {       
-            const q = query(collection(db, 'accounts'), where(documentId(), 'in', membersList[0]?.members))
-            const data = await getDocs(q)
-            const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-            setAccountsList(resList)
-        } catch (err) {
-            console.error(err)
-        }
-    }
 
     const viewAccount = async (id) => { // Handle view record by populating data to modal
         setOpenViewModal(true)
@@ -140,7 +128,7 @@ export default function ManageTeam() {
                 privacy: privacy
             })
             alert('Team updated successfully')
-            toggleEditMode(false)
+            window.location.reload()
         } catch (err) {
             console.error(err)
         }
@@ -152,11 +140,11 @@ export default function ManageTeam() {
             setSearchAccountsList([])
         } else { // If search criteria is not empty, retrieve accounts that match the search criteria
             try {
-                const allAccountsQuery = query(collection(db, 'accounts'))
+                const allAccountsQuery = query(collection(db, 'accounts'), orderBy('username'))
                 const allAccountsDocs = await getDocs(allAccountsQuery)
                 const allAccounts = allAccountsDocs.docs.map(doc => doc.id)
     
-                const allTeamsQuery = query(collection(db, 'teams'))
+                const allTeamsQuery = query(collection(db, 'teams'), orderBy('handle'))
                 const allTeamsDocs = await getDocs(allTeamsQuery)
                 const teamIds = allTeamsDocs.docs.map(doc => doc.data().members)
     
@@ -180,8 +168,7 @@ export default function ManageTeam() {
                 members: [...originalDetails[0]?.members, id]
             })
             setOriginalDetails(prevDetails => {
-                const updatedMembers = [...prevDetails[0]?.members, id]
-                return [{ ...prevDetails[0], members: updatedMembers }, ...prevDetails.slice(1)]
+                return [{ ...prevDetails[0], members: [...originalDetails[0]?.members, id] }, ...prevDetails.slice(1)]
             })
             alert('Member added successfully')
             setOpenViewModal(false)
@@ -209,13 +196,21 @@ export default function ManageTeam() {
         }
     }
 
-    useEffect(() => {
+    useEffect(() => { // Live update on members list on kick/add member
         const getTeam = async () => {
             try {
                 const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-                getAccounts(resList)
+
+                try {
+                    const q = query(collection(db, 'accounts'), orderBy('username'))
+                    const data = await getDocs(q)
+                    const accResList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => resList[0]?.members?.includes(item.id))
+                    setAccountsList(accResList)
+                } catch (err) {
+                    console.error(err)
+                }
             } catch (err) {
                 console.error(err)
             }
@@ -254,7 +249,7 @@ export default function ManageTeam() {
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Box width='80%' display='flex' gap='100px'>
                 <Stack width='100%' gap='50px'>
-                    <Box display='flex' justifyContent='space-between' alignContent='center'>
+                    <Box display='flex' alignContent='center'>
                         <Typography variant='h3'>{editMode ? 'Edit' : 'Manage'} Team</Typography>
                     </Box>
 
@@ -500,7 +495,7 @@ export default function ManageTeam() {
                         </table>
                     </Stack>
 
-                    {editMode &&
+                    {editMode ?
                         (!openAddMemberModal ?
                             (originalDetails[0]?.leader !== accountDetails?.id && <Button onClick={() => setOpenConfirmation(true)} variant='red' fullWidth>Kick Member</Button>)
                             :
@@ -509,6 +504,8 @@ export default function ManageTeam() {
                                 <Button onClick={() => setOpenViewModal(false)} variant='red' fullWidth>Back</Button>
                             </Box>
                         )
+                        :
+                        <Button variant='blue' onClick={() => window.location.href=`/ViewProfile?id=${accountDetails.id}`}>View Profile</Button>
                     }
                 </Stack>
             </Box>

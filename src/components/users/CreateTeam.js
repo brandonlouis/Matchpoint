@@ -23,6 +23,7 @@ export default function CreateTeam() {
  
     const [errorMessage, setErrorMessage] = useState('')
 
+    
     useEffect(() => {
         const getSports = async () => {
             try {
@@ -84,7 +85,7 @@ export default function CreateTeam() {
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Box width='80%' display='flex' gap='100px'>
                 <Stack width='50%'>
-                    <Box display='flex' justifyContent='space-between' alignContent='center'>
+                    <Box display='flex' alignContent='center'>
                         <Typography variant='h3'>Create Team</Typography>
                     </Box>
                     <form style={{marginTop:'50px'}} onSubmit={addTeam}> 
@@ -150,4 +151,3 @@ export default function CreateTeam() {
         </Box>
     )
 }
-

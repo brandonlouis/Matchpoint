@@ -56,17 +56,11 @@ export default function ManageAccounts() {
     const searchAccount = async (e) => { // Handle search record
         e.preventDefault()
         try {
-            if (searchCriteria === '') { // If search criteria is empty, retrieve all accounts
-                const q = query(collection(db, 'accounts'), orderBy('username'))
-                const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(account => account.type !== 'admin')
-                setAccountsList(resList)
-            } else { // If search criteria is not empty, retrieve accounts that match the search criteria
-                const q = query(collection(db, 'accounts'), orderBy('username'))
-                const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(account => account.type !== 'admin' && (account.username.includes(searchCriteria.toLowerCase()) || account.fullName.includes(searchCriteria.toLowerCase())))
-                setAccountsList(resList)
-            }
+            const q = query(collection(db, 'accounts'), orderBy('username'))
+            const data = await getDocs(q)
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(account => account.type !== 'admin' && (account.username.includes(searchCriteria.toLowerCase()) || account.fullName.includes(searchCriteria.toLowerCase())))
+            
+            setAccountsList(resList)
         } catch (err) {
             console.error(err)
         }
@@ -75,7 +69,7 @@ export default function ManageAccounts() {
     
     return (
         <>
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
+        <Box height='100%' width='100%' minHeight='280px' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Stack width='80%'>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>Manage Accounts</Typography>

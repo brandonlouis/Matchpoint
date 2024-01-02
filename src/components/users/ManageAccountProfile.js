@@ -5,8 +5,8 @@ import { UserAuth } from '../../config/authContext'
 import { getDoc, getDocs, updateDoc, collection, doc, where, query, orderBy } from 'firebase/firestore'
 
 export default function ManageAccountProfile() {
-    const { changeEmail, changePassword } = UserAuth()
     const { user, moreUserInfo } = UserAuth()
+    const { changeEmail, changePassword } = UserAuth()
 
     const [accountProfileMode, setAccountProfileMode] = useState('account')
     const [editMode, setEditMode] = useState(false)
@@ -78,7 +78,7 @@ export default function ManageAccountProfile() {
             try {
                 const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data()}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
                 setTeamInfo(resList)
             } catch (err) {
                 console.error(err)
@@ -143,7 +143,7 @@ export default function ManageAccountProfile() {
                         sportInterests: sports.slice().sort()
                     })
                     alert('Account updated successfully')
-                    toggleEditMode(false)
+                    window.location.reload()
                 } catch (err) {
                     console.error(err)
                 }
@@ -186,7 +186,7 @@ export default function ManageAccountProfile() {
                 </Box>
                 {accountProfileMode === 'account' ?
                     <Stack width='50%'>
-                        <Box display='flex' justifyContent='space-between' alignContent='center'>
+                        <Box display='flex' alignContent='center'>
                             <Typography variant='h3'>{editMode && 'Edit'} Account</Typography>
                         </Box>
                         <form style={{marginTop:'50px'}} onSubmit={updateAccount}>
@@ -249,7 +249,7 @@ export default function ManageAccountProfile() {
                     </Stack>
                     :
                     <Stack width='100%' gap='50px'>
-                        <Box display='flex' justifyContent='space-between' alignContent='center'>
+                        <Box display='flex' alignContent='center'>
                             <Typography variant='h3'>Profile</Typography>
                         </Box>
                         <Box display='flex' gap='50px'>
@@ -271,9 +271,9 @@ export default function ManageAccountProfile() {
                                         {teamInfo[0] ?
                                             <>
                                                 <Typography variant='body1'  color='#222'>@{teamInfo[0].handle}</Typography>
-                                                <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/ManageTeam'}>View Team</Button>
+                                                <Button sx={{height:'30px'}} variant='blue' onClick={() => {teamInfo[0].leader == user.uid ? window.location.href='/ManageTeam' : window.location.href=`ViewProfile?id=${teamInfo[0]?.id}`}}>View Team</Button>
                                             </>
-                                            : 
+                                            :
                                             <>
                                                 <Typography variant='body1'>Not in a team</Typography>
                                                 <Box display='flex' gap='10px'>
