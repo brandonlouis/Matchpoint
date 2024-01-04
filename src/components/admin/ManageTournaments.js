@@ -173,7 +173,7 @@ export default function ManageTournaments() {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style={{verticalAlign:'top'}}>
+                                    <td>
                                         <Typography variant='subtitle2'>Title:</Typography>
                                     </td>
                                     <td className='doubleLineConcat'>
@@ -183,7 +183,7 @@ export default function ManageTournaments() {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style={{verticalAlign:'top'}}>
+                                    <td>
                                         <Typography variant='subtitle2'>Description:</Typography>
                                     </td>
                                     <td className='tripleLineConcat'>

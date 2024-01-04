@@ -11,7 +11,7 @@ const NoTeamRoute = ({ children }) => {
     useEffect(() => {
         const getTeams = async () => {
             try {
-                const q = query(collection(db, 'teams'), where('privacy', '==', 'public'))
+                const q = query(collection(db, 'teams'))
                 const data = await getDocs(q)
                 const membersList = data.docs.map((doc) => doc.data().members)
                 const concatenatedMembersList = [].concat(...membersList)

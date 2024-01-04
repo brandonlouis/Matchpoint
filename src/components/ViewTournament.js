@@ -196,9 +196,9 @@ export default function ViewTournament() {
 
                 let addedParticipantStatistics = matchStatistics
                 addedParticipantStatistics[id] = {
-                    wins: '0',
-                    losses: '0',
-                    points: '0',
+                    wins: 0,
+                    losses: 0,
+                    points: 0,
                 }
 
                 try {
@@ -231,16 +231,34 @@ export default function ViewTournament() {
     const removeUser = async (id) => {
         if (tournamentDetails.participants?.includes(accountDetails.id)) {
             try {
-                const res = await getDoc(doc(db, 'matches', tournamentID))
+                const res = await getDoc(doc(db, 'matches', tournamentID)) // To remove the participant from statistics
                 const resList = res.data()
                 const removedParticipant = resList.statistics
                 delete resList.statistics[id]
 
-                await updateDoc(doc(db, 'tournaments', tournamentID), {
+                await updateDoc(doc(db, 'tournaments', tournamentID), { // To remove the participant from tournament
                     participants: tournamentDetails.participants.filter(participant => participant !== id)
                 })
+
+                const newMatchList = { ...resList }
+                Object.entries(resList.round).map(([keyRound, valueRound]) => { // To remove the participant from scoreboard
+                    Object.entries(valueRound.match).map(([keyMatch, valueMatch]) => {
+                        if (valueMatch.some(dict => dict.hasOwnProperty(accountDetails.id))) { // If the participant is in the match
+
+                            newMatchList.round[keyRound].match[keyMatch][2].victor = ''
+
+                            if (newMatchList.round[keyRound].match[keyMatch][0].hasOwnProperty(accountDetails.id)) {
+                                newMatchList.round[keyRound].match[keyMatch][0] = {}
+                            } else if (newMatchList.round[keyRound].match[keyMatch][1].hasOwnProperty(accountDetails.id)) {
+                                newMatchList.round[keyRound].match[keyMatch][1] = {}
+                            }
+                        }
+                    })
+                })
+
                 await updateDoc(doc(db, 'matches', tournamentID), {
                     participants: tournamentDetails.participants.filter(participant => participant !== id),
+                    round: newMatchList.round,
                     statistics: removedParticipant
                 })
                 alert('Participant removed successfully')
@@ -304,9 +322,9 @@ export default function ViewTournament() {
                         participants: [...tournamentDetails.participants, user.uid],
                         statistics: {
                             [user.uid]: {
-                                wins: '0',
-                                losses: '0',
-                                points: '0',
+                                wins: 0,
+                                losses: 0,
+                                points: 0,
                             }
                         }
                     })
@@ -327,9 +345,9 @@ export default function ViewTournament() {
                         participants: [...tournamentDetails.participants, resList[0].id],
                         statistics: {
                             [resList[0].id]: {
-                                wins: '0',
-                                losses: '0',
-                                points: '0',
+                                wins: 0,
+                                losses: 0,
+                                points: 0,
                             }
                         }
                     })
@@ -444,7 +462,7 @@ export default function ViewTournament() {
                                                 <Typography variant='subtitle2'>Format:</Typography>
                                             </td>
                                             <td>
-                                                <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.format !== 'single-elimination' && tournamentDetails.format !== 'double-elimination' && tournamentDetails.format !== 'round-robin' && tournamentDetails.format !== 'custom' ? 'Custom' : tournamentDetails.format}</Typography>
+                                                <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.format}</Typography>
                                             </td>
                                         </tr>
                                     </tbody>

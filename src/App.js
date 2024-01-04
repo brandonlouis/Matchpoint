@@ -147,7 +147,7 @@ const theme = createTheme({
             color: '#666',
             textTransform: 'uppercase',
         },
-        loginErrorMsg: {
+        smallErrorMsg: {
             fontFamily: 'Saira Semi Condensed',
             fontSize: '12px',
             fontWeight: 'bold',
@@ -306,6 +306,13 @@ const theme = createTheme({
                         "& .Mui-focused": {
                             borderRadius: '15px 0 0 15px',
                             height: '45px',
+                        },
+                    },
+                    "&.matchScoreTextField": {
+                        width:'100%',
+                        backgroundColor: 'white',
+                        "& .MuiInputBase-input": {
+                            padding: '0 5px',
                         },
                     },
                 },

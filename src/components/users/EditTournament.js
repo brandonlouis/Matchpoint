@@ -1,18 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Box, Button, FormControl, Grid, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, FormControl, Grid, InputLabel, MenuItem, Modal, Select, Stack, TextField, Typography } from '@mui/material';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../../config/firebase';
+import { UserAuth } from '../../config/authContext';
 import { getDoc, getDocs, doc, updateDoc, collection, query, orderBy } from 'firebase/firestore';
 import { ref, getStorage, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function EditTournament() {
     const location = useLocation()
+    const { user } = UserAuth()
+
+    const [openSaveFormatModal, setOpenSaveFormatModal] = useState(false)
+    const [newCustomFormatName, setNewCustomFormatName] = useState('')
+    const [openCustomFormatModal, setOpenCustomFormatModal] = useState(false)
+    const [openViewModal, setOpenViewModal] = useState(false)
 
     const [originalNoRounds, setOriginalNoRounds] = useState('')
     const [originalMatchesPerRound, setOriginalMatchesPerRound] = useState([])
 
+    const [customFormatList, setCustomFormatList] = useState([])
+    const [customFormatDetails, setCustomFormatDetails] = useState([])
     const [noRounds, setNoRounds] = useState('')
     const [matchesPerRound, setMatchesPerRound] = useState([])
+
+    const [searchCriteria, setSearchCriteria] = useState('')
+    const [errorMessage, setErrorMessage] = useState('')
 
     const [originalDetails, setOriginalDetails] = useState({})
     const [format, setFormat] = useState('')
@@ -94,16 +107,92 @@ export default function EditTournament() {
         }
         getTournament()
         getSports()
+        getCustomFormats()
     }, [])
 
-    useEffect(() => {
-        if (format === 'single-elimination') {
-            setNoRounds(Math.log2(maxParticipants) + 1)
+    // useEffect(() => {
+    //     if (format === 'single-elimination') {
+    //         setNoRounds(Math.log2(maxParticipants) + 1)
 
-            const maxParticipantsEven = maxParticipants % 2 === 0 ? maxParticipants : parseInt(maxParticipants) + 1
-            setMatchesPerRound(Array.from({ length: Math.log2(maxParticipantsEven) + 1 }, (_, i) => maxParticipantsEven / Math.pow(2, i)))
+    //         const maxParticipantsEven = maxParticipants % 2 === 0 ? maxParticipants : parseInt(maxParticipants) + 1
+    //         setMatchesPerRound(Array.from({ length: Math.log2(maxParticipantsEven) + 1 }, (_, i) => maxParticipantsEven / Math.pow(2, i)))
+    //     } else if (format === 'custom') {
+    //         if (customFormatDetails.length === 0) {
+    //             setNoRounds('')
+    //             setMatchesPerRound([])
+    //         } else {
+    //             setNoRounds(customFormatDetails.rounds)
+    //             setMatchesPerRound(customFormatDetails.matchesPerRound)
+    //         }
+            
+    //     }
+    // }, [format, maxParticipants])
+
+    const getCustomFormats = async () => {
+        try {
+            const res = await getDoc(doc(db, 'customFormats', user.uid))
+            const resList = res.data()
+            setCustomFormatList(resList.formats)
+        } catch (err) {
+            console.error(err)
         }
-    }, [format, maxParticipants])
+    }
+
+    const saveCustomFormat = async (e) => {
+        e.preventDefault()
+        if (noRounds === '' || parseInt(noRounds) === 0) {
+            setErrorMessage('Number of rounds cannot be empty or 0')
+        } else {
+            try {
+                const res = await getDoc(doc(db, 'customFormats', user.uid))
+                const resList = res.data().formats
+                const formatExists = resList.some((format) => format.name === newCustomFormatName)
+
+                if (formatExists) {
+                    setErrorMessage('Format name already exists')
+                } else {
+                    const newFormat = {
+                        name: newCustomFormatName,
+                        rounds: noRounds,
+                        matchesPerRound: matchesPerRound,
+                    }
+                    resList.push(newFormat)
+    
+                    await updateDoc(doc(db, 'customFormats', user.uid), {
+                        formats: resList
+                    })
+    
+                    alert('Format saved successfully')
+                    setOpenSaveFormatModal(false)
+                }
+            } catch (err) {
+                console.error(err)
+            }
+        }
+    }
+
+    const searchFormat = async (e) => {
+        e.preventDefault()
+        try {
+            const res = await getDoc(doc(db, 'customFormats', user.uid))
+            const resList = res.data().formats.filter((format) => format.name.toLowerCase().includes(searchCriteria.toLowerCase()))
+            setCustomFormatList(resList)
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
+    const viewCustomFormat = async (formatName) => {
+        try {
+            const res = await getDoc(doc(db, 'customFormats', user.uid))
+            const resList = res.data().formats
+            const formatDetails = resList.find((formatDetails) => formatDetails.name === formatName)
+            setCustomFormatDetails(formatDetails)
+            setOpenViewModal(true)
+        } catch (err) {
+            console.error(err)
+        }
+    }
 
     const saveChanges = async (e) => {
         e.preventDefault()
@@ -186,6 +275,7 @@ export default function EditTournament() {
 
 
     return (
+        <>
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Box width='80%' display='flex' gap='100px'>
                 <Stack width='100%' gap='50px'>
@@ -201,11 +291,11 @@ export default function EditTournament() {
                                         <Button variant='red' sx={{width:'250px', height:'250px', borderRadius:'18px', opacity: format === 'single-elimination' ? '1' : '0.5'}} onClick={() => setFormat('single-elimination')}><img src={require('../../img/buttons/singleElimBtn.png')} width='250px'/></Button>
                                         <Button variant='red' sx={{width:'250px', height:'250px', borderRadius:'18px', opacity: format === 'double-elimination' ? '1' : '0.5'}} onClick={() => setFormat('double-elimination')}><img src={require('../../img/buttons/doubleElimBtn.png')} width='250px'/></Button>
                                         <Button variant='red' sx={{width:'250px', height:'250px', borderRadius:'18px', opacity: format === 'round-robin' ? '1' : '0.5'}} onClick={() => setFormat('round-robin')}><img src={require('../../img/buttons/roundRobinBtn.png')} width='250px'/></Button>
-                                        <Button variant='red' sx={{width:'250px', height:'250px', borderRadius:'18px', opacity: (format === 'custom' || format !== 'single-elimination' && format !== 'double-elimination' && format !== 'round-robin') ? '1' : '0.5'}} onClick={() => setFormat('custom')}><img src={require('../../img/buttons/customFormatBtn.png')} width='250px'/></Button>
+                                        <Button variant='red' sx={{width:'250px', height:'250px', borderRadius:'18px', opacity: format === 'custom' ? '1' : '0.5'}} onClick={() => setFormat('custom')}><img src={require('../../img/buttons/customFormatBtn.png')} width='250px'/></Button>
                                     </Box>
                                 </Stack>
                                 
-                                {(format === 'custom' || (format !== 'single-elimination' && format !== 'double-elimination' && format !== 'round-robin')) &&
+                                {format === 'custom' &&
                                     <>
                                     <Box display='flex' justifyContent='space-between'>
                                         <TextField value={noRounds} onChange={(e) => setNoRounds(e.target.value)} className='inputTextField' variant='outlined' label='Number of Rounds' type='number' sx={{width:'180px'}} required/>
@@ -221,7 +311,7 @@ export default function EditTournament() {
                                             <Grid container gap='20px' marginTop='10px' alignItems='center'>
                                                 {Array.from({ length: noRounds }, (_, i) =>
                                                     <Grid key={i} item>
-                                                        <TextField value={matchesPerRound[i]} onChange={(e) => {
+                                                        <TextField value={matchesPerRound[i] || ''} onChange={(e) => {
                                                                 const updatedMatchesPerRound = [...matchesPerRound]
                                                                 updatedMatchesPerRound[i] = e.target.value
                                                                 setMatchesPerRound(updatedMatchesPerRound)
@@ -247,8 +337,20 @@ export default function EditTournament() {
                                 </Stack>
                                 <Stack gap='25px' width='100%'>
                                     <Box display='flex' gap='50px'>
-                                        <TextField value={startDate} onChange={(e) => setStartDate(e.target.value)} className='inputTextField' variant='outlined' label='Start Date' type='date' fullWidth required/>
-                                        <TextField value={endDate} onChange={(e) => setEndDate(e.target.value)} className='inputTextField' variant='outlined' label='End Date' type='date' fullWidth required/>
+                                        <TextField value={startDate} onChange={(e) => {setStartDate(e.target.value); 
+                                            if (e.target.value > endDate) {
+                                                setEndDate(e.target.value)
+                                              }
+                                        }} className='inputTextField' variant='outlined' label='Start Date' type='date' InputProps={{
+                                            inputProps: {
+                                                min: new Date().toISOString().split('T')[0],
+                                            },
+                                        }} fullWidth required/>
+                                        <TextField value={endDate} onChange={(e) => setEndDate(e.target.value)} className='inputTextField' variant='outlined' label='End Date' type='date' InputProps={{
+                                            inputProps: {
+                                                min: startDate && new Date(startDate).toISOString().split('T')[0],
+                                            },
+                                        }} fullWidth required/>
                                     </Box>
                                     <Box display='flex' gap='50px'>
                                         <TextField value={venue} onChange={(e) => setVenue(e.target.value)} className='inputTextField' variant='outlined' label='Venue' fullWidth required/>
@@ -312,5 +414,92 @@ export default function EditTournament() {
                 </Stack>
             </Box>
         </Box>
+
+        <Modal open={openSaveFormatModal} onClose={() => {setOpenSaveFormatModal(false); setErrorMessage('')}} disableScrollLock>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='300px' padding='30px 0' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+                <form onSubmit={saveCustomFormat}>
+                    <Stack gap='20px'>
+                        <Stack>
+                            <TextField onChange={(e) => setNewCustomFormatName(e.target.value)} className='inputTextField' variant='outlined' label='Format Name' required/>
+                            <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography></Box>
+                        </Stack>
+                        <Box display='flex' flexDirection='row' justifyContent='space-between'>
+                            <Button sx={{width:'120px'}} variant='green' type='submit'>Save</Button>
+                            <Button onClick={() => {setOpenSaveFormatModal(false); setErrorMessage('')}} sx={{width:'80px'}} variant='red'>Back</Button>
+                        </Box>
+                    </Stack>
+                </form>
+            </Box>
+        </Modal>
+
+        <Modal open={openCustomFormatModal} onClose={() => {setOpenCustomFormatModal(false)}} disableScrollLock>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='300px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+                <Stack width='100%' gap='40px'>
+                    <Stack gap='15px'>
+                        <form style={{display:'flex', width:'100%'}} onSubmit={searchFormat}>
+                            <TextField className='searchTextField' value={searchCriteria} placeholder='SEARCH SAVED FORMATS' onChange={(e) => setSearchCriteria(e.target.value)} sx={{width:'100% !important'}}/>
+                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                        </form>
+                        <Box bgcolor='white' borderRadius='15px' height='100%' overflow='hidden'>
+                            <Stack height='150px' sx={{overflowY:'auto'}}>
+                                {customFormatList.map((format) => 
+                                    <Stack key={format.name} onClick={() => viewCustomFormat(format.name)} padding='15px' borderBottom='1px solid #E4E4E4' alignItems='center' sx={{cursor:'pointer'}}>
+                                        <Box display='flex' width='100%' justifyContent='center' overflow='hidden'>
+                                            <Typography sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}} variant='h5' fontWeight='600'>{format.name}</Typography>
+                                        </Box>
+                                    </Stack>
+                                )}
+                            </Stack>
+                        </Box>
+                    </Stack>
+                </Stack>
+            </Box>
+        </Modal>
+
+        <Modal open={openViewModal} onClose={() => setOpenViewModal(false)} disableScrollLock>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='350px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+                <Stack width='100%' gap='40px'>
+                    <Stack gap='15px'>
+                        <Typography textTransform='uppercase' variant='h5'>Format Details:</Typography>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td width='50%'>
+                                        <Typography variant='subtitle2'>Name:</Typography>
+                                    </td>
+                                    <td>
+                                        <Typography variant='subtitle3'>{customFormatDetails.name}</Typography>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <Typography variant='subtitle2'>Rounds:</Typography>
+                                    </td>
+                                    <td>
+                                        <Typography variant='subtitle3'>{customFormatDetails.rounds}</Typography>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <Typography variant='subtitle2'>Matches per Round:</Typography>
+                                    </td>
+                                    <td>
+                                        <Typography textTransform='capitalize' variant='subtitle3'>{customFormatDetails.matchesPerRound?.length === 0 ? 'NIL' : customFormatDetails.matchesPerRound?.join(', ')}</Typography>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </Stack>
+                    <Button onClick={() => {
+                        setNoRounds(customFormatDetails.rounds)
+                        setMatchesPerRound(customFormatDetails.matchesPerRound)
+                
+                        setOpenCustomFormatModal(false)
+                        setOpenViewModal(false)
+                    }} variant='blue' fullWidth>Use Format</Button>
+                </Stack>
+            </Box>
+        </Modal>
+        </>
     )
 }

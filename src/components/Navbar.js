@@ -201,7 +201,7 @@ export default function Navbar() {
                                     <TextField className='loginSignUpTextField' onChange={(e) => setLoginEmail(e.target.value)} fullWidth variant='standard' label='Email' type='email' required/>
                                     <TextField className='loginSignUpTextField' onChange={(e) => setLoginPassword(e.target.value)} fullWidth variant='standard' label='Password' type='password' required/>
                                 </Stack>
-                                <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='loginErrorMsg'>{errorMessage}</Typography></Box>
+                                <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography></Box>
                                 <Button fullWidth variant='red' type='submit'>Login</Button>
                             </form>
                         </Stack>
@@ -254,7 +254,7 @@ export default function Navbar() {
                                     <TextField className='loginSignUpTextField' onChange={(e) => setRegPassword(e.target.value)} fullWidth variant='standard' label='Password' type='password' required/>
                                     <TextField className='loginSignUpTextField' onChange={(e) => setRegConfirmPassword(e.target.value)} fullWidth variant='standard' label='Confirm password' type='password' required/>
                                 </Stack>
-                                <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='loginErrorMsg'>{errorMessage}</Typography></Box>
+                                <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography></Box>
                                 <Button fullWidth variant='red' type='submit'>Sign Up</Button>
                             </form>
                         </Stack>

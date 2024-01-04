@@ -166,7 +166,7 @@ export default function MyNewsArticles() {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style={{verticalAlign:'top'}}>
+                                    <td>
                                         <Typography variant='subtitle2'>Title:</Typography>
                                     </td>
                                     <td className='doubleLineConcat'>
@@ -174,7 +174,7 @@ export default function MyNewsArticles() {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style={{verticalAlign:'top'}}>
+                                    <td>
                                         <Typography variant='subtitle2'>Content:</Typography>
                                     </td>
                                     <td className='tripleLineConcat'>

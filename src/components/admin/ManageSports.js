@@ -180,7 +180,7 @@ export default function ManageSports() {
                     <Stack gap='20px'>
                         <Stack>
                             <TextField onChange={(e) => setNewSportName(e.target.value)} className='inputTextField' variant='outlined' label='Sport Name' inputProps={{pattern:'^[^0-9]+$'}} required/>
-                            <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='loginErrorMsg'>{errorMessage}</Typography></Box>
+                            <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography></Box>
                         </Stack>
                         <Box display='flex' flexDirection='row' justifyContent='space-between'>
                             <Button sx={{width:'145px'}} variant='green' type='submit'>Create</Button>
