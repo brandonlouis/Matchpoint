@@ -182,7 +182,6 @@ export default function ViewMatch() {
             console.error(err)
         }
     }
-    // TODO: Download formats for scoresheet and schedule
 
     
     return (
