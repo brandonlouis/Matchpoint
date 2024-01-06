@@ -82,15 +82,10 @@ export default function ManageTournaments() {
     const searchTournament = async (e) => {
         e.preventDefault()
         try {
-            if (searchCriteria === '') { // If search criteria is empty, retrieve all records
-                const data = await getDocs(collection(db, 'tournaments'))
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-                setTournamentList(processDateListDate(resList))
-            } else {
-                const data = await getDocs(collection(db, 'tournaments'))
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((tournament) => tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport == searchCriteria.toLowerCase())
-                setTournamentList(processDateListDate(resList))
-            }
+            const data = await getDocs(collection(db, 'tournaments'))
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((tournament) => tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport == searchCriteria.toLowerCase())
+            
+            setTournamentList(processDateListDate(resList))
         } catch (err) {
             console.error(err)
         }
@@ -99,7 +94,7 @@ export default function ManageTournaments() {
 
     return (
         <>
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
+        <Box height='100%' width='100%' minHeight='411px' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Stack width='80%'>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>Manage Tournaments</Typography>
@@ -178,7 +173,7 @@ export default function ManageTournaments() {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style={{verticalAlign:'top'}}>
+                                    <td>
                                         <Typography variant='subtitle2'>Title:</Typography>
                                     </td>
                                     <td className='doubleLineConcat'>
@@ -188,7 +183,7 @@ export default function ManageTournaments() {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style={{verticalAlign:'top'}}>
+                                    <td>
                                         <Typography variant='subtitle2'>Description:</Typography>
                                     </td>
                                     <td className='tripleLineConcat'>
@@ -296,7 +291,7 @@ export default function ManageTournaments() {
         <React.Fragment>
             <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
                 <DialogTitle>
-                    <Typography variant='h5'>Suspend Tournament</Typography>
+                    Suspend Tournament
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>

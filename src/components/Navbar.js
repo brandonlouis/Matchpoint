@@ -7,8 +7,7 @@ import { UserAuth } from '../config/authContext'
 import { getDocs, collection, doc, setDoc, where, query, orderBy } from 'firebase/firestore'
 
 export default function Navbar() {
-    const { createUser } = UserAuth()
-    const { user, moreUserInfo, login, logout } = UserAuth()
+    const { createUser, user, moreUserInfo, login, logout } = UserAuth()
 
     const [loginSignUp, setLoginSignUp] = useState('login') // ['login', 'signUp']
     const [openModal, setOpenModal] = useState(false)
@@ -37,6 +36,8 @@ export default function Navbar() {
         'auth/invalid-email': "Invalid Email address",
         'auth/weak-password': "Password must be at least 6 characters long",
         'auth/invalid-credential': "Incorrect Email or Password",
+        'auth/wrong-password': "Incorrect Email or Password",
+        'auth/user-not-found': "Incorrect Email or Password",
         'auth/too-many-requests': "Too many invalid attempts, please try again later",
 
         // Outside of firebase error codes
@@ -99,6 +100,12 @@ export default function Navbar() {
                         region: regRegion,
                         sportInterests: regSports.slice().sort()
                     })
+                    setDoc(doc(db, "profiles", userCredential.user.uid), {
+                        first: 0,
+                        second: 0,
+                        third: 0,
+                        tournamentsParticipated: 0
+                    })
                     alert('Account created successfully')
                     setOpenModal(false) // Close modal after account creation
                 })
@@ -137,7 +144,7 @@ export default function Navbar() {
                     <a href='/' style={{marginLeft:'10px'}}><Typography variant='action'>Home</Typography></a>
                     <a href='/Tournaments'><Typography variant='action'>Tournaments</Typography></a>
                     <a href='/NewsArticles'><Typography variant='action'>News Articles</Typography></a>
-                    <a href='#'><Typography variant='action'>Players & Teams</Typography></a>
+                    <a href='/PlayersTeams'><Typography variant='action'>Players & Teams</Typography></a>
                 </Box>
                 {!user ?
                     <Box display='flex' alignItems='center' margin='28px 0' padding='10px' bgcolor='white' borderRadius='15px' boxShadow='0 5px 10px rgba(0, 0, 0, 0.3)'>
@@ -169,8 +176,8 @@ export default function Navbar() {
                             :
                             <Menu anchorOrigin={{vertical: "bottom", horizontal: "right"}} transformOrigin={{vertical: "top",horizontal: "right"}} anchorEl={anchorEl} open={openAccDropdown} onClose={() => {setAnchorEl(null)}} disableScrollLock>
                                 <MenuItem onClick={() => {window.location.href = '/ManageAccountProfile'}}><img width='18px' src={require('../img/icons/account.png')}/><Typography variant='navDropdown'>Account & Profile</Typography></MenuItem>
-                                <MenuItem onClick={() => {window.location.href = '/Tournaments'}}><img width='18px' src={require('../img/icons/tournament.png')}/><Typography variant='navDropdown'>My Tournaments</Typography></MenuItem>
-                                <MenuItem onClick={() => {window.location.href = '/NewsArticles'}}><img width='18px' src={require('../img/icons/news.png')}/><Typography variant='navDropdown'>My News Articles</Typography></MenuItem>
+                                <MenuItem onClick={() => {window.location.href = '/MyTournaments'}}><img width='18px' src={require('../img/icons/tournament.png')}/><Typography variant='navDropdown'>My Tournaments</Typography></MenuItem>
+                                <MenuItem onClick={() => {window.location.href = '/MyNewsArticles'}}><img width='18px' src={require('../img/icons/news.png')}/><Typography variant='navDropdown'>My News Articles</Typography></MenuItem>
                                 <hr style={{width:'170px', opacity:'.3'}}/>
                                 <MenuItem onClick={() => {setAnchorEl(null); handleLogout()}}><img width='18px' src={require('../img/icons/logout.png')}/><Typography variant='navDropdown'>Logout</Typography></MenuItem>
                             </Menu>
@@ -194,7 +201,7 @@ export default function Navbar() {
                                     <TextField className='loginSignUpTextField' onChange={(e) => setLoginEmail(e.target.value)} fullWidth variant='standard' label='Email' type='email' required/>
                                     <TextField className='loginSignUpTextField' onChange={(e) => setLoginPassword(e.target.value)} fullWidth variant='standard' label='Password' type='password' required/>
                                 </Stack>
-                                <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='loginErrorMsg'>{errorMessage}</Typography></Box>
+                                <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography></Box>
                                 <Button fullWidth variant='red' type='submit'>Login</Button>
                             </form>
                         </Stack>
@@ -247,7 +254,7 @@ export default function Navbar() {
                                     <TextField className='loginSignUpTextField' onChange={(e) => setRegPassword(e.target.value)} fullWidth variant='standard' label='Password' type='password' required/>
                                     <TextField className='loginSignUpTextField' onChange={(e) => setRegConfirmPassword(e.target.value)} fullWidth variant='standard' label='Confirm password' type='password' required/>
                                 </Stack>
-                                <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='loginErrorMsg'>{errorMessage}</Typography></Box>
+                                <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography></Box>
                                 <Button fullWidth variant='red' type='submit'>Sign Up</Button>
                             </form>
                         </Stack>

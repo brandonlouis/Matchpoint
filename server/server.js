@@ -30,21 +30,6 @@ app.post('/deleteUser', async (req, res) => {
     }
 });
 
-app.post('/updateEmail', async (req, res) => {
-  const uid = req.body.emailInfo[0];
-  const email = req.body.emailInfo[1];
-
-  try {
-    await admin.auth().updateUser(uid, {
-      email: email,
-    });
-    res.status(200).json({ success: true });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-
 app.listen(80, () => {
     console.log(`Server is running on port 80`);
 });

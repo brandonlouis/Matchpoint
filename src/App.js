@@ -5,23 +5,37 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthContextProvider } from './config/authContext';
 import AdminRoute from './components/accessControl/AdminRoute';
 import UserRoute from './components/accessControl/UserRoute';
+import TeamLeaderRoute from './components/accessControl/TeamLeaderRoute';
+import NoTeamRoute from './components/accessControl/NoTeamRoute';
+
 import Navbar from './components/Navbar';
 
+// General Users
 import Home from './components/Home';
 import Tournaments from './components/Tournaments';
 import ViewTournament from './components/ViewTournament';
 import ViewMatch from './components/ViewMatch';
 import NewsArticles from './components/NewsArticles';
 import ViewNewsArticle from './components/ViewNewsArticle';
+import PlayersTeams from './components/PlayersTeams';
+import ViewProfile from './components/ViewProfile';
 
+// Admin
 import ManageAccounts from './components/admin/ManageAccounts';
-import EditAccount from './components/admin/EditAccount';
 import ManageTournaments from './components/admin/ManageTournaments';
 import ManageNewsArticles from './components/admin/ManageNewsArticles';
 import ManageSports from './components/admin/ManageSports';
 
+// Registered Users
 import ManageAccountProfile from './components/users/ManageAccountProfile';
 import CreateTeam from './components/users/CreateTeam';
+import ManageTeam from './components/users/ManageTeam';
+import MyNewsArticles from './components/users/MyNewsArticles';
+import WriteNewsArticle from './components/users/WriteNewsArticle';
+import EditNewsArticle from './components/users/EditNewsArticle';
+import MyTournaments from './components/users/MyTournaments';
+import CreateTournament from './components/users/CreateTournament';
+import EditTournament from './components/users/EditTournament';
 
 import Footer from './components/Footer';
 
@@ -133,7 +147,7 @@ const theme = createTheme({
             color: '#666',
             textTransform: 'uppercase',
         },
-        loginErrorMsg: {
+        smallErrorMsg: {
             fontFamily: 'Saira Semi Condensed',
             fontSize: '12px',
             fontWeight: 'bold',
@@ -165,6 +179,7 @@ const theme = createTheme({
                             backgroundColor: '#B53030',
                         },
                         '&:disabled ': {
+                            backgroundColor: 'grey',
                             color: 'white',
                             opacity: '0.5',
                         },
@@ -198,9 +213,16 @@ const theme = createTheme({
                         fontWeight: 'bold',
                         letterSpacing: '1px',
                         padding: '10px 20px',
+                        height: '45px',
+                        width: '60px',
 
                         '&:hover': {
                             backgroundColor: '#2BA137',
+                        },
+                        '&:disabled ': {
+                            backgroundColor: 'grey',
+                            color: 'white',
+                            opacity: '0.5',
                         },
                     },
                 },
@@ -270,7 +292,11 @@ const theme = createTheme({
                         borderRadius: '15px 0 0 15px',
                         width:'200px',
                         height: '45px',
-
+                        backgroundColor: '#FFF',
+                        
+                        "& .MuiOutlinedInput-input ": {
+                            padding: '15px',
+                        },
                         "& .MuiInputBase-root": {
                             fontFamily: 'Saira Semi Condensed',
                             fontWeight: 'bold',
@@ -280,6 +306,13 @@ const theme = createTheme({
                         "& .Mui-focused": {
                             borderRadius: '15px 0 0 15px',
                             height: '45px',
+                        },
+                    },
+                    "&.matchScoreTextField": {
+                        width:'100%',
+                        backgroundColor: 'white',
+                        "& .MuiInputBase-input": {
+                            padding: '0 5px',
                         },
                     },
                 },
@@ -348,6 +381,20 @@ const theme = createTheme({
                 },
             },
         },
+        MuiDialog: {
+            styleOverrides: {
+                root: {
+                    "& .MuiDialog-paper": {
+                        borderRadius: '15px',
+                    },
+                    "& .MuiDialogTitle-root": {
+                        fontFamily: 'Saira Semi Condensed',
+                        fontWeight: 'bold',
+                        color: '#222',
+                    },
+                },
+            },
+        },
     },
 })
 
@@ -364,15 +411,23 @@ function App() {
                     <Route path="/ViewMatch" element={<ViewMatch />} />
                     <Route path="/NewsArticles" element={<NewsArticles />} />
                     <Route path="/ViewNewsArticle" element={<ViewNewsArticle />} />
+                    <Route path="/PlayersTeams" element={<PlayersTeams />} />
+                    <Route path="/ViewProfile" element={<ViewProfile />} />
                     
                     <Route path="/ManageAccounts" element={<AdminRoute><ManageAccounts /></AdminRoute>} />
-                    <Route path="/EditAccount" element={<AdminRoute><EditAccount /></AdminRoute>} />
                     <Route path="/ManageTournaments" element={<AdminRoute><ManageTournaments /></AdminRoute>} />
                     <Route path="/ManageNewsArticles" element={<AdminRoute><ManageNewsArticles /></AdminRoute>} />
                     <Route path="/ManageSports" element={<AdminRoute><ManageSports /></AdminRoute>} />
 
                     <Route path="/ManageAccountProfile" element={<UserRoute><ManageAccountProfile /></UserRoute>} />
-                    <Route path="/CreateTeam" element={<UserRoute><CreateTeam /></UserRoute>} />
+                    <Route path="/CreateTeam" element={<NoTeamRoute><CreateTeam /></NoTeamRoute>} />
+                    <Route path="/ManageTeam" element={<TeamLeaderRoute><ManageTeam /></TeamLeaderRoute>} />
+                    <Route path="/MyNewsArticles" element={<UserRoute><MyNewsArticles /></UserRoute>} />
+                    <Route path="/WriteNewsArticle" element={<UserRoute><WriteNewsArticle /></UserRoute>} />
+                    <Route path="/EditNewsArticle" element={<UserRoute><EditNewsArticle /></UserRoute>} />
+                    <Route path="/MyTournaments" element={<UserRoute><MyTournaments /></UserRoute>} />
+                    <Route path="/CreateTournament" element={<UserRoute><CreateTournament /></UserRoute>} />
+                    <Route path="/EditTournament" element={<UserRoute><EditTournament /></UserRoute>} />
                 </Routes>
                 <Footer/>
             </Router>

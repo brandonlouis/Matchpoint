@@ -29,7 +29,7 @@ export const AuthContextProvider = ({ children }) => {
         return updateEmail(user, email)
     }
 
-    const changePassword = (user, password) => {
+    const changePassword = (password) => {
         return updatePassword(user, password)
     }
 

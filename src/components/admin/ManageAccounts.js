@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Modal, Stack, TextField, Typography } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import { useNavigate } from 'react-router-dom';
 import { db } from '../../config/firebase';
 import { getDocs, getDoc, doc, collection, query, orderBy, deleteDoc } from 'firebase/firestore';
 import axios from 'axios';
@@ -46,6 +45,7 @@ export default function ManageAccounts() {
         try {
             await axios.post('http://localhost/deleteUser', { id })
             await deleteDoc(doc(db, 'accounts', id))
+            await deleteDoc(doc(db, 'profiles', id))
             alert('Account deleted successfully')
             window.location.reload()
           } catch (err) {
@@ -56,30 +56,20 @@ export default function ManageAccounts() {
     const searchAccount = async (e) => { // Handle search record
         e.preventDefault()
         try {
-            if (searchCriteria === '') { // If search criteria is empty, retrieve all accounts
-                const data = await getDocs(collection(db, 'accounts'))
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(account => account.type !== 'admin')
-                setAccountsList(resList)
-            } else { // If search criteria is not empty, retrieve accounts that match the search criteria
-                const q = query(collection(db, 'accounts'), orderBy('username'))
-                const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(account => account.type !== 'admin' && (account.username.includes(searchCriteria.toLowerCase()) || account.fullName.includes(searchCriteria.toLowerCase())))
-                setAccountsList(resList)
-            }
+            const q = query(collection(db, 'accounts'), orderBy('username'))
+            const data = await getDocs(q)
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(account => account.type !== 'admin' && (account.username.includes(searchCriteria.toLowerCase()) || account.fullName.includes(searchCriteria.toLowerCase())))
+            
+            setAccountsList(resList)
         } catch (err) {
             console.error(err)
         }
     }
 
-    const navigate = useNavigate()
-    const editAccount=(param)=>{
-        navigate('/EditAccount',{state:{id:param}}) // Handle navigation while passing user ID as parameter
-    }
-
     
     return (
         <>
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
+        <Box height='100%' width='100%' minHeight='280px' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Stack width='80%'>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>Manage Accounts</Typography>
@@ -168,25 +158,14 @@ export default function ManageAccounts() {
                                         <Typography variant='subtitle2'>Sport(s):</Typography>
                                     </td>
                                     <td>
-                                        <Typography textTransform='capitalize'variant='subtitle3'>
-                                            {accountDetails.sportInterests?.length > 1 ?
-                                                accountDetails.sportInterests?.map((sport, index, array) => (
-                                                    index === array.length - 1 ? sport : sport + ', '
-                                                )).join('')
-                                                :
-                                                accountDetails.sportInterests
-                                            }
-                                        </Typography>
+                                        <Typography textTransform='capitalize'variant='subtitle3'>{accountDetails?.sportInterests?.join(', ')}</Typography>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </Stack>
 
-                    <Box display='flex' flexDirection='row' justifyContent='space-between'>
-                        <Button onClick={() => editAccount(accountDetails.id)} sx={{width:'170px'}} variant='blue'>Edit Account</Button>
-                        <Button onClick={() => setOpenConfirmation(true)} sx={{width:'170px'}} variant='red'>Delete Account</Button>
-                    </Box>
+                    <Button onClick={() => setOpenConfirmation(true)} variant='red' fullWidth>Delete Account</Button>
                 </Stack>
             </Box>
         </Modal>
@@ -194,7 +173,7 @@ export default function ManageAccounts() {
         <React.Fragment>
             <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
                 <DialogTitle>
-                    <Typography variant='h5'>Delete Account</Typography>
+                    Delete Account
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>

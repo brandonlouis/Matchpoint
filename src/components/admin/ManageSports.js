@@ -109,17 +109,11 @@ export default function ManageSports() {
     const searchSport = async (e) => {
         e.preventDefault()
         try {
-            if (searchCriteria === '') { // If search criteria is empty, retrieve all records
-                const q = query(collection(db, 'sports'), orderBy('name'))
-                const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-                setSportsList(resList)
-            } else { // If search criteria is not empty, retrieve accounts that match the search criteria
-                const q = query(collection(db, 'sports'), orderBy('name'))
-                const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(sport => sport.name.includes(searchCriteria.toLowerCase()))
-                setSportsList(resList)
-            }
+            const q = query(collection(db, 'sports'), orderBy('name'))
+            const data = await getDocs(q)
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(sport => sport.name.includes(searchCriteria.toLowerCase()))
+            
+            setSportsList(resList)
         } catch (err) {
             console.error(err)
         }
@@ -128,7 +122,7 @@ export default function ManageSports() {
     
     return (
         <>
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
+        <Box height='100%' width='100%' minHeight='280px' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Stack width='80%'>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>Manage Sports</Typography>
@@ -186,7 +180,7 @@ export default function ManageSports() {
                     <Stack gap='20px'>
                         <Stack>
                             <TextField onChange={(e) => setNewSportName(e.target.value)} className='inputTextField' variant='outlined' label='Sport Name' inputProps={{pattern:'^[^0-9]+$'}} required/>
-                            <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='loginErrorMsg'>{errorMessage}</Typography></Box>
+                            <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography></Box>
                         </Stack>
                         <Box display='flex' flexDirection='row' justifyContent='space-between'>
                             <Button sx={{width:'145px'}} variant='green' type='submit'>Create</Button>
@@ -200,7 +194,7 @@ export default function ManageSports() {
         <React.Fragment>
             <Dialog open={openConfirmation} onClose={() => setOpenConfirmation(false)}>
                 <DialogTitle>
-                    <Typography variant='h5'>Delete Sport</Typography>
+                    Delete Sport
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
