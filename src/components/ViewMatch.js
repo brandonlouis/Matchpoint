@@ -752,7 +752,6 @@ export default function ViewMatch() {
                             <Button sx={{width:'300px'}} variant='blue' onClick={() => saveChanges()}>Save Changes</Button>
                             <Button sx={{width:'150px'}} variant='red' onClick={() => {setEditMode(false); revertChanges()}}>Back</Button>
                             </>
-
                         }
                         </>
                         :

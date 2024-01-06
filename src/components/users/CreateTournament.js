@@ -60,21 +60,6 @@ export default function CreateTournament() {
     }, [])
 
     useEffect(() => {
-    //     if (format === 'single-elimination') {
-    //         setNoRounds(Math.log2(maxParticipants) + 1)
-
-    //         const maxParticipantsEven = maxParticipants % 2 === 0 ? maxParticipants : parseInt(maxParticipants) + 1
-    //         setMatchesPerRound(Array.from({ length: Math.log2(maxParticipantsEven) + 1 }, (_, i) => maxParticipantsEven / Math.pow(2, i)))
-    //     } else if (format === 'custom') {
-    //         if (customFormatDetails.length === 0) {
-    //             setNoRounds('')
-    //             setMatchesPerRound([])
-    //         } else {
-    //             setNoRounds(customFormatDetails.rounds)
-    //             setMatchesPerRound(customFormatDetails.matchesPerRound)
-    //         }
-            
-    //     }
         if (parseInt(maxParticipants) === 1 || parseInt(maxParticipants) === 0) {
             setNoRounds(0)
             setMatchesPerRound([])
@@ -133,7 +118,6 @@ export default function CreateTournament() {
         }
 
     }, [format, maxParticipants])
-
 
     const getCustomFormats = async () => {
         try {

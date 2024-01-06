@@ -101,8 +101,7 @@ export default function EditTournament() {
                 }
 
             } catch (err) {
-                console.error(err)
-                // window.location.href = '/'
+                window.location.href = '/'
             }
         }
         getTournament()
@@ -110,23 +109,65 @@ export default function EditTournament() {
         getCustomFormats()
     }, [])
 
-    // useEffect(() => {
-    //     if (format === 'single-elimination') {
-    //         setNoRounds(Math.log2(maxParticipants) + 1)
+    useEffect(() => {
+        if (parseInt(maxParticipants) === 1 || parseInt(maxParticipants) === 0) {
+            setNoRounds(0)
+            setMatchesPerRound([])
+            return
+        } else if (parseInt(maxParticipants) === 2) {
+            setNoRounds(1)
+            setMatchesPerRound([1])
+            return
+        } else if (parseInt(maxParticipants) === 3) {
+            setNoRounds(2)
+            setMatchesPerRound([2, 1])
+            return
+        }
 
-    //         const maxParticipantsEven = maxParticipants % 2 === 0 ? maxParticipants : parseInt(maxParticipants) + 1
-    //         setMatchesPerRound(Array.from({ length: Math.log2(maxParticipantsEven) + 1 }, (_, i) => maxParticipantsEven / Math.pow(2, i)))
-    //     } else if (format === 'custom') {
-    //         if (customFormatDetails.length === 0) {
-    //             setNoRounds('')
-    //             setMatchesPerRound([])
-    //         } else {
-    //             setNoRounds(customFormatDetails.rounds)
-    //             setMatchesPerRound(customFormatDetails.matchesPerRound)
-    //         }
+        if (format === 'single-elimination') {
+            if ((maxParticipants & (maxParticipants - 1)) === 0 && maxParticipants !== 0) {
+                const noRoundsGenerated = Math.ceil(Math.log2(maxParticipants))
+                setNoRounds(noRoundsGenerated)
+
+                let matchesPerRoundGenerated = []
+                for (let i = 0; i < noRoundsGenerated; i++) {
+                    matchesPerRoundGenerated.push((maxParticipants / Math.pow(2, i)) / 2)
+                }
+                setMatchesPerRound(matchesPerRoundGenerated)
+
+            } else {
+                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants))
+                let firstRound = (maxParticipants - (nextPowerOfTwo - maxParticipants)) / 2
+                const remainingParticipants = maxParticipants - firstRound
+                
+                const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants))
+                setNoRounds(noRoundsGenerated)
+
+                let matchesPerRoundGenerated = []
+                matchesPerRoundGenerated[0] = firstRound
+
+                for (let i = 1; i < noRoundsGenerated+1; i++) {
+                    matchesPerRoundGenerated.push((remainingParticipants / Math.pow(2, i-1)) / 2)
+                }
+                setMatchesPerRound(matchesPerRoundGenerated)
+            }
+
+        } else if (format === 'double-elimination') {
+
+        } else if (format === 'round-robin') {
             
-    //     }
-    // }, [format, maxParticipants])
+        } else if (format === 'custom') {
+            if (customFormatDetails.length === 0) {
+                setNoRounds('')
+                setMatchesPerRound([])
+            } else {
+                setNoRounds(customFormatDetails.rounds)
+                setMatchesPerRound(customFormatDetails.matchesPerRound)
+            }
+            
+        }
+
+    }, [format, maxParticipants])
 
     const getCustomFormats = async () => {
         try {
