@@ -83,7 +83,7 @@ export default function ManageTournaments() {
         e.preventDefault()
         try {
             const data = await getDocs(collection(db, 'tournaments'))
-            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((tournament) => tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport == searchCriteria.toLowerCase())
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((tournament) => tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport === searchCriteria.toLowerCase())
             
             setTournamentList(processDateListDate(resList))
         } catch (err) {
@@ -107,7 +107,7 @@ export default function ManageTournaments() {
                 </Box>
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {tournamentList.map((tournament) => (
-                        <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)' sx={{opacity: (tournament.status == 0 || tournament.date?.end.toDate() < new Date()) && '0.5'}}>
+                        <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)' sx={{opacity: (tournament.status === 0 || tournament.date?.end.toDate() < new Date()) && '0.5'}}>
                             <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%'}} >
                                 <CardActionArea onClick={() => viewTournament(tournament.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                     <CardContent sx={{padding:'0'}}>

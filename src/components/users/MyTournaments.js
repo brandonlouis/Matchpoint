@@ -64,11 +64,11 @@ export default function MyTournaments() {
             }
         }
         
-        if (tournamentTab == 'hosted') {
+        if (tournamentTab === 'hosted') {
             getHosted()
-        } else if (tournamentTab == 'collaborating') {
+        } else if (tournamentTab === 'collaborating') {
             getCollaborating()
-        } else if (tournamentTab == 'participating') {
+        } else if (tournamentTab === 'participating') {
             getParticipating()
         }
     }, [tournamentTab])
@@ -92,7 +92,7 @@ export default function MyTournaments() {
     const searchTournament = async (e) => {
         e.preventDefault()
         try {
-            if (tournamentTab == 'participating') {
+            if (tournamentTab === 'participating') {
                 const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', user.uid))
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
@@ -101,18 +101,18 @@ export default function MyTournaments() {
                 const teamData = await getDocs(teamQ)
                 const teamResList = teamData.docs.map((doc) => ({...doc.data(), id: doc.id}))
 
-                const filteredCombinedList = [...resList, ...teamResList].filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport == searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
+                const filteredCombinedList = [...resList, ...teamResList].filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport === searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
                 setTournamentList(processDate(filteredCombinedList))
             } else {
                 let q
-                if (tournamentTab == 'hosted') {
+                if (tournamentTab === 'hosted') {
                     q = query(collection(db, 'tournaments'), where('host', '==', user.uid))
-                } else if (tournamentTab == 'collaborating') {
+                } else if (tournamentTab === 'collaborating') {
                     q = query(collection(db, 'tournaments'), where('collaborators', 'array-contains', user.uid))
                 }
     
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport == searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport === searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
                 
                 setTournamentList(processDate(resList))
             }
@@ -126,14 +126,14 @@ export default function MyTournaments() {
         <Box height='100%' width='100%' minHeight='500px' padding='185px 0 150px' display='flex' justifyContent='center'>
             <Stack width='80%'>
                 <Box display='flex' gap='50px' marginBottom='60px'>
-                    <Button onClick={() => setTournamentTab('hosted')}><Typography className={tournamentTab == 'hosted' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Hosted Tournaments</Typography></Button>
-                    <Button onClick={() => setTournamentTab('collaborating')}><Typography className={tournamentTab == 'collaborating' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Collaborating Tournaments</Typography></Button>
-                    <Button onClick={() => setTournamentTab('participating')}><Typography className={tournamentTab == 'participating' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Participating Tournaments</Typography></Button>
+                    <Button onClick={() => setTournamentTab('hosted')}><Typography className={tournamentTab === 'hosted' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Hosted Tournaments</Typography></Button>
+                    <Button onClick={() => setTournamentTab('collaborating')}><Typography className={tournamentTab === 'collaborating' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Collaborating Tournaments</Typography></Button>
+                    <Button onClick={() => setTournamentTab('participating')}><Typography className={tournamentTab === 'participating' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Participating Tournaments</Typography></Button>
                 </Box>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>{tournamentTab} Tournaments</Typography>
                     <Box display='flex' alignItems='center' gap='15px'>
-                        {tournamentTab == 'hosted' && <Button style={{height:'45px', width:'65px'}} onClick={() => window.location.href='/CreateTournament'} variant='green'><AddIcon sx={{fontSize:'35px'}}/></Button>}
+                        {tournamentTab === 'hosted' && <Button style={{height:'45px', width:'65px'}} onClick={() => window.location.href='/CreateTournament'} variant='green'><AddIcon sx={{fontSize:'35px'}}/></Button>}
                         <form style={{display:'flex'}} onSubmit={searchTournament}>
                             <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
                             <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>

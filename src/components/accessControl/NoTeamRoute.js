@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { db } from '../../config/firebase'
 import { UserAuth } from '../../config/authContext';
-import { getDocs, collection, where, query } from 'firebase/firestore'
+import { getDocs, collection, query } from 'firebase/firestore'
 
 const NoTeamRoute = ({ children }) => {
     const { user } = UserAuth()
