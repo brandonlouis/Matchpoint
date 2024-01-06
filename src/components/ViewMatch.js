@@ -6,6 +6,8 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import { db } from '../config/firebase';
 import { UserAuth } from '../config/authContext';
 import { getDoc, getDocs, doc, collection, query, orderBy, updateDoc } from 'firebase/firestore';
+import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx';
 
 export default function ViewMatch() {
     const { user } = UserAuth()
@@ -13,6 +15,11 @@ export default function ViewMatch() {
 
     const [viewerType, setViewerType] = useState('spectator')
     const [editMode, setEditMode] = useState(false)
+
+    const [anchorElScoresheet, setAnchorElScoresheet] = useState(null)
+    const [openFormatDropdownScoresheet, setOpenFormatDropdownScoresheet] = useState(false)
+	  const [anchorElSchedule, setAnchorElSchedule] = useState(null)
+    const [openFormatDropdownSchedule, setOpenFormatDropdownSchedule] = useState(false)
 
     const [anchorEl, setAnchorEl] = useState(null)
     const openFormatDropdown = Boolean(anchorEl)
@@ -116,13 +123,13 @@ export default function ViewMatch() {
         setMatchList(newMatchList)
     }
     function formatDateTime(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-      
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}`
     }
 
     const revertChanges = async () => {
@@ -182,6 +189,270 @@ export default function ViewMatch() {
             console.error(err)
         }
     }
+    
+    // Scoresheets
+    // Helper function to convert binary string to ArrayBuffer
+    const s2ab = (s) => {
+        const buf = new ArrayBuffer(s.length)
+        const view = new Uint8Array(buf)
+
+        for (let i = 0; i < s.length; i++) {
+            view[i] = s.charCodeAt(i) & 0xFF
+        }
+
+        return buf
+    }
+    
+    // Excel scoresheet
+    const generateAndDownloadExcel = () => {            
+        const data = [
+            ['Rank', 'Participant', 'W/L','Avg Score','Points']          
+        ]
+
+        if (matchList.participants !== undefined) {
+            const mappedData = Object.entries(matchList.participants).sort((a, b) => {
+                const pointsA = parseFloat(matchList.statistics[a[1]].points)
+                const pointsB = parseFloat(matchList.statistics[b[1]].points)
+                return pointsB - pointsA // Sort in descending order based on points
+
+            }).map((participant, index) => {
+                const [key, value] = participant
+                let name = ''
+                const participantType = participantDetails.find((item) => item.id === value)
+
+                if (participantType) {
+                    name = participantType.handle || participantType.username
+                }
+
+                const calcAvg = () => {
+                    const points = parseFloat(matchList.statistics[value].points)
+                    const wins = parseFloat(matchList.statistics[value].wins)
+                    const losses = parseFloat(matchList.statistics[value].losses)
+
+                    let ratio = points / (wins + losses)
+                    ratio = isNaN(ratio) ? 0 : ratio
+
+                    if (Number.isInteger(ratio)) {
+                        return ratio.toFixed(0)
+                    } else {
+                        return ratio.toFixed(2)
+                    }
+                }
+
+                return [
+                    index + 1, // Rank
+                    name, // Participant
+                    `${matchList.statistics[value].wins}/${matchList.statistics[value].losses}`, // W/L
+                    calcAvg(), // Avg Score
+                    matchList.statistics[value].points, // Points
+                ]
+            })
+            data.push(...mappedData)
+        }
+ 
+        const ws = XLSX.utils.aoa_to_sheet(data)
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+
+        // Use XLSX.write to get the binary string
+        const binaryString = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' })
+
+        // Convert the binary string to a Blob
+        const blob = new Blob([s2ab(binaryString)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+
+        // Save the Blob using file-saver
+        saveAs(blob, 'tournament-scoresheet.xlsx')
+    }
+
+    // Txt scoresheet
+    const generateAndDownloadTextFile = () => {
+        // Text array
+        const textData = [
+            ['Rank', 'Participant', 'W/L', 'Avg Score', 'Points\n']
+        ]
+
+        if (matchList.participants !== undefined) {
+            const mappedData = Object.entries(matchList.participants)
+                .sort((a, b) => {
+                    const pointsA = parseFloat(matchList.statistics[a[1]].points)
+                    const pointsB = parseFloat(matchList.statistics[b[1]].points)
+                    return pointsB - pointsA // Sort in descending order based on points
+                })
+                .map((participant, index) => {
+                    const [key, value] = participant
+                    let name = ''
+                    const participantType = participantDetails.find((item) => item.id === value)
+
+                    if (participantType) {
+                        name = participantType.handle || participantType.username
+                    }
+
+                    const calcAvg = () => {
+                        const points = parseFloat(matchList.statistics[value].points)
+                        const wins = parseFloat(matchList.statistics[value].wins)
+                        const losses = parseFloat(matchList.statistics[value].losses)
+
+                        let ratio = points / (wins + losses)
+                        ratio = isNaN(ratio) ? 0 : ratio
+
+                        if (Number.isInteger(ratio)) {
+                            return ratio.toFixed(0)
+                        } else {
+                            return ratio.toFixed(2)
+                        }
+                    }
+
+                    // Manually concatenate elements with a comma between each variable
+                    return [
+                        index + 1, // Rank
+                        name, // Participant
+                        `${matchList.statistics[value].wins}/${matchList.statistics[value].losses}`, // W/L
+                        calcAvg(), // Avg Score
+                        matchList.statistics[value].points
+                    ].join(',')
+                })
+            textData.push(...mappedData)
+        }
+
+        // Join lines with newline character
+        const formattedTextData = textData.join('\n')
+
+        // Create a Blob from the formatted text data
+        const blob = new Blob([formattedTextData], { type: 'text/plain' })
+
+        // Create a link element
+        const link = document.createElement('a')
+
+        // Set the link's href attribute to a Blob URL
+        link.href = URL.createObjectURL(blob)
+
+        // Set the link's download attribute to the desired file name
+        link.download = 'tournament-scoresheet.txt'
+
+        // Append the link to the document
+        document.body.appendChild(link)
+
+        // Trigger a click on the link to initiate the download
+        link.click()
+
+        // Remove the link from the document
+        document.body.removeChild(link)
+    }
+
+    // Schedule
+    // Excel schedule
+    const generateAndDownloadExcelSche = () => {
+        const data = [
+            ['Round','Match', 'Datetime', 'Participant'],
+        ]
+    
+        const rounds = matchList.finals || matchList.round
+    
+        Object.entries(matchList.round).map(([keyRound, valueRound]) => { // To calculate wins, losses, and points
+            Object.entries(valueRound.match).map(([keyMatch, valueMatch]) => {
+                const rowData = [] // Array to store data for each participant in a single row
+                const isLastRound = keyRound === Object.keys(rounds).length.toString() // Check if it's the last round
+                const roundLabel = isLastRound ? 'Final' : `Round ${keyRound}`
+                rowData.push(roundLabel) // Add Round value to the row
+                rowData.push(keyMatch) // Add Match value
+    
+                // Add datetime value to the row
+                const datetimeValue = rounds[keyRound].time.toLocaleString('en-US', {
+                    month: 'short',
+                    day: '2-digit',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                })
+                rowData.push(datetimeValue)
+    
+                for (let i = 0; i <= 1; i++) {
+                    const participantType = participantDetails.find((item) => item.id === Object.keys(valueMatch[i]).join(''))
+                    if (participantType) {
+                        rowData.push(participantType.handle || participantType.username)
+                    }
+                }
+                data.push(rowData) // Push the entire row data into the main data array
+            })
+        })
+
+        const ws = XLSX.utils.aoa_to_sheet(data)
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+    
+        // Use XLSX.write to get the binary string
+        const binaryString = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' })
+    
+        // Convert the binary string to a Blob
+        const blob = new Blob([s2ab(binaryString)], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        })
+    
+        // Save the Blob using file-saver
+        saveAs(blob, 'tournament-schedule.xlsx')
+    }
+
+    // Txt schedule
+    const generateAndDownloadTxtSche = () => {
+        const data = [
+            ['Round', 'Match', 'Datetime', 'Participant'],
+        ]
+    
+        const rounds = matchList.finals || matchList.round
+    
+        Object.entries(matchList.round).map(([keyRound, valueRound]) => { // To calculate wins, losses, and points
+            Object.entries(valueRound.match).map(([keyMatch, valueMatch]) => {
+                const rowData = [] // Array to store data for each participant in a single row
+                const isLastRound = keyRound === Object.keys(rounds).length.toString() // Check if it's the last round
+                const roundLabel = isLastRound ? 'Grand Final' : `Round,${keyRound}`
+                rowData.push(roundLabel) // Add Round value to the row
+                rowData.push(keyMatch) // Add Match value
+    
+                // Add datetime value to the row
+                const datetimeValue = rounds[keyRound].time.toLocaleString('en-US', {
+                    month: 'short',
+                    day: '2-digit',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                })
+                rowData.push(datetimeValue)
+    
+                for (let i = 0; i <= 1; i++) {
+                    const participantType = participantDetails.find((item) => item.id === Object.keys(valueMatch[i]).join(''))
+                    if (participantType) {
+                        rowData.push(participantType.handle || participantType.username)
+                    }
+                }
+    
+                data.push(rowData) // Push the entire row data into the main data array
+            })
+        })
+    
+       // Join lines with newline character
+       const formattedTextData = data.join('\n')
+    
+       // Create a Blob from the formatted text data
+       const blob = new Blob([formattedTextData], { type: 'text/plain' })
+   
+       // Create a link element
+       const link = document.createElement('a')
+   
+       // Set the link's href attribute to a Blob URL
+       link.href = URL.createObjectURL(blob)
+   
+       // Set the link's download attribute to the desired file name
+       link.download = 'tournament-schedule.txt'
+   
+       // Append the link to the document
+       document.body.appendChild(link)
+   
+       // Trigger a click on the link to initiate the download
+       link.click()
+   
+       // Remove the link from the document
+       document.body.removeChild(link)
+    }
 
     
     return (
@@ -194,14 +465,19 @@ export default function ViewMatch() {
                         <Button sx={{width:'150px', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorEl(e.currentTarget)}}>Scoresheet</Button>
                         <Button sx={{width:'150px', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorEl(e.currentTarget)}}>Schedule</Button>
 
-                        <Menu PaperProps={{sx: {width: '150px'}}} anchorOrigin={{vertical: "bottom", horizontal: "right"}} transformOrigin={{vertical: "top",horizontal: "right"}} anchorEl={anchorEl} open={openFormatDropdown} onClose={() => {setAnchorEl(null)}} disableScrollLock>
-                                <MenuItem onClick={() => {}}><Typography variant='navDropdown'>.PNG</Typography></MenuItem>
-                                <MenuItem onClick={() => {}}><Typography variant='navDropdown'>.JPG</Typography></MenuItem>
-                                <MenuItem onClick={() => {}}><Typography variant='navDropdown'>.DOCX</Typography></MenuItem>
-                                <MenuItem onClick={() => {}}><Typography variant='navDropdown'>.TXT</Typography></MenuItem>
-                                <MenuItem onClick={() => {}}><Typography variant='navDropdown'>.XLSX</Typography></MenuItem>
+                        <Button sx={{ width: '150px', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
+                        <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }}anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
+                          <MenuItem onClick={generateAndDownloadExcel}> <Typography variant='navDropdown'>.XLSX</Typography> </MenuItem>
+                          <MenuItem onClick={generateAndDownloadTextFile}> <Typography variant='navDropdown'>.TXT</Typography> </MenuItem>
+                          <MenuItem onClick={() => window.print()}> <Typography variant='navDropdown'>.PDF</Typography></MenuItem>
+                        </Menu>
 
-                            </Menu>
+                        <Button sx={{width:'150px', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorElSchedule(e.currentTarget);setOpenFormatDropdownSchedule(true);}}>Schedule</Button>
+                        <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElSchedule} open={openFormatDropdownSchedule} onClose={() => {setAnchorElSchedule(null); setOpenFormatDropdownSchedule(false);}} disableScrollLock>
+                            <MenuItem onClick={generateAndDownloadExcelSche}><Typography variant='navDropdown'>.XLSX</Typography></MenuItem>
+                            <MenuItem onClick={generateAndDownloadTxtSche}><Typography variant='navDropdown'>.TXT</Typography></MenuItem>
+                            <MenuItem onClick={() => window.print()}><Typography variant='navDropdown'>.PDF</Typography></MenuItem>  
+                        </Menu>   
                     </Box>
                 </Box>
                 <Stack marginTop='50px'>
