@@ -60,19 +60,7 @@ export default function CreateTournament() {
     }, [])
 
     useEffect(() => {
-        if (parseInt(maxParticipants) === 1 || parseInt(maxParticipants) === 0) {
-            setNoRounds(0)
-            setMatchesPerRound([])
-            return
-        } else if (parseInt(maxParticipants) === 2) {
-            setNoRounds(1)
-            setMatchesPerRound([1])
-            return
-        } else if (parseInt(maxParticipants) === 3) {
-            setNoRounds(2)
-            setMatchesPerRound([2, 1])
-            return
-        }
+        
 
         if (format === 'single-elimination') {
             if ((maxParticipants & (maxParticipants - 1)) === 0 && maxParticipants !== 0) {
@@ -103,44 +91,32 @@ export default function CreateTournament() {
             }
 
         } else if (format === 'double-elimination') {
-            if ((maxParticipants & (maxParticipants - 1)) === 0 && maxParticipants !== 0) {
-                const totalMatches = (maxParticipants * 2) - 2;
-                setNoRounds(totalMatches);
-        
-                const noRoundsGenerated = Math.ceil((Math.log2(maxParticipants * 2))) - 1;
-                setNoRounds(noRoundsGenerated);
-        
-                let matchesPerRoundGenerated = [];
-                for (let i = 0; i < noRoundsGenerated; i++) {
-                    matchesPerRoundGenerated.push((maxParticipants / Math.pow(2, i)) / 2);
-                }
-                setMatchesPerRound(matchesPerRoundGenerated);
-        
-            } else {
-                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants));
-                let firstRoundWinners = (nextPowerOfTwo - maxParticipants) / 2;
-                const remainingParticipants = maxParticipants - firstRoundWinners;
-        
-                const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants * 2)) - 1;
-                setNoRounds(noRoundsGenerated);
-        
-                let matchesPerRoundGenerated = [];
-                matchesPerRoundGenerated[0] = firstRoundWinners;
-        
-                for (let i = 1; i < noRoundsGenerated + 1; i++) {
-                    matchesPerRoundGenerated.push((remainingParticipants / Math.pow(2, i - 1)) / 2);
-                }
-                setMatchesPerRound(matchesPerRoundGenerated);
-            }
-        
+            
+            
+            
 
         } else if (format === 'round-robin') {
-            const noParticipants = maxParticipants;
-            const noGames = (noParticipants * (noParticipants - 1)) / 2;
+            const noOfRoundsGeneratedEven = maxParticipants - 1;
+            const noOfRoundsGeneratedOdd = maxParticipants;
 
-            setNoRounds(1); // Single-Round-robin has only one round
-            setMatchesPerRound([noGames]);
-            
+            let matchesPerRoundGenerated = [];
+
+            if (maxParticipants % 2 === 0) {
+                const Evenmatches = Math.ceil(maxParticipants / 2);
+                for (let i = 0; i < noOfRoundsGeneratedEven; i++) {
+                matchesPerRoundGenerated.push(Evenmatches);
+                }
+            } else if (maxParticipants % 2 === 1) {
+                const Oddmatches = Math.floor(maxParticipants / 2);
+                for (let i = 0; i < noOfRoundsGeneratedOdd; i++) {
+                matchesPerRoundGenerated.push(Oddmatches);
+                }
+            }
+
+            setNoRounds(maxParticipants % 2 === 0 ? noOfRoundsGeneratedEven : noOfRoundsGeneratedOdd);
+            setMatchesPerRound(matchesPerRoundGenerated);
+
+           
         } else if (format === 'custom') {
             if (customFormatDetails.length === 0) {
                 setNoRounds('')
