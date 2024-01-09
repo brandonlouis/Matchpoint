@@ -518,6 +518,13 @@ export default function ViewMatch() {
                                 let ratio = points / (wins + losses)
                                 ratio = isNaN(ratio) ? 0 : ratio
 
+                                if (wins !== 0 && losses !== 0){
+                                    ratio = points/(wins+losses)
+                                }                                
+                                else if (wins === 0 && losses === 0){
+                                    ratio = points
+                                }
+                                
                                 if (Number.isInteger(ratio)) {
                                     return ratio.toFixed(0)
                                 } else {

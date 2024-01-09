@@ -103,8 +103,43 @@ export default function CreateTournament() {
             }
 
         } else if (format === 'double-elimination') {
+            if ((maxParticipants & (maxParticipants - 1)) === 0 && maxParticipants !== 0) {
+                const totalMatches = (maxParticipants * 2) - 2;
+                setNoRounds(totalMatches);
+        
+                const noRoundsGenerated = Math.ceil((Math.log2(maxParticipants * 2))) - 1;
+                setNoRounds(noRoundsGenerated);
+        
+                let matchesPerRoundGenerated = [];
+                for (let i = 0; i < noRoundsGenerated; i++) {
+                    matchesPerRoundGenerated.push((maxParticipants / Math.pow(2, i)) / 2);
+                }
+                setMatchesPerRound(matchesPerRoundGenerated);
+        
+            } else {
+                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants));
+                let firstRoundWinners = (nextPowerOfTwo - maxParticipants) / 2;
+                const remainingParticipants = maxParticipants - firstRoundWinners;
+        
+                const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants * 2)) - 1;
+                setNoRounds(noRoundsGenerated);
+        
+                let matchesPerRoundGenerated = [];
+                matchesPerRoundGenerated[0] = firstRoundWinners;
+        
+                for (let i = 1; i < noRoundsGenerated + 1; i++) {
+                    matchesPerRoundGenerated.push((remainingParticipants / Math.pow(2, i - 1)) / 2);
+                }
+                setMatchesPerRound(matchesPerRoundGenerated);
+            }
+        
 
         } else if (format === 'round-robin') {
+            const noParticipants = maxParticipants;
+            const noGames = (noParticipants * (noParticipants - 1)) / 2;
+
+            setNoRounds(1); // Single-Round-robin has only one round
+            setMatchesPerRound([noGames]);
             
         } else if (format === 'custom') {
             if (customFormatDetails.length === 0) {
