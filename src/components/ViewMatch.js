@@ -462,8 +462,6 @@ export default function ViewMatch() {
                     <Typography variant='h3'>{viewerType === 'host&collab' ? 'Manage' : 'Match'} Score & Matchup</Typography>
                     <Box display='flex' gap='20px'>
                         <Button sx={{width:'120px', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
-                        <Button sx={{width:'150px', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorEl(e.currentTarget)}}>Scoresheet</Button>
-                        <Button sx={{width:'150px', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorEl(e.currentTarget)}}>Schedule</Button>
 
                         <Button sx={{ width: '150px', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
                         <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }}anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>

@@ -60,9 +60,23 @@ export default function CreateTournament() {
     }, [])
 
     useEffect(() => {
-        
+        if (parseInt(maxParticipants) === 1 || parseInt(maxParticipants) === 0) {
+            setNoRounds(0)
+            setMatchesPerRound([])
+            return
+        }
 
         if (format === 'single-elimination') {
+            if (parseInt(maxParticipants) === 2) {
+                setNoRounds(1)
+                setMatchesPerRound([1])
+                return
+            } else if (parseInt(maxParticipants) === 3) {
+                setNoRounds(2)
+                setMatchesPerRound([2, 1])
+                return
+            }
+
             if ((maxParticipants & (maxParticipants - 1)) === 0 && maxParticipants !== 0) {
                 const noRoundsGenerated = Math.ceil(Math.log2(maxParticipants))
                 setNoRounds(noRoundsGenerated)
@@ -91,30 +105,105 @@ export default function CreateTournament() {
             }
 
         } else if (format === 'double-elimination') {
-            
-            
-            
+            let winnerBracket = []
+            if ((maxParticipants & (maxParticipants - 1)) === 0 && maxParticipants !== 0) {
+                const noRoundsGenerated = Math.ceil(Math.log2(maxParticipants))
+
+                let matchesPerRoundGenerated = []
+                for (let i = 0; i < noRoundsGenerated; i++) {
+                    matchesPerRoundGenerated.push((maxParticipants / Math.pow(2, i)) / 2)
+                }
+                winnerBracket = matchesPerRoundGenerated
+
+            } else {
+                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants))
+                let firstRound = (maxParticipants - (nextPowerOfTwo - maxParticipants)) / 2
+                const remainingParticipants = maxParticipants - firstRound
+                const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants))
+
+                let matchesPerRoundGenerated = []
+                matchesPerRoundGenerated[0] = firstRound
+
+                for (let i = 1; i < noRoundsGenerated+1; i++) {
+                    matchesPerRoundGenerated.push((remainingParticipants / Math.pow(2, i-1)) / 2)
+                }
+                winnerBracket = matchesPerRoundGenerated
+            }
+
+            let combinedBracket = [] 
+            let loserBracket = [] // Calculate Loser Rnds
+            let addParticipants= 0 
+            let prevWinner = 0 
+            let participants = 0 
+            combinedBracket.push(winnerBracket[0]) 
+
+            for (let q = 0; q < winnerBracket.length-1; q++) {
+                while ((addParticipants + prevWinner) > winnerBracket[q]) {
+                    // Resolve concurrent losers first before settling upper bracket losers
+                    participants = addParticipants + prevWinner 
+                    let matchesThisRnd = Math.floor(participants/2) 
+                    loserBracket.push(matchesThisRnd) 
+                    addParticipants = participants - matchesThisRnd*2 
+                    prevWinner = matchesThisRnd 
+                    combinedBracket.push(matchesThisRnd) 
+                }
+                participants = winnerBracket[q] + addParticipants + prevWinner 
+                let matchesThisRnd = Math.floor(participants/2) 
+                loserBracket.push(matchesThisRnd) 
+                addParticipants = participants - matchesThisRnd*2 
+                prevWinner = matchesThisRnd 
+                combinedBracket.push(matchesThisRnd+winnerBracket[q+1]) 
+            }
+
+            while (addParticipants >= 1 || prevWinner > 1) {
+                participants = addParticipants + prevWinner 
+                let matchesThisRnd = Math.floor(participants/2) 
+                loserBracket.push(matchesThisRnd) 
+                addParticipants = participants - matchesThisRnd*2 
+                prevWinner = matchesThisRnd 
+                combinedBracket.push(matchesThisRnd) 
+            }
+
+            participants = 1 + prevWinner 
+            let matchesThisRnd = Math.floor(participants/2) 
+            loserBracket.push(matchesThisRnd) 
+            addParticipants = participants - matchesThisRnd*2 
+            prevWinner = matchesThisRnd 
+            combinedBracket.push(matchesThisRnd) 
+
+            let z = 2
+            //Min Rnds
+            for (let q = 0; q < z; q++) {
+                combinedBracket.push(1) 
+                winnerBracket.push(1) 
+            }
+            console.log(`Winner Bracket: ${winnerBracket}`)
+            console.log(`Loser Bracket: ${loserBracket}`)
+            console.log(`Combined Bracket: ${combinedBracket}`)
+
+            setNoRounds(combinedBracket.length)
+            setMatchesPerRound(combinedBracket)
 
         } else if (format === 'round-robin') {
-            const noOfRoundsGeneratedEven = maxParticipants - 1;
-            const noOfRoundsGeneratedOdd = maxParticipants;
+            const noOfRoundsGeneratedEven = maxParticipants - 1
+            const noOfRoundsGeneratedOdd = maxParticipants
 
-            let matchesPerRoundGenerated = [];
+            let matchesPerRoundGenerated = []
 
             if (maxParticipants % 2 === 0) {
-                const Evenmatches = Math.ceil(maxParticipants / 2);
+                const Evenmatches = Math.ceil(maxParticipants / 2)
                 for (let i = 0; i < noOfRoundsGeneratedEven; i++) {
-                matchesPerRoundGenerated.push(Evenmatches);
+                matchesPerRoundGenerated.push(Evenmatches)
                 }
             } else if (maxParticipants % 2 === 1) {
-                const Oddmatches = Math.floor(maxParticipants / 2);
+                const Oddmatches = Math.floor(maxParticipants / 2)
                 for (let i = 0; i < noOfRoundsGeneratedOdd; i++) {
-                matchesPerRoundGenerated.push(Oddmatches);
+                matchesPerRoundGenerated.push(Oddmatches)
                 }
             }
 
-            setNoRounds(maxParticipants % 2 === 0 ? noOfRoundsGeneratedEven : noOfRoundsGeneratedOdd);
-            setMatchesPerRound(matchesPerRoundGenerated);
+            setNoRounds(maxParticipants % 2 === 0 ? noOfRoundsGeneratedEven : noOfRoundsGeneratedOdd)
+            setMatchesPerRound(matchesPerRoundGenerated)
 
            
         } else if (format === 'custom') {
@@ -129,6 +218,7 @@ export default function CreateTournament() {
         }
 
     }, [format, maxParticipants])
+    console.log(noRounds, matchesPerRound)
 
     const getCustomFormats = async () => {
         try {
@@ -393,7 +483,11 @@ export default function CreateTournament() {
                                 </Box>
                             </Stack>
 
-                            <Stack marginTop='25px' gap='5px'>                                
+                            <Stack marginTop='25px' gap='5px'>                         
+                                <Box display='flex' justifyContent='flex-end'>
+                                    <Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography>
+                                </Box>
+       
                                 <Box display='flex' gap='50px' justifyContent='center'>
                                     <Button sx={{width:'250px'}} variant='blue' type='submit'>Create Tournament</Button>
                                     <Button sx={{width:'120px'}} variant='red' onClick={() => window.history.back()}>Back</Button>
