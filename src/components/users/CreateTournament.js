@@ -484,10 +484,6 @@ export default function CreateTournament() {
                             </Stack>
 
                             <Stack marginTop='25px' gap='5px'>                         
-                                <Box display='flex' justifyContent='flex-end'>
-                                    <Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography>
-                                </Box>
-       
                                 <Box display='flex' gap='50px' justifyContent='center'>
                                     <Button sx={{width:'250px'}} variant='blue' type='submit'>Create Tournament</Button>
                                     <Button sx={{width:'120px'}} variant='red' onClick={() => window.history.back()}>Back</Button>
