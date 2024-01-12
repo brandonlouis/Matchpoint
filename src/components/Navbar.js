@@ -4,7 +4,9 @@ import loginSignUpBG from '../img/backgrounds/loginSignUpBG.png'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { db } from '../config/firebase'
 import { UserAuth } from '../config/authContext'
-import { getDocs, collection, doc, setDoc, where, query, orderBy } from 'firebase/firestore'
+import { getDocs, collection, doc, setDoc, where, query, orderBy} from 'firebase/firestore'
+import { sendEmailVerification } from 'firebase/auth';
+
 
 export default function Navbar() {
     const { createUser, user, moreUserInfo, login, logout } = UserAuth()
@@ -106,6 +108,8 @@ export default function Navbar() {
                         third: 0,
                         tournamentsParticipated: 0
                     })
+                    //
+                    sendEmailVerification(userCredential.user);             
                     alert('Account created successfully')
                     setOpenModal(false) // Close modal after account creation
                 })

@@ -278,7 +278,7 @@ export default function ManageAccountProfile() {
                                                 <Typography variant='body1'>Not in a team</Typography>
                                                 <Box display='flex' gap='10px'>
                                                     <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'}>Join a Team</Button>
-                                                    <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/CreateTeam'}>Create a Team</Button>
+                                                    <Button sx={{ height: '30px' }} variant='blue' onClick={() => {if (user.emailVerified) {window.location.href = '/CreateTeam'; } else {alert("Please verify your account before creating a team"); }}}>Create a Team</Button>
                                                 </Box>
                                             </>
                                         }
