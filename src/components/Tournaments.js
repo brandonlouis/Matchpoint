@@ -12,7 +12,9 @@ export default function Tournaments() {
     const [personalizedTournamentList, setPersonalizedTournamentList] = useState([])
 
     const [searchCriteria, setSearchCriteria] = useState('')
-    const [personalizedFilter, setPersonalizedFilter] = useState(true)
+    
+    const [personalizedFilter, setPersonalizedFilter] = useState(user? true: false)
+
     
 
     useEffect(() => { // Handle retrieving tournament list on initial load
