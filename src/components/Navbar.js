@@ -5,11 +5,10 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { db } from '../config/firebase'
 import { UserAuth } from '../config/authContext'
 import { getDocs, collection, doc, setDoc, where, query, orderBy} from 'firebase/firestore'
-import { sendEmailVerification } from 'firebase/auth';
 
 
 export default function Navbar() {
-    const { createUser, user, moreUserInfo, login, logout } = UserAuth()
+    const { createUser, user, moreUserInfo, login, logout, emailVerification } = UserAuth()
 
     const [loginSignUp, setLoginSignUp] = useState('login') // ['login', 'signUp']
     const [openModal, setOpenModal] = useState(false)
@@ -108,9 +107,9 @@ export default function Navbar() {
                         third: 0,
                         tournamentsParticipated: 0
                     })
-                    //
-                    sendEmailVerification(userCredential.user);             
-                    alert('Account created successfully. Confirmation email has been sent. Verify your account to access all features.')
+
+                    emailVerification(userCredential.user)
+                    alert('Account created successfully.\n\nConfirmation email has been sent. Verify your account to access all features.')
                     setOpenModal(false) // Close modal after account creation
                 })
             }

@@ -227,9 +227,9 @@ export default function EditTournament() {
                 combinedBracket.push(1) 
                 winnerBracket.push(1) 
             }
-            console.log(`Winner Bracket: ${winnerBracket}`)
-            console.log(`Loser Bracket: ${loserBracket}`)
-            console.log(`Combined Bracket: ${combinedBracket}`)
+            // console.log(`Winner Bracket: ${winnerBracket}`)
+            // console.log(`Loser Bracket: ${loserBracket}`)
+            // console.log(`Combined Bracket: ${combinedBracket}`)
 
             setNoRounds(combinedBracket.length)
             setMatchesPerRound(combinedBracket)

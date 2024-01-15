@@ -7,6 +7,7 @@ import AdminRoute from './components/accessControl/AdminRoute';
 import UserRoute from './components/accessControl/UserRoute';
 import TeamLeaderRoute from './components/accessControl/TeamLeaderRoute';
 import NoTeamRoute from './components/accessControl/NoTeamRoute';
+import VerifiedAccountRoute from './components/accessControl/VerifiedAccountRoute';
 
 import Navbar from './components/Navbar';
 
@@ -420,13 +421,13 @@ function App() {
                     <Route path="/ManageSports" element={<AdminRoute><ManageSports /></AdminRoute>} />
 
                     <Route path="/ManageAccountProfile" element={<UserRoute><ManageAccountProfile /></UserRoute>} />
-                    <Route path="/CreateTeam" element={<NoTeamRoute><CreateTeam /></NoTeamRoute>} />
+                    <Route path="/CreateTeam" element={<NoTeamRoute><VerifiedAccountRoute><CreateTeam /></VerifiedAccountRoute></NoTeamRoute>} />
                     <Route path="/ManageTeam" element={<TeamLeaderRoute><ManageTeam /></TeamLeaderRoute>} />
                     <Route path="/MyNewsArticles" element={<UserRoute><MyNewsArticles /></UserRoute>} />
-                    <Route path="/WriteNewsArticle" element={<UserRoute><WriteNewsArticle /></UserRoute>} />
+                    <Route path="/WriteNewsArticle" element={<UserRoute><VerifiedAccountRoute><WriteNewsArticle /></VerifiedAccountRoute></UserRoute>} />
                     <Route path="/EditNewsArticle" element={<UserRoute><EditNewsArticle /></UserRoute>} />
                     <Route path="/MyTournaments" element={<UserRoute><MyTournaments /></UserRoute>} />
-                    <Route path="/CreateTournament" element={<UserRoute><CreateTournament /></UserRoute>} />
+                    <Route path="/CreateTournament" element={<UserRoute><VerifiedAccountRoute><CreateTournament /></VerifiedAccountRoute></UserRoute>} />
                     <Route path="/EditTournament" element={<UserRoute><EditTournament /></UserRoute>} />
                 </Routes>
                 <Footer/>

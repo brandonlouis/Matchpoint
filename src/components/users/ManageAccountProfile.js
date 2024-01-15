@@ -5,7 +5,7 @@ import { UserAuth } from '../../config/authContext'
 import { getDoc, getDocs, updateDoc, collection, doc, where, query, orderBy } from 'firebase/firestore'
 
 export default function ManageAccountProfile() {
-    const { user, moreUserInfo } = UserAuth()
+    const { user, moreUserInfo, emailVerification } = UserAuth()
     const { changeEmail, changePassword } = UserAuth()
 
     const [accountProfileMode, setAccountProfileMode] = useState('account')
@@ -173,6 +173,11 @@ export default function ManageAccountProfile() {
         setAccountProfileMode(val)
     }
 
+    const verifyEmail = async () => {
+        await emailVerification(user)
+        alert(`Verification email has been sent to ${moreUserInfo.email}`)
+    }
+
 
     return (
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
@@ -193,7 +198,12 @@ export default function ManageAccountProfile() {
                             <Stack gap='25px'>
                                 <TextField value={username} onChange={(e) => setUsername(e.target.value)}className='inputTextField' variant='outlined' label='Username' inputProps={{pattern:'^[A-Za-z0-9_]+$'}} required disabled={!editMode}/>
                                 <TextField value={fullName} onChange={(e) => setFullName(e.target.value)} className='inputTextField' variant='outlined' label='Full Name' inputProps={{pattern:'^[^0-9]+$'}} required disabled={!editMode}/>
-                                <TextField value={email} onChange={(e) => setEmail(e.target.value)} className='inputTextField' variant='outlined' label='Email' type='email' required disabled={!editMode}/>
+                                <Stack gap='10px'>
+                                    <TextField value={email} onChange={(e) => setEmail(e.target.value)} className='inputTextField' variant='outlined' label='Email' type='email' required disabled={!editMode}/>
+                                    {!user.emailVerified && <Button sx={{height: '30px', width: 'fit-content'}} variant='red' onClick={() => verifyEmail()}>Verify Email</Button>
+}
+                                </Stack>
+
                                 <Box display='flex' gap='50px'>
                                     <FormControl className='dropdownList' fullWidth required disabled={!editMode}>
                                         <InputLabel>Gender</InputLabel>
@@ -278,7 +288,7 @@ export default function ManageAccountProfile() {
                                                 <Typography variant='body1'>Not in a team</Typography>
                                                 <Box display='flex' gap='10px'>
                                                     <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'}>Join a Team</Button>
-                                                    <Button sx={{ height: '30px' }} variant='blue' onClick={() => {if (user.emailVerified) {window.location.href = '/CreateTeam'; } else {alert("Please verify your account before creating a team"); }}}>Create a Team</Button>
+                                                    <Button sx={{ height: '30px' }} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/CreateTeam' : alert("Please verify your account before creating a team")}}>Create a Team</Button>
                                                 </Box>
                                             </>
                                         }

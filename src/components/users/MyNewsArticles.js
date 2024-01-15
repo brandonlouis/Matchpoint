@@ -104,7 +104,7 @@ export default function MyNewsArticles() {
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>My News Articles</Typography>
                     <Box display='flex' gap='15px'>
-                    <Button style={{ height: '45px', width: '65px' }} variant='green' onClick={() => {if (user.emailVerified) {window.location.href = '/WriteNewsArticle';} else if (!user.emailVerified) {alert("Please verify your account before writing a news article");}}}> <img src={require('../../img/icons/writeArticle.png')} width='30px' alt="Write Article" /> </Button>
+                    <Button style={{ height: '45px', width: '65px' }} variant='green' onClick={() => {user.emailVerified ? window.location.href = '/WriteNewsArticle' : alert("Please verify your account before writing a news article")}}> <img src={require('../../img/icons/writeArticle.png')} width='30px' alt="Write Article" /> </Button>
                         <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
                             <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
                             <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>

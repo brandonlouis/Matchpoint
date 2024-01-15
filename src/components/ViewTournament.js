@@ -311,6 +311,10 @@ export default function ViewTournament() {
     }
 
     const registerTournament = async () => {
+        if (!user.emailVerified) {
+            alert('Please verify your account before registering for this tournament')
+            return
+        }
         if (tournamentDetails.participants?.length < tournamentDetails.maxParticipants) {
             if (tournamentDetails.type === 'individual') {
                 try {

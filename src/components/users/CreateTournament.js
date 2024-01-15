@@ -177,9 +177,9 @@ export default function CreateTournament() {
                 combinedBracket.push(1) 
                 winnerBracket.push(1) 
             }
-            console.log(`Winner Bracket: ${winnerBracket}`)
-            console.log(`Loser Bracket: ${loserBracket}`)
-            console.log(`Combined Bracket: ${combinedBracket}`)
+            // console.log(`Winner Bracket: ${winnerBracket}`)
+            // console.log(`Loser Bracket: ${loserBracket}`)
+            // console.log(`Combined Bracket: ${combinedBracket}`)
 
             setNoRounds(combinedBracket.length)
             setMatchesPerRound(combinedBracket)
@@ -217,13 +217,12 @@ export default function CreateTournament() {
             
         }
     }, [format, maxParticipants])
-    console.log(noRounds, matchesPerRound)
 
     const getCustomFormats = async () => {
         try {
             const res = await getDoc(doc(db, 'customFormats', user.uid))
             const resList = res.data()
-            setCustomFormatList(resList.formats)
+            setCustomFormatList(resList?.formats ? resList.formats : [])
         } catch (err) {
             console.error(err)
         }

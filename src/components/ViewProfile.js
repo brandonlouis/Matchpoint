@@ -80,6 +80,10 @@ export default function ViewProfile() {
     }, [])
 
     const joinTeam = async () => {
+        if (!user.emailVerified) {
+            alert('Please verify your email before joining a team')
+            return
+        }
         try {
             await updateDoc(doc(db, 'teams', profileID), {
                 members: [...playerTeamDetails?.members, user.uid]
