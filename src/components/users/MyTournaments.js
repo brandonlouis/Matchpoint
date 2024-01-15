@@ -7,8 +7,7 @@ import { UserAuth } from '../../config/authContext';
 import { getDocs, collection, query, where } from 'firebase/firestore';
 
 export default function MyTournaments() {
-    const { user } = UserAuth()
-
+    const { user } = UserAuth()    
     const [tournamentTab, setTournamentTab] = useState('hosted')
 
     const [teamID, setTeamID] = useState('')
@@ -59,11 +58,13 @@ export default function MyTournaments() {
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
 
                 setTournamentList(processDate([...resList, ...teamResList]))
+
+                
             } catch (err) {
                 console.error(err)
             }
         }
-        
+
         if (tournamentTab === 'hosted') {
             getHosted()
         } else if (tournamentTab === 'collaborating') {
@@ -73,6 +74,7 @@ export default function MyTournaments() {
         }
     }, [tournamentTab])
 
+        
     const processDate = (list) => {
         const updatedTournamentList = list.map((tournament) => {
             const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
@@ -133,7 +135,11 @@ export default function MyTournaments() {
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>{tournamentTab} Tournaments</Typography>
                     <Box display='flex' alignItems='center' gap='15px'>
-                        {tournamentTab === 'hosted' && <Button style={{height:'45px', width:'65px'}} onClick={() => window.location.href='/CreateTournament'} variant='green'><AddIcon sx={{fontSize:'35px'}}/></Button>}
+                        {tournamentTab === 'hosted' && (<>{user.emailVerified ? 
+                            <Button style={{ height: '45px', width: '65px' }} onClick={() => (window.location.href = '/CreateTournament')} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
+                            :
+                            <Button style={{ height: '45px', width: '65px' }} onClick={() => alert("Please verify your account before hosting a tournament")} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button> 
+                        )}
                         <form style={{display:'flex'}} onSubmit={searchTournament}>
                             <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
                             <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>

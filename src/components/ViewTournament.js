@@ -157,7 +157,6 @@ export default function ViewTournament() {
                         const q = query(collection(db, 'accounts'), orderBy('username'))
                         const data = await getDocs(q)
                         const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => !tournamentDetails.participants.includes(item.id) && !tournamentDetails.collaborators.includes(item.id) && item.id !== tournamentDetails.host && (item.username?.toLowerCase().includes(searchCriteria.toLowerCase()) || item.fullName?.toLowerCase().includes(searchCriteria.toLowerCase())))
-    
                         setSearchResultList(resList)
                     } catch (err) {
                         console.error(err);
@@ -557,26 +556,54 @@ export default function ViewTournament() {
                                 </>
                             }
 
-                            {viewerType === 'spectator' && 
-                                (tournamentDetails.date?.end.toDate() < Date.now() ? ( // If tournament has ended
-                                    <Button sx={{width:'300px'}} variant="red" onClick={() => viewMatch(tournamentID)}>View Results</Button>
-                                    ) : tournamentDetails.date?.start.toDate() <= Date.now() && tournamentDetails.date?.end.toDate() >= Date.now() ? ( // If tournament is live
-                                    <Button sx={{width:'300px'}} variant="red" onClick={() => viewMatch(tournamentID)}>View Match</Button>
-                                    ) : !user ? ( // If user is not logged in
-                                        <Button variant="red" disabled>Login to register for this tournament</Button>
-                                    ) : user && !user.email.includes('@matchpoint.com') ? ( // If user is logged in but not admin
-                                        tournamentDetails.type === 'team' && (userTeamDetails.leader !== user.uid || userTeamDetails.members.includes(tournamentDetails.host) || userTeamDetails.members?.some(member => tournamentDetails.collaborators.includes(member))) ?
-                                            <Tooltip TransitionComponent={Zoom} title={userTeamDetails.leader !== user.uid ? 'Only your team leader can register on behalf of the team' : "You can't register for a tournament hosted/collaborated by your team member"} arrow>
-                                                <span><Button variant="red" disabled>Register for this tournament</Button></span>
-                                            </Tooltip>
-                                            :
-                                            tournamentDetails.participants?.length !== parseInt(tournamentDetails.maxParticipants) ? 
-                                                <Button variant="red" onClick={() => registerTournament()}>Register for this tournament</Button>
-                                                :
-                                                <Button variant="red" disabled>Tournament fully registered</Button>
-                                    ) : <></>
+                                {viewerType === 'spectator' && (
+                                tournamentDetails.date?.end.toDate() < Date.now() ? (
+                                    // If tournament has ended
+                                    <Button sx={{ width: '300px' }} variant="red" onClick={() => viewMatch(tournamentID)}>
+                                    View Results
+                                    </Button>
+                                ) : tournamentDetails.date?.start.toDate() <= Date.now() && tournamentDetails.date?.end.toDate() >= Date.now() ? (
+                                    // If tournament is live
+                                    <Button sx={{ width: '300px' }} variant="red" onClick={() => viewMatch(tournamentID)}>
+                                    View Match
+                                    </Button>
+                                ) : !user ? (
+                                    // If user is not logged in
+                                    <Button variant="red" disabled>
+                                    Login to register for this tournament
+                                    </Button>
+                                ) : user && !user.email.includes('@matchpoint.com') && user.emailVerified ? (
+                                    // If user is logged in, not an admin, and email is verified
+                                    tournamentDetails.type === 'team' && (userTeamDetails.leader !== user.uid || userTeamDetails.members.includes(tournamentDetails.host) || userTeamDetails.members?.some(member => tournamentDetails.collaborators.includes(member))) ? (
+                                    <Tooltip TransitionComponent={Zoom} title={userTeamDetails.leader !== user.uid ? 'Only your team leader can register on behalf of the team' : "You can't register for a tournament hosted/collaborated by your team member"} arrow>
+                                        <span>
+                                        <Button variant="red" disabled>
+                                            Register for this tournament
+                                        </Button>
+                                        </span>
+                                    </Tooltip>
+                                    ) : (
+                                    tournamentDetails.participants?.length !== parseInt(tournamentDetails.maxParticipants) ? (
+                                        <Button variant="red" onClick={() => registerTournament()}>
+                                        Register for this tournament
+                                        </Button>
+                                    ) : (
+                                        <Button variant="red" disabled>
+                                        Tournament fully registered
+                                        </Button>
+                                    )
+                                    )
+                                ) : (
+                                    // If user's email is not verified
+                                    <Button variant="red" onClick={() => alert("Please verify your account before registering for this tournament")}>
+                                    Register for this tournament
+                                    </Button>
                                 )
-                            }
+                                )}
+
+
+                        
+
 
 
                             {viewerType === 'participant' &&
