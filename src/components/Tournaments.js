@@ -13,9 +13,8 @@ export default function Tournaments() {
 
     const [searchCriteria, setSearchCriteria] = useState('')
     
-    const [personalizedFilter, setPersonalizedFilter] = useState(user? true: false)
+    const [personalizedFilter, setPersonalizedFilter] = useState(false)
 
-    
 
     useEffect(() => { // Handle retrieving tournament list on initial load
         const getTournaments = async () => {
@@ -28,6 +27,7 @@ export default function Tournaments() {
             }
         }
         getTournaments()
+        user && moreUserInfo?.type !== 'admin' && setPersonalizedFilter(true)
     }, [])
 
     useEffect(() => { // Handle filtering tournaments based on filter criteria
@@ -38,19 +38,16 @@ export default function Tournaments() {
                     const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0) // Filter out tournaments that are cancelled
                     
                     let updatedUserGender
-                    if (moreUserInfo.gender == 'male') { // Transform user's gender data to match tournament gender format
+                    if (moreUserInfo?.gender === 'male') { // Transform user's gender data to match tournament gender format
                         updatedUserGender = 'mens'
-                    } else if (moreUserInfo.gender == 'female') {
+                    } else if (moreUserInfo?.gender === 'female') {
                         updatedUserGender = 'womens'
                     }
     
                     const filteredList = resList.filter((tournament) => {
                         const isMixed = tournament.gender === 'mixed' // Handle if tournament gender is 'mixed'
                         const isUserGenderMatch = tournament.gender === updatedUserGender
-        
-                        return (isMixed || isUserGenderMatch) &&
-                            tournament.region === moreUserInfo.region &&
-                            moreUserInfo.sportInterests.includes(tournament.sport)
+                        return (isMixed || isUserGenderMatch) && tournament.region === moreUserInfo.region && moreUserInfo.sportInterests.includes(tournament.sport)
                     })
 
                     setTournamentList(processDate(filteredList))
@@ -69,7 +66,7 @@ export default function Tournaments() {
             }
         }
         getTournaments()
-    }, [personalizedFilter])
+    }, [personalizedFilter, moreUserInfo])
 
     const processDate = (list) => {
         const updatedTournamentList = list.map((tournament) => {

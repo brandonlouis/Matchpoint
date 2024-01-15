@@ -110,7 +110,7 @@ export default function Navbar() {
                     })
                     //
                     sendEmailVerification(userCredential.user);             
-                    alert('Account created successfully')
+                    alert('Account created successfully. Confirmation email has been sent. Verify your account to access all features.')
                     setOpenModal(false) // Close modal after account creation
                 })
             }

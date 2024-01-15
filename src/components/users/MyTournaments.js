@@ -135,11 +135,11 @@ export default function MyTournaments() {
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Typography variant='h3'>{tournamentTab} Tournaments</Typography>
                     <Box display='flex' alignItems='center' gap='15px'>
-                        {tournamentTab === 'hosted' && (<>{user.emailVerified ? 
+                        {tournamentTab === 'hosted' && user.emailVerified ? 
                             <Button style={{ height: '45px', width: '65px' }} onClick={() => (window.location.href = '/CreateTournament')} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
                             :
-                            <Button style={{ height: '45px', width: '65px' }} onClick={() => alert("Please verify your account before hosting a tournament")} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button> 
-                        )}
+                            <Button style={{ height: '45px', width: '65px' }} onClick={() => alert("Please verify your account before hosting a tournament")} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
+                        }
                         <form style={{display:'flex'}} onSubmit={searchTournament}>
                             <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
                             <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
