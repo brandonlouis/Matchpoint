@@ -93,7 +93,7 @@ export default function CreateTournament() {
                 const remainingParticipants = maxParticipants - firstRound
                 
                 const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants))
-                setNoRounds(noRoundsGenerated)
+                setNoRounds(noRoundsGenerated + 1)
 
                 let matchesPerRoundGenerated = []
                 matchesPerRoundGenerated[0] = firstRound
@@ -216,7 +216,6 @@ export default function CreateTournament() {
             }
             
         }
-
     }, [format, maxParticipants])
     console.log(noRounds, matchesPerRound)
 
@@ -290,7 +289,6 @@ export default function CreateTournament() {
 
     const createTournament = async (e) => {
         e.preventDefault()
-
         let roundDict = {}
         for (let i = 1; i <= noRounds; i++) {
             const matchesDict = {}

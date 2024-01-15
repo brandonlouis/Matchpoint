@@ -18,11 +18,8 @@ export default function ViewMatch() {
 
     const [anchorElScoresheet, setAnchorElScoresheet] = useState(null)
     const [openFormatDropdownScoresheet, setOpenFormatDropdownScoresheet] = useState(false)
-	  const [anchorElSchedule, setAnchorElSchedule] = useState(null)
+    const [anchorElSchedule, setAnchorElSchedule] = useState(null)
     const [openFormatDropdownSchedule, setOpenFormatDropdownSchedule] = useState(false)
-
-    const [anchorEl, setAnchorEl] = useState(null)
-    const openFormatDropdown = Boolean(anchorEl)
 
     const [matchList, setMatchList] = useState({})
     const [participantDetails, setParticipantDetails] = useState([])
@@ -464,7 +461,7 @@ export default function ViewMatch() {
                         <Button sx={{width:'120px', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
 
                         <Button sx={{ width: '150px', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
-                        <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }}anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
+                        <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
                           <MenuItem onClick={generateAndDownloadExcel}> <Typography variant='navDropdown'>.XLSX</Typography> </MenuItem>
                           <MenuItem onClick={generateAndDownloadTextFile}> <Typography variant='navDropdown'>.TXT</Typography> </MenuItem>
                           <MenuItem onClick={() => window.print()}> <Typography variant='navDropdown'>.PDF</Typography></MenuItem>
@@ -590,7 +587,7 @@ export default function ViewMatch() {
                                                                     </MenuItem>
                                                                     
                                                                     {participantDetails.map((participant) => {
-                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle}</Typography></MenuItem>
+                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
                                                                     })}
                                                                 </Select>
                                                             </FormControl>
@@ -616,10 +613,10 @@ export default function ViewMatch() {
                                                         {!editMode ?
                                                             <Typography color='#222' variant='body2' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
                                                                 {Object.entries(JSON.parse(JSON.stringify(value2[0]))).map(([key2]) => {
-                                                                        const participantType = participantDetails.find((item) => item.id === key2)
-                                                                        if (participantType) {
-                                                                            return participantType.handle || participantType.username
-                                                                        }
+                                                                    const participantType = participantDetails.find((item) => item.id === key2)
+                                                                    if (participantType) {
+                                                                        return participantType.handle || participantType.username
+                                                                    }
                                                                 }).join('')}
                                                             </Typography>
                                                             :
@@ -632,7 +629,7 @@ export default function ViewMatch() {
                                                                     </MenuItem>
 
                                                                     {participantDetails.map((participant) => {
-                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle}</Typography></MenuItem>
+                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
                                                                     })}
                                                                 </Select>
                                                             </FormControl>
@@ -675,7 +672,7 @@ export default function ViewMatch() {
                                                                     </MenuItem>
 
                                                                     {participantDetails.map((participant) => {
-                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle}</Typography></MenuItem>
+                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
                                                                     })}
                                                                 </Select>
                                                             </FormControl>
@@ -717,7 +714,7 @@ export default function ViewMatch() {
                                                                     </MenuItem>
 
                                                                     {participantDetails.map((participant) => {
-                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle}</Typography></MenuItem>
+                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
                                                                     })}
                                                                 </Select>
                                                             </FormControl>

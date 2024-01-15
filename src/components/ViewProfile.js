@@ -197,7 +197,7 @@ export default function ViewProfile() {
                         </Box>
                     </Stack>
                     :
-                    (user && playerTeamDetails?.members?.includes(user.uid) && playerTeamDetails?.leader != user.uid ?
+                    (user && playerTeamDetails?.members?.includes(user.uid) && playerTeamDetails?.leader !== user.uid ?
                         <Stack width='100%' gap='100px'>
                             <Box display='flex' gap='50px'>
                                 <Stack width='100%'>
@@ -302,8 +302,8 @@ export default function ViewProfile() {
                                                 <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
                                                 <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
                                             </Box>
-                                            {user && userTeam.length == 0 && parseInt(playerTeamDetails?.members?.length) < playerTeamDetails?.maxCapacity && (playerTeamDetails?.genderReq == moreUserInfo.gender || playerTeamDetails?.genderReq == 'mixed') && moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) && <Button variant='blue' sx={{height:'30px'}} onClick={joinTeam}>Join Team</Button> }
-                                            {user && playerTeamDetails?.leader == user.uid && <Button variant='blue' sx={{height:'30px'}} onClick={() => window.location.href='/ManageTeam'}>Manage Team</Button> }
+                                            {user && userTeam.length === 0 && parseInt(playerTeamDetails?.members?.length) < playerTeamDetails?.maxCapacity && (playerTeamDetails?.genderReq === moreUserInfo.gender || playerTeamDetails?.genderReq === 'mixed') && moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) && <Button variant='blue' sx={{height:'30px'}} onClick={joinTeam}>Join Team</Button> }
+                                            {user && playerTeamDetails?.leader === user.uid && <Button variant='blue' sx={{height:'30px'}} onClick={() => window.location.href='/ManageTeam'}>Manage Team</Button> }
                                         </Box>
                                         <hr width='100%'/>
                                         <Box display='flex' marginTop='25px'>

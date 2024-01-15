@@ -88,7 +88,7 @@ export default function ManageNewsArticles() {
             const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
             const data = await getDocs(q)
             const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-            const filteredList = resList.filter((newsArticle) => newsArticle.title.toLowerCase().includes(searchCriteria.toLowerCase()) || newsArticle.sport == searchCriteria.toLowerCase())
+            const filteredList = resList.filter((newsArticle) => newsArticle.title.toLowerCase().includes(searchCriteria.toLowerCase()) || newsArticle.sport === searchCriteria.toLowerCase())
             
             setNewsArticleList(processListDate(filteredList))
         } catch (err) {
