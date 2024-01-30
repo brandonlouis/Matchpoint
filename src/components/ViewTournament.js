@@ -8,8 +8,13 @@ import LinkIcon from '@mui/icons-material/Link';
 import { db } from '../config/firebase';
 import { UserAuth } from '../config/authContext';
 import { getDoc, getDocs, updateDoc, doc, collection, query, where, orderBy } from 'firebase/firestore';
+import { useMediaQuery } from 'react-responsive';
 
 export default function ViewTournament() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const adjustDetails = useMediaQuery({ query: '(max-width: 730px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const tournamentID = new URLSearchParams(window.location.search).get("id")
     const { user } = UserAuth()
     const navigate = useNavigate()
@@ -22,6 +27,7 @@ export default function ViewTournament() {
     const [openSuspendConfirmation, setOpenSuspendConfirmation] = useState(false)
 
     const [tournamentDetails, setTournamentDetails] = useState({})
+    const [host, setHost] = useState('')
     const [participantList, setParticipantList] = useState([])
     const [collaboratorList, setCollaboratorList] = useState([])
     const [accountDetails, setAccountDetails] = useState({})
@@ -39,9 +45,19 @@ export default function ViewTournament() {
                 const resList = { ...res.data(), id: res.id }
 
                 setTournamentDetails(processDate(resList))
+                getHost(resList)
                 getParticipants(resList)
                 getCollaborators(resList)
                 user.uid === resList.host && setViewerType('host')
+            } catch (err) {
+                console.error(err)
+            }
+        }
+        const getHost = async (tDetails) => {
+            try {
+                const res = await getDoc(doc(db, 'accounts', tDetails.host))
+                const resList = res.data()
+                setHost(resList.fullName)
             } catch (err) {
                 console.error(err)
             }
@@ -368,7 +384,7 @@ export default function ViewTournament() {
     return (
         <>
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='65%' gap='20px'>
+            <Stack width={isMobile || isTablet ? '80%' : '65%'} gap='20px'>
                 <img src={tournamentDetails.imgURL}/>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Stack gap='50px' width='100%'>
@@ -383,6 +399,7 @@ export default function ViewTournament() {
                                 }
                                 {tournamentDetails.title}
                             </Typography>
+                            <Typography color='#666' fontWeight='600' variant='subtitle2'>Host: {host}</Typography>
                             {(viewerType === 'host' || viewerType === 'collaborator') && 
                                 <Box display='flex' width='100%' justifyContent='flex-end'>
                                     <Button variant='blue' sx={{height:'30px'}} startIcon={<LinkIcon />} onClick={() => copyToClipboard()}>Invitation Link</Button>
@@ -390,155 +407,176 @@ export default function ViewTournament() {
                             }
                         </Stack>
 
-                        
-                        <Box display='flex' justifyContent='space-between'>
-                            <Box width='325px' display='flex' alignItems='center' gap='20px'>
-                                <img width='60px' src={require('../img/icons/trophy.png')} />
-                                <Stack>
-                                    <Typography color='#CB3E3E' variant='subtitle1'>Grand Prize</Typography>
-                                    <Typography textTransform='capitalize' variant='subtitle1'>{tournamentDetails.prizes?.first ? tournamentDetails.prizes?.first : 'No prize'}</Typography>
-                                </Stack>
-                            </Box>
-                            <Box width='325px' display='flex' alignItems='center' gap='20px'>
-                                <img width='60px' src={require('../img/icons/calendar.png')} />
-                                <Stack>
-                                    <Typography color='#CB3E3E' variant='subtitle1'>Tournament Date</Typography>
-                                    <Typography textTransform='uppercase' variant='subtitle1'>
-                                        {tournamentDetails.date?.start.toDate().toDateString() === tournamentDetails.date?.end.toDate().toDateString() ? (
-                                            `${tournamentDetails.stringDate?.start[0]} ${tournamentDetails.stringDate?.start[1]}, ${tournamentDetails.stringDate?.start[2]}`
-                                        ) : (
-                                            tournamentDetails.stringDate?.start[2] === tournamentDetails.stringDate?.end[2] ? (
-                                                tournamentDetails.stringDate.start[0] === tournamentDetails.stringDate.end[0] ? (
-                                                    `${tournamentDetails.stringDate.start[0]} ${tournamentDetails.stringDate.start[1]} — ${tournamentDetails.stringDate.end[1]}, ${tournamentDetails.stringDate.end[2]}`
-                                                ): (
-                                                    `${tournamentDetails.stringDate.start[0]} ${tournamentDetails.stringDate.start[1]} — ${tournamentDetails.stringDate.end[0]} ${tournamentDetails.stringDate.end[1]}, ${tournamentDetails.stringDate.end[2]}`
-                                                )
+                        {adjustDetails ? 
+                            <Stack gap='10px'>
+                                <Box width='fit-content' display='flex' alignItems='center' gap='20px'>
+                                    <img width='60px' src={require('../img/icons/trophy.png')} />
+                                    <Stack>
+                                        <Typography color='#CB3E3E' variant='subtitle1'>Grand Prize</Typography>
+                                        <Typography textTransform='capitalize' variant='subtitle1'>{tournamentDetails.prizes?.first ? tournamentDetails.prizes?.first : 'No prize'}</Typography>
+                                    </Stack>
+                                </Box>
+                                <Box width='fit-content' display='flex' alignItems='center' gap='20px'>
+                                    <img width='60px' src={require('../img/icons/calendar.png')} />
+                                    <Stack>
+                                        <Typography color='#CB3E3E' variant='subtitle1'>Tournament Date</Typography>
+                                        <Typography textTransform='uppercase' variant='subtitle1'>
+                                            {tournamentDetails.date?.start.toDate().toDateString() === tournamentDetails.date?.end.toDate().toDateString() ? (
+                                                `${tournamentDetails.stringDate?.start[0]} ${tournamentDetails.stringDate?.start[1]}, ${tournamentDetails.stringDate?.start[2]}`
                                             ) : (
-                                                `${tournamentDetails.stringDate?.start[0]} ${tournamentDetails.stringDate?.start[1]}, ${tournamentDetails.stringDate?.start[2]} — ${tournamentDetails.stringDate?.end[0]} ${tournamentDetails.stringDate?.end[1]}, ${tournamentDetails.stringDate?.end[2]}`
-                                            )
-                                        )}
-                                    </Typography>
-                                </Stack>
+                                                tournamentDetails.stringDate?.start[2] === tournamentDetails.stringDate?.end[2] ? (
+                                                    tournamentDetails.stringDate.start[0] === tournamentDetails.stringDate.end[0] ? (
+                                                        `${tournamentDetails.stringDate.start[0]} ${tournamentDetails.stringDate.start[1]} — ${tournamentDetails.stringDate.end[1]}, ${tournamentDetails.stringDate.end[2]}`
+                                                    ): (
+                                                        `${tournamentDetails.stringDate.start[0]} ${tournamentDetails.stringDate.start[1]} — ${tournamentDetails.stringDate.end[0]} ${tournamentDetails.stringDate.end[1]}, ${tournamentDetails.stringDate.end[2]}`
+                                                    )
+                                                ) : (
+                                                    `${tournamentDetails.stringDate?.start[0]} ${tournamentDetails.stringDate?.start[1]}, ${tournamentDetails.stringDate?.start[2]} — ${tournamentDetails.stringDate?.end[0]} ${tournamentDetails.stringDate?.end[1]}, ${tournamentDetails.stringDate?.end[2]}`
+                                                )
+                                            )}
+                                        </Typography>
+                                    </Stack>
+                                </Box>
+                                <Box width='fit-content' display='flex' alignItems='center' gap='20px'>
+                                    <img width='60px' src={require('../img/icons/location.png')} />
+                                    <Stack>
+                                        <Typography color='#CB3E3E' variant='subtitle1'>Venue</Typography>
+                                        <Typography variant='subtitle1'>{tournamentDetails.venue}</Typography>
+                                    </Stack>
+                                </Box>
+                            </Stack>
+                            :
+                            <Box display='flex' justifyContent='space-between'>
+                                <Box width='fit-content' display='flex' alignItems='center' gap='20px'>
+                                    <img width='60px' src={require('../img/icons/trophy.png')} />
+                                    <Stack>
+                                        <Typography color='#CB3E3E' variant='subtitle1'>Grand Prize</Typography>
+                                        <Typography textTransform='capitalize' variant='subtitle1'>{tournamentDetails.prizes?.first ? tournamentDetails.prizes?.first : 'No prize'}</Typography>
+                                    </Stack>
+                                </Box>
+                                <Box width='fit-content' display='flex' alignItems='center' gap='20px'>
+                                    <img width='60px' src={require('../img/icons/calendar.png')} />
+                                    <Stack>
+                                        <Typography color='#CB3E3E' variant='subtitle1'>Tournament Date</Typography>
+                                        <Typography textTransform='uppercase' variant='subtitle1'>
+                                            {tournamentDetails.date?.start.toDate().toDateString() === tournamentDetails.date?.end.toDate().toDateString() ? (
+                                                `${tournamentDetails.stringDate?.start[0]} ${tournamentDetails.stringDate?.start[1]}, ${tournamentDetails.stringDate?.start[2]}`
+                                            ) : (
+                                                tournamentDetails.stringDate?.start[2] === tournamentDetails.stringDate?.end[2] ? (
+                                                    tournamentDetails.stringDate.start[0] === tournamentDetails.stringDate.end[0] ? (
+                                                        `${tournamentDetails.stringDate.start[0]} ${tournamentDetails.stringDate.start[1]} — ${tournamentDetails.stringDate.end[1]}, ${tournamentDetails.stringDate.end[2]}`
+                                                    ): (
+                                                        `${tournamentDetails.stringDate.start[0]} ${tournamentDetails.stringDate.start[1]} — ${tournamentDetails.stringDate.end[0]} ${tournamentDetails.stringDate.end[1]}, ${tournamentDetails.stringDate.end[2]}`
+                                                    )
+                                                ) : (
+                                                    `${tournamentDetails.stringDate?.start[0]} ${tournamentDetails.stringDate?.start[1]}, ${tournamentDetails.stringDate?.start[2]} — ${tournamentDetails.stringDate?.end[0]} ${tournamentDetails.stringDate?.end[1]}, ${tournamentDetails.stringDate?.end[2]}`
+                                                )
+                                            )}
+                                        </Typography>
+                                    </Stack>
+                                </Box>
+                                <Box width='fit-content' display='flex' alignItems='center' gap='20px'>
+                                    <img width='60px' src={require('../img/icons/location.png')} />
+                                    <Stack>
+                                        <Typography color='#CB3E3E' variant='subtitle1'>Venue</Typography>
+                                        <Typography variant='subtitle1'>{tournamentDetails.venue}</Typography>
+                                    </Stack>
+                                </Box>
                             </Box>
-                            <Box width='325px' display='flex' alignItems='center' gap='20px'>
-                                <img width='60px' src={require('../img/icons/location.png')} />
-                                <Stack>
-                                    <Typography color='#CB3E3E' variant='subtitle1'>Venue</Typography>
-                                    <Typography variant='subtitle1'>{tournamentDetails.venue}</Typography>
-                                </Stack>
-                            </Box>
-                        </Box>
+                        }
 
                         <Typography variant='body1'>{tournamentDetails.description}</Typography>
 
-                        <Box display='flex' justifyContent='space-between'>
-                            <Stack width='50%' gap='30px'>
-                                <Typography textTransform='uppercase' variant='h5'>Tournament Summary</Typography>
-                                <table>
-                                    <tbody>
-                                        <tr>
-                                            <td width='85px'>
-                                                <Typography variant='subtitle2'>Sport:</Typography>
-                                            </td>
-                                            <td>
-                                                <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.sport}</Typography>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <Typography variant='subtitle2'>Type:</Typography>
-                                            </td>
-                                            <td>
-                                                <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.type}</Typography>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <Typography variant='subtitle2'>Gender:</Typography>
-                                            </td>
-                                            <td>
-                                                <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.gender}</Typography>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <Typography variant='subtitle2'>Format:</Typography>
-                                            </td>
-                                            <td>
-                                                <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.format}</Typography>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </Stack>
-                            <Stack width='50%' gap='30px'>
-                                <Typography textTransform='uppercase' variant='h5'>Prizes</Typography>
-                                <table>
-                                    <tbody>
-                                        <tr>
-                                            <td width='50px'>
-                                                <Typography color='#D0AF00' variant='subtitle2'>1ST</Typography>
-                                            </td>
-                                            <td>
-                                                <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.prizes?.first === '' ? 'No prize' : tournamentDetails.prizes?.first}</Typography>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <Typography color='#888' variant='subtitle2'>2ND</Typography>
-                                            </td>
-                                            <td>
-                                                <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.prizes?.second === '' ? 'No prize' : tournamentDetails.prizes?.second}</Typography>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <Typography color='#AA6600' variant='subtitle2'>3RD</Typography>
-                                            </td>
-                                            <td>
-                                                <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.prizes?.third === '' ? 'No prize' : tournamentDetails.prizes?.third}</Typography>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </Stack>
-                            {(viewerType === 'host' || viewerType === 'collaborator') &&
-                                <Box display='flex' gap='25px'>
-                                    <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
-                                        <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                            <Stack>
-                                                <Typography variant='h5' textTransform='uppercase'>Participants</Typography>
-                                                <Typography variant='body2'>{tournamentDetails.participants?.length}/{tournamentDetails.maxParticipants}</Typography>
-                                            </Stack>
-                                            {tournamentDetails.participants?.length < tournamentDetails.maxParticipants && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('participants')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
-                                        </Box>
-                                        <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
-                                            <Stack height='100%' sx={{overflowY:'auto'}}>
-                                                {participantList.map((participant) => 
-                                                    <Box onClick={() => {viewAccount(participant.id)}} key={participant.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
-                                                        <Stack overflow='hidden'>
-                                                            <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{tournamentDetails.type === 'team' ? participant.handle : participant.username}</Typography>
-                                                            <Typography variant='body2' sx={{textTransform: tournamentDetails.type !== 'team' ? 'capitalize' : 'none', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{tournamentDetails.type === 'team' ? participant.name : participant.fullName}</Typography>
-                                                        </Stack>
-                                                        <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
-                                                    </Box>
-                                                )}
-                                            </Stack>
-                                        </Box>
-                                    </Stack>
-                                    {viewerType !== 'collaborator' && 
+
+                        {adjustDetails ?
+                            <Stack gap='50px'>
+                                <Stack width='50%' gap='15px'>
+                                    <Typography textTransform='uppercase' variant='h5'>Tournament Summary</Typography>
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td width='85px'>
+                                                    <Typography variant='subtitle2'>Sport:</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.sport}</Typography>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Typography variant='subtitle2'>Type:</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.type}</Typography>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Typography variant='subtitle2'>Gender:</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.gender}</Typography>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Typography variant='subtitle2'>Format:</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.format}</Typography>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </Stack>
+                                <Stack width='50%' gap='15px'>
+                                    <Typography textTransform='uppercase' variant='h5'>Prizes</Typography>
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td width='50px'>
+                                                    <Typography color='#D0AF00' variant='subtitle2'>1ST</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.prizes?.first === '' ? 'No prize' : tournamentDetails.prizes?.first}</Typography>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Typography color='#888' variant='subtitle2'>2ND</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.prizes?.second === '' ? 'No prize' : tournamentDetails.prizes?.second}</Typography>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Typography color='#AA6600' variant='subtitle2'>3RD</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.prizes?.third === '' ? 'No prize' : tournamentDetails.prizes?.third}</Typography>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </Stack>
+                                {(viewerType === 'host' || viewerType === 'collaborator') &&
+                                    <Box display='flex' gap='25px'>
                                         <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
                                             <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                                <Typography variant='h5' textTransform='uppercase'>Collaborators</Typography>
-                                                {viewerType === 'host' && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('collaborators')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
+                                                <Stack>
+                                                    <Typography variant='h5' textTransform='uppercase'>Participants</Typography>
+                                                    <Typography variant='body2'>{tournamentDetails.participants?.length}/{tournamentDetails.maxParticipants}</Typography>
+                                                </Stack>
+                                                {tournamentDetails.participants?.length < tournamentDetails.maxParticipants && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('participants')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
                                             </Box>
                                             <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
                                                 <Stack height='100%' sx={{overflowY:'auto'}}>
-                                                    {collaboratorList.map((collaborator) => 
-                                                        <Box onClick={() => {viewAccount(collaborator.id)}} key={collaborator.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
-                                                            <Stack>
-                                                                <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{collaborator.username}</Typography>
-                                                                <Typography variant='body2' textTransform='capitalize' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{collaborator.fullName}</Typography>
+                                                    {participantList.map((participant) => 
+                                                        <Box onClick={() => {viewAccount(participant.id)}} key={participant.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
+                                                            <Stack overflow='hidden'>
+                                                                <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{tournamentDetails.type === 'team' ? participant.handle : participant.username}</Typography>
+                                                                <Typography variant='body2' sx={{textTransform: tournamentDetails.type !== 'team' ? 'capitalize' : 'none', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{tournamentDetails.type === 'team' ? participant.name : participant.fullName}</Typography>
                                                             </Stack>
                                                             <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
                                                         </Box>
@@ -546,10 +584,151 @@ export default function ViewTournament() {
                                                 </Stack>
                                             </Box>
                                         </Stack>
-                                    }
-                                </Box> 
-                            }
-                        </Box>
+                                        {viewerType !== 'collaborator' && 
+                                            <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
+                                                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                                    <Typography variant='h5' textTransform='uppercase'>Collaborators</Typography>
+                                                    {viewerType === 'host' && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('collaborators')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
+                                                </Box>
+                                                <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
+                                                    <Stack height='100%' sx={{overflowY:'auto'}}>
+                                                        {collaboratorList.map((collaborator) => 
+                                                            <Box onClick={() => {viewAccount(collaborator.id)}} key={collaborator.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
+                                                                <Stack>
+                                                                    <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{collaborator.username}</Typography>
+                                                                    <Typography variant='body2' textTransform='capitalize' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{collaborator.fullName}</Typography>
+                                                                </Stack>
+                                                                <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
+                                                            </Box>
+                                                        )}
+                                                    </Stack>
+                                                </Box>
+                                            </Stack>
+                                        }
+                                    </Box> 
+                                }
+                            </Stack>
+                            :
+                            <Box display='flex' justifyContent='space-between'>
+                                <Stack width='50%' gap='30px'>
+                                    <Typography textTransform='uppercase' variant='h5'>Tournament Summary</Typography>
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td width='85px'>
+                                                    <Typography variant='subtitle2'>Sport:</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.sport}</Typography>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Typography variant='subtitle2'>Type:</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.type}</Typography>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Typography variant='subtitle2'>Gender:</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.gender}</Typography>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Typography variant='subtitle2'>Format:</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.format}</Typography>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </Stack>
+                                <Stack width='50%' gap='30px'>
+                                    <Typography textTransform='uppercase' variant='h5'>Prizes</Typography>
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td width='50px'>
+                                                    <Typography color='#D0AF00' variant='subtitle2'>1ST</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.prizes?.first === '' ? 'No prize' : tournamentDetails.prizes?.first}</Typography>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Typography color='#888' variant='subtitle2'>2ND</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.prizes?.second === '' ? 'No prize' : tournamentDetails.prizes?.second}</Typography>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <Typography color='#AA6600' variant='subtitle2'>3RD</Typography>
+                                                </td>
+                                                <td>
+                                                    <Typography textTransform='uppercase' variant='subtitle3'>{tournamentDetails.prizes?.third === '' ? 'No prize' : tournamentDetails.prizes?.third}</Typography>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </Stack>
+                                {(viewerType === 'host' || viewerType === 'collaborator') &&
+                                    <Box display='flex' gap='25px'>
+                                        <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
+                                            <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                                <Stack>
+                                                    <Typography variant='h5' textTransform='uppercase'>Participants</Typography>
+                                                    <Typography variant='body2'>{tournamentDetails.participants?.length}/{tournamentDetails.maxParticipants}</Typography>
+                                                </Stack>
+                                                {tournamentDetails.participants?.length < tournamentDetails.maxParticipants && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('participants')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
+                                            </Box>
+                                            <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
+                                                <Stack height='100%' sx={{overflowY:'auto'}}>
+                                                    {participantList.map((participant) => 
+                                                        <Box onClick={() => {viewAccount(participant.id)}} key={participant.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
+                                                            <Stack overflow='hidden'>
+                                                                <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{tournamentDetails.type === 'team' ? participant.handle : participant.username}</Typography>
+                                                                <Typography variant='body2' sx={{textTransform: tournamentDetails.type !== 'team' ? 'capitalize' : 'none', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{tournamentDetails.type === 'team' ? participant.name : participant.fullName}</Typography>
+                                                            </Stack>
+                                                            <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
+                                                        </Box>
+                                                    )}
+                                                </Stack>
+                                            </Box>
+                                        </Stack>
+                                        {viewerType !== 'collaborator' && 
+                                            <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
+                                                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                                    <Typography variant='h5' textTransform='uppercase'>Collaborators</Typography>
+                                                    {viewerType === 'host' && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('collaborators')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
+                                                </Box>
+                                                <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
+                                                    <Stack height='100%' sx={{overflowY:'auto'}}>
+                                                        {collaboratorList.map((collaborator) => 
+                                                            <Box onClick={() => {viewAccount(collaborator.id)}} key={collaborator.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
+                                                                <Stack>
+                                                                    <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{collaborator.username}</Typography>
+                                                                    <Typography variant='body2' textTransform='capitalize' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{collaborator.fullName}</Typography>
+                                                                </Stack>
+                                                                <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
+                                                            </Box>
+                                                        )}
+                                                    </Stack>
+                                                </Box>
+                                            </Stack>
+                                        }
+                                    </Box> 
+                                }
+                            </Box>
+                        }
                         
                         <Box display='flex' justifyContent='center' marginTop='25px' gap='30px'>
                             {(viewerType === 'host' || viewerType === 'collaborator') && 

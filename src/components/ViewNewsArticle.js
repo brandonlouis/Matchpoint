@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Card, CardActionArea, CardContent, Grid, Stack, Typography } from '@mui/material'
 import { FacebookShareButton, TwitterShareButton } from 'react-share'
-import { db } from '../config/firebase';
-import { getDoc, getDocs, doc, collection, query, orderBy, limit } from 'firebase/firestore';
+import { db } from '../config/firebase'
+import { getDoc, getDocs, doc, collection, query, orderBy, limit } from 'firebase/firestore'
+import { useMediaQuery } from 'react-responsive'
 
 export default function ViewNewsArticle() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const adjustInfo = useMediaQuery({ query: '(max-width: 750px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const articleID = new URLSearchParams(window.location.search).get("id")
 
     const [newsArticleDetails, setNewsArticleDetails] = useState({})
@@ -72,25 +77,41 @@ export default function ViewNewsArticle() {
 
     return (
         <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='65%' gap='20px'>
+            <Stack width={isMobile || isTablet ? '80%' : '65%'} gap='20px'>
                 <img src={newsArticleDetails.bannerURL}/>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Stack gap='50px' width='100%'>
                         <Stack gap='15px'>
                             <Typography variant='h2'>{newsArticleDetails.title}</Typography>
-                            <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                <Typography color='#666' fontWeight='600' variant='subtitle2'>
-                                    {authorName}&nbsp;&nbsp;|&nbsp;&nbsp;  {newsArticleDetails.date && newsArticleDetails.date.length === 3 &&
-                                    `${newsArticleDetails.date[0]} ${newsArticleDetails.date[1]}, ${newsArticleDetails.date[2]}`
-                                    }&nbsp;&nbsp;|&nbsp;&nbsp;
-                                    {newsArticleDetails.sport}
-                                </Typography>
-                                <Box display='flex' alignItems='center' gap='10px'>
-                                    <Typography color='#666' fontWeight='600' variant='subtitle2'>Share:</Typography>
-                                    <FacebookShareButton className='fbShareButton' url={window.location.href}><img width='25px' src={require('../img/icons/fbShare.png')}/></FacebookShareButton>
-                                    <TwitterShareButton className='twitterShareButton' url={window.location.href}><img width='25px' src={require('../img/icons/twitterShare.png')}/></TwitterShareButton>
+                            {adjustInfo ? 
+                                <Stack gap='10px'>
+                                    <Typography color='#666' fontWeight='600' variant='subtitle2'>
+                                        {authorName}&nbsp;&nbsp;|&nbsp;&nbsp;  {newsArticleDetails.date && newsArticleDetails.date.length === 3 &&
+                                        `${newsArticleDetails.date[0]} ${newsArticleDetails.date[1]}, ${newsArticleDetails.date[2]}`
+                                        }&nbsp;&nbsp;|&nbsp;&nbsp;
+                                        {newsArticleDetails.sport}
+                                    </Typography>
+                                    <Box display='flex' alignItems='center' justifyContent='center' gap='10px'>
+                                        <FacebookShareButton className='fbShareButton' style={{width:'50%'}} url={window.location.href}><img width='25px' src={require('../img/icons/fbShare.png')}/></FacebookShareButton>
+                                        <TwitterShareButton className='twitterShareButton' style={{width:'50%'}} url={window.location.href}><img width='25px' src={require('../img/icons/twitterShare.png')}/></TwitterShareButton>
+                                    </Box>
+                                </Stack>
+                                :
+                                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                    <Typography color='#666' fontWeight='600' variant='subtitle2'>
+                                        {authorName}&nbsp;&nbsp;|&nbsp;&nbsp;  {newsArticleDetails.date && newsArticleDetails.date.length === 3 &&
+                                        `${newsArticleDetails.date[0]} ${newsArticleDetails.date[1]}, ${newsArticleDetails.date[2]}`
+                                        }&nbsp;&nbsp;|&nbsp;&nbsp;
+                                        {newsArticleDetails.sport}
+                                    </Typography>
+                                    <Box display='flex' alignItems='center' gap='10px'>
+                                        <Typography color='#666' fontWeight='600' variant='subtitle2'>Share:</Typography>
+                                        <FacebookShareButton className='fbShareButton' url={window.location.href}><img width='25px' src={require('../img/icons/fbShare.png')}/></FacebookShareButton>
+                                        <TwitterShareButton className='twitterShareButton' url={window.location.href}><img width='25px' src={require('../img/icons/twitterShare.png')}/></TwitterShareButton>
+                                    </Box>
                                 </Box>
-                            </Box>
+                            }
+                            
                         </Stack>
                         <Typography sx={{whiteSpace:'pre-line'}} variant='body1'>{newsArticleDetails.content}</Typography>
                         <Stack marginTop='100px' gap='35px'>

@@ -4,8 +4,12 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../config/firebase';
 import { UserAuth } from '../config/authContext';
 import { getDocs, collection } from 'firebase/firestore';
+import { useMediaQuery } from 'react-responsive';
 
 export default function Tournaments() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const { user, moreUserInfo } = UserAuth()
 
     const [tournamentList, setTournamentList] = useState([])
@@ -109,23 +113,62 @@ export default function Tournaments() {
 
     return (
         <Box height='100%' width='100%' minHeight='411px' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='80%'>
+            <Stack width={isMobile || isTablet ? '90%' : '80%'}>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
-                    <Typography variant='h3'>Tournaments</Typography>
-                    <Box display='flex' alignItems='center' gap='25px'>
-                        {user && moreUserInfo?.type !== 'admin' &&
-                            <FormGroup>
-                                <Tooltip TransitionComponent={Zoom} title='Filter tournaments based on your profile information (Gender, Region, Sport Interests)' arrow>
-                                    <FormControlLabel className='personalizedFilterLabel' control={<Checkbox checked={personalizedFilter} onChange={() => setPersonalizedFilter(!personalizedFilter)} />} label="Personalized Filter" />
-                                </Tooltip>
-                            </FormGroup>
-                        }
-
+                    {isMobile ?
+                        <>
+                        <Stack width='100%'>
+                            <Typography variant='h3'>Tournaments</Typography>
+                            <form style={{display:'flex', width:'100%', paddingTop:'25px'}} onSubmit={searchTournament}>
+                                <TextField className='searchTextField' sx={{width:'100% !important'}} placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                            {user && moreUserInfo?.type !== 'admin' &&
+                                <FormGroup>
+                                    <Tooltip TransitionComponent={Zoom} title='Filter tournaments based on your profile information (Gender, Region, Sport Interests)' arrow>
+                                        <FormControlLabel className='personalizedFilterLabel' control={<Checkbox checked={personalizedFilter} onChange={() => setPersonalizedFilter(!personalizedFilter)} />} label="Personalized Filter" />
+                                    </Tooltip>
+                                </FormGroup>
+                            }
+                        </Stack>
+                        </>
+                    : isTablet ?
+                        <>
+                        <Stack>
+                            <Typography variant='h3'>Tournaments</Typography>
+                            {user && moreUserInfo?.type !== 'admin' &&
+                                <FormGroup>
+                                    <Tooltip TransitionComponent={Zoom} title='Filter tournaments based on your profile information (Gender, Region, Sport Interests)' arrow>
+                                        <FormControlLabel className='personalizedFilterLabel' control={<Checkbox checked={personalizedFilter} onChange={() => setPersonalizedFilter(!personalizedFilter)} />} label="Personalized Filter" />
+                                    </Tooltip>
+                                </FormGroup>
+                            }
+                        </Stack>
                         <form style={{display:'flex'}} onSubmit={searchTournament}>
                             <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
                             <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
                         </form>
-                    </Box>
+                        </>
+                        :
+                        <>
+                        <Typography variant='h3'>Tournaments</Typography>
+                        <Box display='flex' alignItems='center' gap='25px'>
+                            {user && moreUserInfo?.type !== 'admin' &&
+                                <FormGroup>
+                                    <Tooltip TransitionComponent={Zoom} title='Filter tournaments based on your profile information (Gender, Region, Sport Interests)' arrow>
+                                        <FormControlLabel className='personalizedFilterLabel' control={<Checkbox checked={personalizedFilter} onChange={() => setPersonalizedFilter(!personalizedFilter)} />} label="Personalized Filter" />
+                                    </Tooltip>
+                                </FormGroup>
+                            }
+
+                            <form style={{display:'flex'}} onSubmit={searchTournament}>
+                                <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Box>
+                        </>
+                    }
+                    
                 </Box>
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {tournamentList.map((tournament) => (

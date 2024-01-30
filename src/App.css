@@ -80,7 +80,13 @@ td {
     opacity: 1;
 }
 
+.responsiveNavLinks {
+    padding: 15px 0;
+}
 
+.responsiveNavMenu {
+    animation: animateSlideInRight 0.3s ease-out;
+}
 
 
 
@@ -94,4 +100,9 @@ td {
 @keyframes animatePopOpen {
     from {transform: scale(0)}
     to {transform: scale(1)}
+}
+
+@keyframes animateSlideInRight {
+    from {transform: translateX(100%); opacity: 50} 
+    to {transform: translateX(0); opacity: 100}
 }

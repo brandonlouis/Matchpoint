@@ -261,7 +261,8 @@ const theme = createTheme({
                     "&.newsletterTextField": {
                         backgroundColor: '#FFF',
                         borderRadius: '15px',
-                        width:'500px',
+                        width:'100%',
+                        maxWidth:'500px',
                         height: '45px',
 
                         "& .MuiInputBase-root": {

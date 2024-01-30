@@ -3,9 +3,12 @@ import { Box, Button, Card, CardActionArea, CardContent, Grid, Modal, Stack, Tex
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../config/firebase';
 import { getDocs, collection, query, orderBy } from 'firebase/firestore';
-
+import { useMediaQuery } from 'react-responsive';
 
 export default function NewsArticles() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const [newsArticleList, setNewsArticleList] = useState([])
     const [searchCriteria, setSearchCriteria] = useState('')
 
@@ -53,15 +56,29 @@ export default function NewsArticles() {
 
     return (
         <Box height='100%' width='100%' minHeight='460px' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='80%'>
+            <Stack width={isMobile || isTablet ? '90%' : '80%'}>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
-                    <Typography variant='h3'>News Articles</Typography>
-                    <Box display='flex'>
-                        <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
-                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
-                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
-                        </form>
-                    </Box>
+                    {isMobile ? 
+                        <Stack width='100%' gap='25px'>
+                            <Typography variant='h3'>News Articles</Typography>
+                            <Box display='flex'>
+                                <form style={{display:'flex', width:'100%'}} onSubmit={searchNewsArticle}>
+                                    <TextField className='searchTextField' sx={{width:'100% !important'}} placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                    <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                                </form>
+                            </Box>
+                        </Stack>
+                        :
+                        <>
+                        <Typography variant='h3'>News Articles</Typography>
+                        <Box display='flex'>
+                            <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
+                                <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Box>
+                        </>
+                    }
                 </Box>
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {newsArticleList.map((newsArticle) => (

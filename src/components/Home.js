@@ -2,10 +2,16 @@ import React, { useEffect, useState} from 'react'
 import { Box, Button, Card, CardActionArea, CardContent, Grid, Stack, TextField, Typography } from '@mui/material'
 import lightningBG from '../img/backgrounds/lightningBG.png'
 import newsletterBG from '../img/backgrounds/newsletterBG.png'
-import { db } from '../config/firebase';
-import { getDocs, collection, query, orderBy, limit } from 'firebase/firestore';
+import { db } from '../config/firebase'
+import { getDocs, collection, query, orderBy, limit } from 'firebase/firestore'
+import { useMediaQuery } from 'react-responsive'
 
 export default function Home() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const adjustBanner = useMediaQuery({ query: '(max-width: 900px)' })
+    const adjustAboutUs = useMediaQuery({ query: '(max-width: 750px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const [tournamentList, setTournamentList] = useState([])
     const [newsArticleList, setNewsArticleList] = useState([])
 
@@ -71,68 +77,121 @@ export default function Home() {
 
     return (
         <Stack height='100%' width='100%'>
-            <Box display='flex' justifyContent='center' height='650px' sx={{backgroundImage: `url('${lightningBG}')`, backgroundRepeat: "no-repeat", backgroundPosition: "right top", backgroundAttachment:'fixed'}}>
-                <Box display='flex' width='80%'>
-                    <Stack width='40%' paddingTop='120px' justifyContent='center'>
-                        <Typography variant='h1'><span style={{color:'#CB3E3E'}}>One-stop</span> tournament hub</Typography>
-                        <Typography variant='body1'>Simplify management, engage players, and elevate your sporting events effortlessly with us.</Typography>
-                        <Box display='flex' gap='25px' alignItems='center' marginTop='25px'>
-                            <Button variant='red'>Sign Up</Button>
-                            <a href='#'><Typography sx={{textDecoration:'underline'}} variant='action'>Learn More</Typography></a>
-                        </Box>
-                    </Stack>
-
-                    <Box width='60%' display='flex' alignItems='flex-end'>
+            <Box display='flex' justifyContent={adjustBanner ? 'center' : 'flex-end'} height='100%' sx={{backgroundImage: `url('${lightningBG}')`, backgroundRepeat: "no-repeat", backgroundPosition: "right top", backgroundAttachment:'fixed'}}>
+                {adjustBanner ?
+                    <Stack justifyContent='center' alignItems='center' paddingTop='120px' overflow='hidden'>
                         <img style={{height:'530px'}} src={require('../img/elements/team.png')}/>
+                        
+                        <Stack alignItems='center' padding='50px 0' width='90%'>
+                            <Typography variant='h1' textAlign='center' fontSize={isMobile && '10vmin'}><span style={{color:'#CB3E3E'}}>One-stop</span> tournament hub</Typography>
+                            <Typography variant='body1' textAlign='center'>Simplify management, engage players, and elevate your sporting events effortlessly with us.</Typography>
+                            <Box display='flex' gap='25px' alignItems='center' marginTop='25px'>
+                                <Button variant='red'>Sign Up</Button>
+                                <a href='#'><Typography sx={{textDecoration:'underline'}} variant='action'>Learn More</Typography></a>
+                            </Box>
+                        </Stack>
+                    </Stack>
+                    :
+                    <Box display='flex' width={isMobile || isTablet ? '95%' : '90%'}>
+                        <Stack width='40%' padding='158px 0' justifyContent='center'>
+                            <Typography variant='h1' fontSize={isMobile && '10vmin'}><span style={{color:'#CB3E3E'}}>One-stop</span> tournament hub</Typography>
+                            <Typography variant='body1'>Simplify management, engage players, and elevate your sporting events effortlessly with us.</Typography>
+                            <Box display='flex' gap='25px' alignItems='center' marginTop='25px'>
+                                <Button variant='red'>Sign Up</Button>
+                                <a href='#'><Typography sx={{textDecoration:'underline'}} variant='action'>Learn More</Typography></a>
+                            </Box>
+                        </Stack>
+
+                        <Box width='60%' display='flex' alignItems='flex-end' overflow='hidden'>
+                            <img style={{height:'530px'}} src={require('../img/elements/team.png')}/>
+                        </Box>
                     </Box>
-                </Box>
+                }
             </Box>
+            
 
             <Box display='flex' justifyContent='center' padding='100px 0' bgcolor='#EEE'>
-                <Stack width='80%' alignItems='center' justifyContent='center' gap='100px'>
-                    <Stack textAlign='center' width='470px' gap='10px'>
+                <Stack width={isMobile || isTablet ? '90%' : '80%'} alignItems='center' justifyContent='center' gap='100px'>
+                    <Stack textAlign='center' width='100%' maxWidth='470px' gap='10px'>
                         <Typography variant='h3'>Why choose us?</Typography>
                         <Typography variant='body1'>We keep things simple and flexible. Host your very own tournaments in under 3 minutes.</Typography>
                     </Stack>
 
-                    <Box display='flex' alignItems='center' justifyContent='center'>
-                        <Box bgcolor='#CB3E3E' height='10px' width='50%' position='absolute' zIndex='1'></Box>
+                    {adjustAboutUs ? 
+                        <Stack justifyContent='center' alignItems='center' gap='100px'>
+                            <Box bgcolor='#CB3E3E' height='50%' width='10px' position='absolute' zIndex='1'></Box>
 
-                        <Box width='30%' height='100%' display='flex' margin='0 2%' zIndex='2'>
-                            <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px'>
-                                <Box width='75px' height='75px' display='flex' alignItems='center' justifyContent='center' bgcolor='#CB3E3E' borderRadius='100px' position='absolute' marginTop='-90px'>
-                                    <img height='40px' src={require('../img/icons/aboutAI.png')}/>
-                                </Box>
-                                <Typography variant='h4'>Automated Processes</Typography>
-                                <Typography variant='body1'>Aenean porttitor ligula eu tellus eleifend fermentum. Nulla facilisi. Sed commodo egestas augue sed imperdiet. Quisque vel diam laoreet.</Typography>
-                            </Stack>
-                        </Box>
+                            <Box width='80%' height='100%' display='flex' zIndex='2'>
+                                <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px' alignItems='center'>
+                                    <Box width='75px' height='75px' display='flex' alignItems='center' justifyContent='center' bgcolor='#CB3E3E' borderRadius='100px' position='absolute' marginTop='-90px'>
+                                        <img height='40px' src={require('../img/icons/aboutAI.png')}/>
+                                    </Box>
+                                    <Typography variant='h4' textAlign='center'>Automated Processes</Typography>
+                                    <Typography variant='body1' textAlign='center'>Aenean porttitor ligula eu tellus eleifend fermentum. Nulla facilisi. Sed commodo egestas augue sed imperdiet. Quisque vel diam laoreet.</Typography>
+                                </Stack>
+                            </Box>
 
-                        <Box width='30%' height='100%' display='flex' margin='0 2%' zIndex='2'>
-                            <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px'>
-                                <Box width='75px' height='75px' display='flex' alignItems='center' justifyContent='center' bgcolor='#CB3E3E' borderRadius='100px' position='absolute' marginTop='-90px'>
-                                    <img height='40px' src={require('../img/icons/aboutTrophy.png')}/>
-                                </Box>
-                                <Typography variant='h4'>Leaderboards and Statistics</Typography>
-                                <Typography variant='body1'>In gravida imperdiet tellus. Etiam ornare ut ante quis pulvinar. Donec ut faucibus purus, eu dictum erat. Vivamus convallis at tellus a condimentum.</Typography>
-                            </Stack>
-                        </Box>
+                            <Box width='80%' height='100%' display='flex' zIndex='2'>
+                                <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px' alignItems='center'>
+                                    <Box width='75px' height='75px' display='flex' alignItems='center' justifyContent='center' bgcolor='#CB3E3E' borderRadius='100px' position='absolute' marginTop='-90px'>
+                                        <img height='40px' src={require('../img/icons/aboutTrophy.png')}/>
+                                    </Box>
+                                    <Typography variant='h4' textAlign='center'>Leaderboards and Statistics</Typography>
+                                    <Typography variant='body1' textAlign='center'>In gravida imperdiet tellus. Etiam ornare ut ante quis pulvinar. Donec ut faucibus purus, eu dictum erat. Vivamus convallis at tellus a condimentum.</Typography>
+                                </Stack>
+                            </Box>
 
-                        <Box width='30%' height='100%' display='flex' margin='0 2%' zIndex='2'>
-                            <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px'>
-                                <Box width='75px' height='75px' display='flex' alignItems='center' justifyContent='center' bgcolor='#CB3E3E' borderRadius='100px' position='absolute' marginTop='-90px'>
-                                    <img height='40px' src={require('../img/icons/aboutCustomize.png')}/>
-                                </Box>
-                                <Typography variant='h4'>Full Customizability</Typography>
-                                <Typography variant='body1'>Have something special in mind? Everything is fully adjustable, ensuring flexibility and adaptability that suits your unique requirements.</Typography>
-                            </Stack>
+                            <Box width='80%' height='100%' display='flex' zIndex='2'>
+                                <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px' alignItems='center'>
+                                    <Box width='75px' height='75px' display='flex' alignItems='center' justifyContent='center' bgcolor='#CB3E3E' borderRadius='100px' position='absolute' marginTop='-90px'>
+                                        <img height='40px' src={require('../img/icons/aboutCustomize.png')}/>
+                                    </Box>
+                                    <Typography variant='h4' textAlign='center'>Full Customizability</Typography>
+                                    <Typography variant='body1' textAlign='center'>Have something special in mind? Everything is fully adjustable, ensuring flexibility and adaptability that suits your unique requirements.</Typography>
+                                </Stack>
+                            </Box>
+                        </Stack>
+                        :
+                        <Box display='flex' alignItems='center' justifyContent='center'>
+                            <Box bgcolor='#CB3E3E' height='10px' width='50%' position='absolute' zIndex='1'></Box>
+
+                            <Box width='30%' height='100%' display='flex' margin='0 2%' zIndex='2'>
+                                <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px'>
+                                    <Box width='75px' height='75px' display='flex' alignItems='center' justifyContent='center' bgcolor='#CB3E3E' borderRadius='100px' position='absolute' marginTop='-90px'>
+                                        <img height='40px' src={require('../img/icons/aboutAI.png')}/>
+                                    </Box>
+                                    <Typography variant='h4'>Automated Processes</Typography>
+                                    <Typography variant='body1'>Aenean porttitor ligula eu tellus eleifend fermentum. Nulla facilisi. Sed commodo egestas augue sed imperdiet. Quisque vel diam laoreet.</Typography>
+                                </Stack>
+                            </Box>
+
+                            <Box width='30%' height='100%' display='flex' margin='0 2%' zIndex='2'>
+                                <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px'>
+                                    <Box width='75px' height='75px' display='flex' alignItems='center' justifyContent='center' bgcolor='#CB3E3E' borderRadius='100px' position='absolute' marginTop='-90px'>
+                                        <img height='40px' src={require('../img/icons/aboutTrophy.png')}/>
+                                    </Box>
+                                    <Typography variant='h4'>Leaderboards and Statistics</Typography>
+                                    <Typography variant='body1'>In gravida imperdiet tellus. Etiam ornare ut ante quis pulvinar. Donec ut faucibus purus, eu dictum erat. Vivamus convallis at tellus a condimentum.</Typography>
+                                </Stack>
+                            </Box>
+
+                            <Box width='30%' height='100%' display='flex' margin='0 2%' zIndex='2'>
+                                <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px'>
+                                    <Box width='75px' height='75px' display='flex' alignItems='center' justifyContent='center' bgcolor='#CB3E3E' borderRadius='100px' position='absolute' marginTop='-90px'>
+                                        <img height='40px' src={require('../img/icons/aboutCustomize.png')}/>
+                                    </Box>
+                                    <Typography variant='h4'>Full Customizability</Typography>
+                                    <Typography variant='body1'>Have something special in mind? Everything is fully adjustable, ensuring flexibility and adaptability that suits your unique requirements.</Typography>
+                                </Stack>
+                            </Box>
                         </Box>
-                    </Box>
+                    }
+                    
                 </Stack>
             </Box>
-
+            
             <Box display='flex' justifyContent='center' padding='130px 0'>
-                <Stack width='80%' justifyContent='center'>
+                <Stack width={isMobile || isTablet ? '90%' : '80%'} justifyContent='center'>
                     <Box display='flex' justifyContent='space-between' alignContent='center'>
                         <Typography variant='h3'>Tournaments</Typography>
                         <a href='/Tournaments'><Typography color='#006DEE' fontSize='14px' letterSpacing='2px' variant='action'>See More Tournaments</Typography></a>
@@ -174,11 +233,10 @@ export default function Home() {
                         ))}
                     </Grid>
                 </Stack>
-                
             </Box>
 
             <Box display='flex' justifyContent='center' padding='90px 0' bgcolor='#EEE'>
-                <Stack width='80%' justifyContent='center'>
+                <Stack width={isMobile || isTablet ? '90%' : '80%'} justifyContent='center'>
                     <Box display='flex' justifyContent='space-between' alignContent='center'>
                         <Typography variant='h3'>News Articles</Typography>
                         <a href='/NewsArticles'><Typography color='#006DEE' fontSize='14px' letterSpacing='2px' variant='action'>See More Articles</Typography></a>
@@ -189,7 +247,7 @@ export default function Home() {
                             <Grid key={newsArticle.id} item width='265px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
                                 <Card sx={{borderRadius:'15px', height:'100%'}} >
                                     <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
-                                        <CardContent sx={{padding:'0'}}>
+                                        <CardContent sx={{padding:'0', width:'100%'}}>
                                             <Stack>
                                                 <Box height='200px' width='265px'>
                                                     <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.bannerURL}/>
@@ -214,11 +272,11 @@ export default function Home() {
             </Box>
 
             <Box display='flex' justifyContent='center' height='250px' sx={{backgroundImage: `url('${newsletterBG}')`, backgroundRepeat:"no-repeat", backgroundSize:'cover'}}>
-                <Stack width='80%' alignItems='center' justifyContent='center'>
+                <Stack width={isMobile || isTablet ? '90%' : '80%'} alignItems='center' justifyContent='center'>
                     <Typography color='white' variant='h3'>Join our newsletter</Typography>
-                    <Typography color='white' marginBottom='20px' variant='body1'>Be the first to be notified on the latest tournaments and articles.</Typography>
+                    <Typography color='white' marginBottom='20px' textAlign='center' variant='body1'>Be the first to be notified on the latest tournaments and articles.</Typography>
 
-                    <Box display='flex' gap='20px'>
+                    <Box display='flex' justifyContent='center' gap='20px' width='100%'>
                         <TextField className='newsletterTextField' placeholder='ENTER YOUR EMAIL'/>
                         <Button variant='red'>Subscribe</Button>
                     </Box>

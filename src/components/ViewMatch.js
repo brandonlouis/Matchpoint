@@ -742,7 +742,7 @@ export default function ViewMatch() {
                     {editMode && (                 
                         <TextField value={youtubeURL ? youtubeURL.join('\n') : ''} onChange={updateMatchHighlights} type='text' className='inputTextField' variant='outlined' label='Enter Youtube URL, separated by new line' multiline rows={10} required />                     
                     )}
-                    {(youtubeURL.length > 0 && youtubeURL?.filter(url => url.includes("www.youtube.com"))) ? 
+                    {(youtubeURL?.length > 0 && youtubeURL?.filter(url => url.includes("www.youtube.com"))) ? 
                         (
                             <Grid container gap='35px' alignItems='stretch'>
                                 {youtubeURL?.filter(url => url.trim() !== '' && url.includes("www.youtube.com")).map((url, index) => (

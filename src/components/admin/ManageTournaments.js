@@ -157,7 +157,7 @@ export default function ManageTournaments() {
         </Box>
         <Modal open={openModal} onClose={() => setOpenModal(false)} disableScrollLock>
             <Box className='ModalView' display='flex' borderRadius='20px' width='700px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
-                <Stack>
+                <Stack width='100%'>
                     <img width='100%' height='150px' style={{objectFit:'cover', borderRadius:'20px 20px 0 0'}} src={tournamentDetails.imgURL}/>
 
                     <Stack padding='20px 40px 40px' gap='15px'>
