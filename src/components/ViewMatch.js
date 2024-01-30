@@ -25,6 +25,10 @@ export default function ViewMatch() {
     const [participantDetails, setParticipantDetails] = useState([])
     const [tournamentDetails, setTournamentDetails] = useState({})
 
+    const [youtubeURL, setYoutubeURL] = useState([])
+
+    const [errorMessage, setErrorMessage] = useState('')
+    
 
     useEffect(() => { // Handle retrieving tournament list on initial load
         const getTournament = async () => {
@@ -52,7 +56,8 @@ export default function ViewMatch() {
             
                     resList.round[key].time = roundTime
                 })
-                setMatchList(resList)                
+                setMatchList(resList)
+                setYoutubeURL(resList.highlights)
             } catch (err) {
                 console.error(err)
             }
@@ -119,6 +124,10 @@ export default function ViewMatch() {
         
         setMatchList(newMatchList)
     }
+    const updateMatchHighlights = (e) => {
+        setYoutubeURL(e.target.value.split('\n'))
+    }
+
     function formatDateTime(date) {
         const year = date.getFullYear()
         const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -130,23 +139,30 @@ export default function ViewMatch() {
     }
 
     const revertChanges = async () => {
+        setErrorMessage('')
         try {
             const res = await getDoc(doc(db, 'matches', matchID))
             const resList = res.data()
-            Object.entries(resList.round).forEach(([key, value]) => {
+            Object.entries(resList.round).forEach(([key, value]) => { // Revert display fields of scores and victor
                 const roundTime = value.time.toDate()
-        
                 resList.round[key].time = roundTime
             })
+
             setMatchList(resList)
+            setYoutubeURL(resList.highlights)
         } catch (err) {
             console.error(err)
         }
     }
 
     const saveChanges = async () => {
-        const newMatchList = { ...matchList }
+        if (!youtubeURL?.filter(str => str.trim() !== "").every(url => url.includes("www.youtube.com"))) { // Check for invalid youtube URL amidst empty strings
+            setErrorMessage('Invalid YouTube URL')
+            return
+        }
         
+        const newMatchList = { ...matchList }
+
         Object.entries(newMatchList.statistics).forEach(([key, value]) => {            
             let wins = 0
             let losses = 0
@@ -177,10 +193,11 @@ export default function ViewMatch() {
         try {
             await updateDoc(doc(db, 'matches', matchID), {
                 round: newMatchList.round,
-                statistics: newMatchList.statistics
+                statistics: newMatchList.statistics,                
+                highlights: youtubeURL.map(str => str.trim()).filter(str => str !== ""),
             })
 
-            alert('Score & Matchup updated successfully')
+            alert('Score, Matchup and Highlights updated successfully')
             window.location.reload()
         } catch (err) {
             console.error(err)
@@ -311,28 +328,14 @@ export default function ViewMatch() {
             textData.push(...mappedData)
         }
 
-        // Join lines with newline character
         const formattedTextData = textData.join('\n')
-
-        // Create a Blob from the formatted text data
         const blob = new Blob([formattedTextData], { type: 'text/plain' })
-
-        // Create a link element
         const link = document.createElement('a')
 
-        // Set the link's href attribute to a Blob URL
         link.href = URL.createObjectURL(blob)
-
-        // Set the link's download attribute to the desired file name
         link.download = 'tournament-scoresheet.txt'
-
-        // Append the link to the document
         document.body.appendChild(link)
-
-        // Trigger a click on the link to initiate the download
         link.click()
-
-        // Remove the link from the document
         document.body.removeChild(link)
     }
 
@@ -426,29 +429,20 @@ export default function ViewMatch() {
             })
         })
     
-       // Join lines with newline character
        const formattedTextData = data.join('\n')
-    
-       // Create a Blob from the formatted text data
        const blob = new Blob([formattedTextData], { type: 'text/plain' })
-   
-       // Create a link element
        const link = document.createElement('a')
    
-       // Set the link's href attribute to a Blob URL
        link.href = URL.createObjectURL(blob)
-   
-       // Set the link's download attribute to the desired file name
        link.download = 'tournament-schedule.txt'
-   
-       // Append the link to the document
        document.body.appendChild(link)
-   
-       // Trigger a click on the link to initiate the download
        link.click()
-   
-       // Remove the link from the document
        document.body.removeChild(link)
+    }
+
+    const getYoutubeEmbedUrl = (url) => {
+        const videoId = url.split('v=')[1]
+        return `https://www.youtube.com/embed/${videoId}`
     }
 
     
@@ -742,24 +736,46 @@ export default function ViewMatch() {
                         </Stack>
                     ))}
                 </Stack>
-                <Box display='flex' justifyContent='center' marginTop='75px' gap='50px'>
+
+                <Stack marginTop='50px' gap='20px'>
+                    <Typography variant='h3'>Match Highlights</Typography>   
+                    {editMode && (                 
+                        <TextField value={youtubeURL ? youtubeURL.join('\n') : ''} onChange={updateMatchHighlights} type='text' className='inputTextField' variant='outlined' label='Enter Youtube URL, separated by new line' multiline rows={10} required />                     
+                    )}
+                    {(youtubeURL.length > 0 && youtubeURL?.filter(url => url.includes("www.youtube.com"))) ? 
+                        (
+                            <Grid container gap='35px' alignItems='stretch'>
+                                {youtubeURL?.filter(url => url.trim() !== '' && url.includes("www.youtube.com")).map((url, index) => (
+                                    <iframe key={index} title={`YouTube Video ${index + 1}`} width="550" height="310" src={getYoutubeEmbedUrl(url)} allow="autoplay; encrypted-media" allowFullScreen />
+                                ))}
+                            </Grid>
+                        ) : (
+                            <Box display='flex' justifyContent='center' alignItems='center' height='150px'>
+                                <Typography variant='body1'>No highlights uploaded</Typography>
+                            </Box>
+                        )
+                    }
+                </Stack>
+
+                <Stack alignItems='center' marginTop='75px'>
                     {viewerType === 'host&collab' ?
-                        <>
-                        {!editMode ?
-                            <>
-                            <Button sx={{width:'300px'}} variant='blue' onClick={() => setEditMode(true)}>Edit Score & Matchup</Button>
-                            </>
+                        (!editMode ?
+                            <Button sx={{width:'350px'}} variant='blue' onClick={() => setEditMode(true)}>Edit Score, Matchup and Highlights</Button>
                             :
-                            <>
-                            <Button sx={{width:'300px'}} variant='blue' onClick={() => saveChanges()}>Save Changes</Button>
-                            <Button sx={{width:'150px'}} variant='red' onClick={() => {setEditMode(false); revertChanges()}}>Back</Button>
-                            </>
-                        }
-                        </>
+                            <Stack>
+                                <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
+                                <Box display='flex' gap='50px'>
+                                    <Button sx={{width:'300px'}} variant='blue' onClick={() => saveChanges()}>Save Changes</Button>
+                                    <Button sx={{width:'150px'}} variant='red' onClick={() => {setEditMode(false); revertChanges()}}>Back</Button>
+                                </Box>
+                            </Stack>
+                            
+                        )
                         :
                         <Button sx={{width:'300px'}} variant='red' onClick={() => {window.location.href = `/ViewTournament?id=${matchID}`}}>Back</Button>
                     }
-                </Box>
+                </Stack>
+                
             </Stack>
         </Box>
     )
