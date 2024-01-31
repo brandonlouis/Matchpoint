@@ -5,6 +5,12 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../../config/firebase'
 import { UserAuth } from '../../config/authContext'
 import { getDoc, getDocs, updateDoc, collection, deleteDoc, doc, where, query, orderBy, documentId } from 'firebase/firestore'
+import { Line } from 'react-chartjs-2'
+import { Chart as chartjs, LineElement, CategoryScale, LinearScale, PointElement, Tooltip as ChartTooltip } from 'chart.js'
+
+chartjs.register(
+    LineElement, CategoryScale, LinearScale, PointElement, ChartTooltip
+)
 
 export default function ManageTeam() {
     const { user } = UserAuth()
@@ -28,6 +34,8 @@ export default function ManageTeam() {
     const [profileInfo, setProfileInfo] = useState({})
     const [accountsList, setAccountsList] = useState([])
     const [accountDetails, setAccountDetails] = useState({})
+    const [tournamentList, setTournamentList] = useState([])
+    const [matchInfo, setmatchInfo] = useState([])
 
     const [sportsList, setSportsList] = useState([])
     const genders = ["male", "female", "mixed"]
@@ -38,6 +46,8 @@ export default function ManageTeam() {
 
     const [searchCriteria, setSearchCriteria] = useState('')
     const [searchAccountsList, setSearchAccountsList] = useState([])
+
+    const [tournamentDatePoints, setTournamentDatePoints] = useState({})
 
 
     useEffect(() => {
@@ -66,6 +76,9 @@ export default function ManageTeam() {
                 setMaxCapacity(resList[0]?.maxCapacity)
                 setGenderReq(resList[0]?.genderReq)
                 setPrivacy(resList[0]?.privacy)
+
+                getTournament(resList[0]?.id)
+                getMatch(resList[0]?.id)
             } catch (err) {
                 console.error(err)
             }
@@ -79,10 +92,89 @@ export default function ManageTeam() {
                 console.error(err)
             }
         }
+        const getTournament = async (teamID) => {            
+            const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', teamID))
+            const data = await getDocs(q)
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+            setTournamentList(processDate([...resList]))
+        }
+        const processDate = (list) => {
+            const updatedTournamentList = list.map((tournament) => {
+                const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
+                const endDate = tournament.date.end.toDate().toDateString().split(' ').slice(1) 
+                return {
+                    ...tournament,
+                    stringDate: {                        
+                        start: startDate,
+                        end: endDate,
+                    },
+                }
+            })
+            return updatedTournamentList
+        }
+        const getMatch = async (teamID) => {
+            try {
+                const q = query(collection(db, 'matches'), where('participants', 'array-contains', teamID))
+                const data = await getDocs(q)
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                setmatchInfo(resList)
+            } catch (err) {
+                console.error(err)
+            }
+        }
         getSports()
         getTeam()
         getProfile()
     }, [])
+
+    useEffect(() => {
+        const datePointsDict = {}
+        const placementDict = {first: 0, second: 0, third: 0, tournamentsParticipated: 0}
+
+        tournamentList.forEach((tournament) => {
+            matchInfo.forEach((match) => {
+                if (match.id === tournament.id) {
+                    if (tournament.date?.end.toDate() < Date.now()) {
+                        const sortedUsers = Object.entries(match.statistics).sort((a, b) => b[1].points - a[1].points)
+                        const userIndex = sortedUsers.findIndex(([id, _]) => id === id)
+                        
+                        placementDict.tournamentsParticipated += 1
+
+                        const dateKey = tournament.stringDate?.end.join(' ')
+                        if (userIndex === 0) {
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 4
+                            placementDict.first += 1
+                        } else if (userIndex === 1) {
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 3
+                            placementDict.second += 1
+                        } else if (userIndex === 2) {
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 2
+                            placementDict.third += 1
+                        } else {
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 1
+                        }
+                    }
+                }
+            })
+            setTournamentDatePoints(datePointsDict)
+        })
+        if (Object.keys(datePointsDict).length > 0) {
+            updateStatistics(placementDict)
+        }
+    }, [tournamentList, matchInfo])
+
+    const updateStatistics = async (placementParam) => {
+        try {
+            await updateDoc(doc(db, 'profiles', id), {
+                first: placementParam.first,
+                second: placementParam.second,
+                third: placementParam.third,
+                tournamentsParticipated: placementParam.tournamentsParticipated
+            })
+        } catch (err) {
+            console.error(err)
+        }
+    }
 
     const viewAccount = async (id) => { // Handle view record by populating data to modal
         setOpenViewModal(true)
@@ -242,6 +334,46 @@ export default function ManageTeam() {
         setErrorMessage('')
         setEditMode(val)
     }
+
+    const datePointsArray = Object.entries(tournamentDatePoints).sort((a, b) => new Date(a[0]) - new Date(b[0]))
+    const sortedDates = (datePointsArray.map(([date]) => date))
+    const sortedScores = (datePointsArray.map(([, score]) => score))
+
+    const graphData = ({
+        labels: sortedDates,
+        datasets: [{
+            label: 'Total points',
+            data: sortedScores,
+            backgroundColor: '#CB3E3E',
+            borderColor: '#666',
+            pointBorderColor: '#CB3E3E',
+            borderWidth: 2,
+        }]
+    })
+    const graphConfig = ({
+        type: 'line',
+        graphData,
+        options: {
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date',
+                    },
+                    autoSkip: false,
+                },
+                y: {
+                    beginAtZero: true,
+                    stepSize: 1,
+                    max: sortedScores.length > 0 ? Math.max(...sortedScores)+1 : 1,
+                    title: {
+                        display: true,
+                        text: 'Total points',
+                    },
+                },
+            },
+        },
+    })
 
 
     return (
@@ -437,6 +569,18 @@ export default function ManageTeam() {
                                     </Box>
                                 </Stack>
                             </Box>
+                            <Stack paddingTop='8px'>
+                                    <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
+                                    <Box position='relative' display='flex' justifyContent='center'>
+                                        <Line data={graphData} options={graphConfig.options} />
+                                        {(sortedDates.length === 0 || sortedScores.length === 0) &&
+                                            <Box position='absolute' top='0' left='5%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
+                                                <Typography color='#CB3E3E' fontWeight='bold' variant='body1' textAlign='center' width='fit-content'>Your team has yet to participate in any tournaments</Typography>
+                                            </Box>
+                                        }
+                                    </Box>
+                                    <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly' flexDirection='column'><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
+                                </Stack>
                         </Stack>
                         </>
                     }
