@@ -13,6 +13,8 @@ chartjs.register(
     LineElement, CategoryScale, LinearScale, PointElement, ChartTooltip
 )
 
+
+
 export default function ManageTeam() {
     const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
     const adjust730 = useMediaQuery({ query: '(max-width: 730px)' })
@@ -53,6 +55,8 @@ export default function ManageTeam() {
     const [searchAccountsList, setSearchAccountsList] = useState([])
 
     const [tournamentDatePoints, setTournamentDatePoints] = useState({})
+
+    
 
 
     useEffect(() => {
@@ -116,6 +120,7 @@ export default function ManageTeam() {
                 }
             })
             return updatedTournamentList
+        
         }
         const getMatch = async (teamID) => {
             try {
@@ -292,7 +297,7 @@ export default function ManageTeam() {
             console.error(err)
         }
     }
-
+    
     useEffect(() => { // Live update on members list on kick/add member
         const getTeam = async () => {
             try {
@@ -314,17 +319,65 @@ export default function ManageTeam() {
         }
         getTeam()
     }, [originalDetails[0]?.members])
-
-    const disbandTeam = async (id) => { // TODO: Propagate team deletion to Tournament participants and match participants + matchup
+    
+    
+    const disbandTeam = async (id) => {
         try {
-            await deleteDoc(doc(db, 'teams', id))
-            await deleteDoc(doc(db, 'profiles', id))
-            alert('Team disbanded successfully')
-            window.location.href = '/ManageAccountProfile'
+            // Delete team document
+            await deleteDoc(doc(db, 'teams', id));
+    
+            // Delete profile document
+            await deleteDoc(doc(db, 'profiles', id));
+    
+            // Update tournaments
+            const tournamentsRef = collection(db, 'tournaments');
+            const tournamentQuery = query(tournamentsRef, where('participants', 'array-contains', id));
+            const tournamentQuerySnapshot = await getDocs(tournamentQuery);
+    
+            const tournamentUpdatePromises = [];
+    
+            tournamentQuerySnapshot.forEach((docTournament) => {
+                const participants = docTournament.data().participants;
+                const index = participants.indexOf(id);
+    
+                if (index !== -1) {
+                    participants[index] = "<Team disbanded>";
+    
+                    const updatePromise = updateDoc(doc(db, 'tournaments', docTournament.id), { participants });
+                    tournamentUpdatePromises.push(updatePromise);
+                }
+            });
+    
+            await Promise.all(tournamentUpdatePromises);
+    
+            // Update matches
+            const matchesRef = collection(db, 'matches');
+            const matchQuery = query(matchesRef, where('participants', 'array-contains', id));
+            const matchQuerySnapshot = await getDocs(matchQuery);
+    
+            const matchUpdatePromises = [];
+    
+            matchQuerySnapshot.forEach((docMatch) => {
+                const participants = docMatch.data().participants;
+                const index = participants.indexOf(id);
+    
+                if (index !== -1) {
+                    participants[index] = "<Team disbanded>";    
+                    const updatePromise = updateDoc(doc(db, 'matches', docMatch.id), { participants });
+                    matchUpdatePromises.push(updatePromise);
+                }
+            });
+    
+            await Promise.all(matchUpdatePromises);
+    
+            alert('Team disbanded successfully');
+            window.location.href = '/ManageAccountProfile';
         } catch (err) {
-            console.error(err)
+            console.error(err);
         }
-    }
+    };
+    
+    
 
     const revertChanges = () => {
         setHandle(originalDetails[0]?.handle)
@@ -380,7 +433,7 @@ export default function ManageTeam() {
             },
         },
     })
-
+    
 
     return (
         <>

@@ -4,6 +4,7 @@ import { FacebookShareButton, TwitterShareButton } from 'react-share'
 import { db } from '../config/firebase'
 import { getDoc, getDocs, doc, collection, query, orderBy, limit } from 'firebase/firestore'
 import { useMediaQuery } from 'react-responsive'
+import { Link } from 'react-router-dom';
 
 export default function ViewNewsArticle() {
     const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
@@ -15,14 +16,15 @@ export default function ViewNewsArticle() {
     const [newsArticleDetails, setNewsArticleDetails] = useState({})
     const [newsArticleList, setNewsArticleList] = useState([])
     const [authorName, setAuthorName] = useState('')
-
+    const tournamentID = (newsArticleDetails.tournamentID)
+    
     useEffect(() => {
         const getNewsArticle = async () => {
             try {
                 const res = await getDoc(doc(db, 'newsArticles', articleID))
                 const resList = res.data()
                 setNewsArticleDetails(processDate(resList))
-                getAuthorName(resList.author)
+                getAuthorName(resList.author)                
             } catch (err) {
                 console.error(err)
             }
@@ -72,7 +74,10 @@ export default function ViewNewsArticle() {
 
     const viewNewsArticle=(id)=>{
         window.location.href = `/ViewNewsArticle?id=${id}`;
+        
     }
+
+    
 
 
     return (
@@ -82,9 +87,12 @@ export default function ViewNewsArticle() {
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Stack gap='50px' width='100%'>
                         <Stack gap='15px'>
-                            <Typography variant='h2'>{newsArticleDetails.title}</Typography>
+                            <Typography variant='h2'>{newsArticleDetails.title}</Typography>       
+                            <Typography color='#666' fontWeight='600' variant='subtitle2'>
+                            <Link to={`/ViewTournament?id=/${tournamentID}`}>View tournament details</Link>
+                            </Typography>                 
                             {adjust750 ? 
-                                <Stack gap='10px'>
+                                <Stack gap='10px'>                                    
                                     <Typography color='#666' fontWeight='600' variant='subtitle2'>
                                         {authorName}&nbsp;&nbsp;|&nbsp;&nbsp;  {newsArticleDetails.date && newsArticleDetails.date.length === 3 &&
                                         `${newsArticleDetails.date[0]} ${newsArticleDetails.date[1]}, ${newsArticleDetails.date[2]}`
