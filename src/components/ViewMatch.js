@@ -8,8 +8,14 @@ import { UserAuth } from '../config/authContext';
 import { getDoc, getDocs, doc, collection, query, orderBy, updateDoc } from 'firebase/firestore';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
+import { useMediaQuery } from 'react-responsive';
 
 export default function ViewMatch() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const adjust730 = useMediaQuery({ query: '(max-width: 730px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+    const adjust470 = useMediaQuery({ query: '(max-width: 470px)' })
+    
     const { user } = UserAuth()
     const matchID = new URLSearchParams(window.location.search).get("id")
 
@@ -447,94 +453,139 @@ export default function ViewMatch() {
 
     
     return (
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='80%'>
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
-                    <Typography variant='h3'>{viewerType === 'host&collab' ? 'Manage' : 'Match'} Score & Matchup</Typography>
-                    <Box display='flex' gap='20px'>
-                        <Button sx={{width:'120px', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
+        <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            <Stack width={isMobile || isTablet ? '90%' : '80%'}>
+                {adjust730 ?
+                    <Stack justifyContent='space-between' gap={adjust470 ? '30px' : '15px'}>
+                        <Typography variant='h3'>{viewerType === 'host&collab' ? 'Manage' : 'Match'} Score & Matchup</Typography>
+                        {adjust470 ?
+                            <Stack gap='20px'>
+                                <Button sx={{width:'100%', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
 
-                        <Button sx={{ width: '150px', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
-                        <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
-                          <MenuItem onClick={generateAndDownloadExcel}> <Typography variant='navDropdown'>.XLSX</Typography> </MenuItem>
-                          <MenuItem onClick={generateAndDownloadTextFile}> <Typography variant='navDropdown'>.TXT</Typography> </MenuItem>
-                          <MenuItem onClick={() => window.print()}> <Typography variant='navDropdown'>.PDF</Typography></MenuItem>
-                        </Menu>
+                                <Button sx={{ width: '100%', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
+                                <Menu PaperProps={{ sx: { width: '100%' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
+                                <MenuItem onClick={generateAndDownloadExcel}> <Typography variant='navDropdown'>.XLSX</Typography> </MenuItem>
+                                <MenuItem onClick={generateAndDownloadTextFile}> <Typography variant='navDropdown'>.TXT</Typography> </MenuItem>
+                                <MenuItem onClick={() => window.print()}> <Typography variant='navDropdown'>.PDF</Typography></MenuItem>
+                                </Menu>
 
-                        <Button sx={{width:'150px', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorElSchedule(e.currentTarget);setOpenFormatDropdownSchedule(true);}}>Schedule</Button>
-                        <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElSchedule} open={openFormatDropdownSchedule} onClose={() => {setAnchorElSchedule(null); setOpenFormatDropdownSchedule(false);}} disableScrollLock>
-                            <MenuItem onClick={generateAndDownloadExcelSche}><Typography variant='navDropdown'>.XLSX</Typography></MenuItem>
-                            <MenuItem onClick={generateAndDownloadTxtSche}><Typography variant='navDropdown'>.TXT</Typography></MenuItem>
-                            <MenuItem onClick={() => window.print()}><Typography variant='navDropdown'>.PDF</Typography></MenuItem>  
-                        </Menu>   
+                                <Button sx={{width:'100%', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorElSchedule(e.currentTarget);setOpenFormatDropdownSchedule(true);}}>Schedule</Button>
+                                <Menu PaperProps={{ sx: { width: '100%' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElSchedule} open={openFormatDropdownSchedule} onClose={() => {setAnchorElSchedule(null); setOpenFormatDropdownSchedule(false);}} disableScrollLock>
+                                    <MenuItem onClick={generateAndDownloadExcelSche}><Typography variant='navDropdown'>.XLSX</Typography></MenuItem>
+                                    <MenuItem onClick={generateAndDownloadTxtSche}><Typography variant='navDropdown'>.TXT</Typography></MenuItem>
+                                    <MenuItem onClick={() => window.print()}><Typography variant='navDropdown'>.PDF</Typography></MenuItem>  
+                                </Menu>   
+                            </Stack>
+                            :
+                            <Box display='flex' gap='20px'>
+                                <Button sx={{width:'120px', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
+
+                                <Button sx={{ width: '150px', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
+                                <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
+                                <MenuItem onClick={generateAndDownloadExcel}> <Typography variant='navDropdown'>.XLSX</Typography> </MenuItem>
+                                <MenuItem onClick={generateAndDownloadTextFile}> <Typography variant='navDropdown'>.TXT</Typography> </MenuItem>
+                                <MenuItem onClick={() => window.print()}> <Typography variant='navDropdown'>.PDF</Typography></MenuItem>
+                                </Menu>
+
+                                <Button sx={{width:'150px', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorElSchedule(e.currentTarget);setOpenFormatDropdownSchedule(true);}}>Schedule</Button>
+                                <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElSchedule} open={openFormatDropdownSchedule} onClose={() => {setAnchorElSchedule(null); setOpenFormatDropdownSchedule(false);}} disableScrollLock>
+                                    <MenuItem onClick={generateAndDownloadExcelSche}><Typography variant='navDropdown'>.XLSX</Typography></MenuItem>
+                                    <MenuItem onClick={generateAndDownloadTxtSche}><Typography variant='navDropdown'>.TXT</Typography></MenuItem>
+                                    <MenuItem onClick={() => window.print()}><Typography variant='navDropdown'>.PDF</Typography></MenuItem>  
+                                </Menu>   
+                            </Box>
+                        }
+                        
+                    </Stack>
+                    :
+                    <Box display='flex' justifyContent='space-between' alignItems='center'>
+                        <Typography variant='h3'>{viewerType === 'host&collab' ? 'Manage' : 'Match'} Score & Matchup</Typography>
+                        <Box display='flex' gap='20px'>
+                            <Button sx={{width:'120px', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
+
+                            <Button sx={{ width: '150px', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
+                            <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
+                            <MenuItem onClick={generateAndDownloadExcel}> <Typography variant='navDropdown'>.XLSX</Typography> </MenuItem>
+                            <MenuItem onClick={generateAndDownloadTextFile}> <Typography variant='navDropdown'>.TXT</Typography> </MenuItem>
+                            <MenuItem onClick={() => window.print()}> <Typography variant='navDropdown'>.PDF</Typography></MenuItem>
+                            </Menu>
+
+                            <Button sx={{width:'150px', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorElSchedule(e.currentTarget);setOpenFormatDropdownSchedule(true);}}>Schedule</Button>
+                            <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElSchedule} open={openFormatDropdownSchedule} onClose={() => {setAnchorElSchedule(null); setOpenFormatDropdownSchedule(false);}} disableScrollLock>
+                                <MenuItem onClick={generateAndDownloadExcelSche}><Typography variant='navDropdown'>.XLSX</Typography></MenuItem>
+                                <MenuItem onClick={generateAndDownloadTxtSche}><Typography variant='navDropdown'>.TXT</Typography></MenuItem>
+                                <MenuItem onClick={() => window.print()}><Typography variant='navDropdown'>.PDF</Typography></MenuItem>  
+                            </Menu>   
+                        </Box>
                     </Box>
-                </Box>
+                }
+                
                 <Stack marginTop='50px'>
                     <Typography color='#CB3E3E' textTransform='uppercase' variant='subtitle1'>Ranking Table</Typography>
                 </Stack>
-                <TableContainer sx={{width:'500px'}} component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell><Typography textTransform='capitalize' color='#222' variant='subtitle2'>Rank</Typography></TableCell>
-                            <TableCell width='150px'><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Participant</Typography></TableCell>
-                            <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>W/L</Typography></TableCell>
-                            <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Avg Score</Typography></TableCell>
-                            <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Points</Typography></TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {matchList.participants !== undefined && Object.entries(matchList.participants).sort((a, b) => {
-                            const pointsA = parseFloat(matchList.statistics[a[1]].points)
-                            const pointsB = parseFloat(matchList.statistics[b[1]].points)
-
-                            return pointsB - pointsA // Sort in descending order based on points
-                        })
-                        .map((participant, index) => {
-                            const [key, value] = participant
-                            let name = ''
-                            const participantType = participantDetails.find((item) => item.id === value)
-                            
-                            if (participantType) {
-                                name = participantType.handle || participantType.username
-                            }
-
-                            const calcAvg = (value) => {
-                                const points = parseFloat(matchList.statistics[value].points)
-                                const wins = parseFloat(matchList.statistics[value].wins)
-                                const losses = parseFloat(matchList.statistics[value].losses)
-
-                                let ratio = points / (wins + losses)
-                                ratio = isNaN(ratio) ? 0 : ratio
-
-                                if (wins !== 0 && losses !== 0){
-                                    ratio = points/(wins+losses)
-                                }                                
-                                else if (wins === 0 && losses === 0){
-                                    ratio = points
-                                }
-                                
-                                if (Number.isInteger(ratio)) {
-                                    return ratio.toFixed(0)
-                                } else {
-                                    return ratio.toFixed(2)
-                                }
-                            }
-
-                            return (
-                            <TableRow key={key}>
-                                <TableCell component="th" scope="row">
-                                {index + 1}
-                                </TableCell>
-                                <TableCell style={{maxWidth:'150px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{name}</TableCell>
-                                <TableCell>{matchList.statistics[value].wins}/{matchList.statistics[value].losses}</TableCell>
-                                <TableCell>{calcAvg(value)}</TableCell>
-                                <TableCell>{matchList.statistics[value].points}</TableCell>
+                <TableContainer sx={{width:'100%', maxWidth:'500px'}} component={Paper}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell><Typography textTransform='capitalize' color='#222' variant='subtitle2'>Rank</Typography></TableCell>
+                                <TableCell width='150px'><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Participant</Typography></TableCell>
+                                <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>W/L</Typography></TableCell>
+                                <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Avg Score</Typography></TableCell>
+                                <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Points</Typography></TableCell>
                             </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                </Table>
+                        </TableHead>
+                        <TableBody>
+                            {matchList.participants !== undefined && Object.entries(matchList.participants).sort((a, b) => {
+                                const pointsA = parseFloat(matchList.statistics[a[1]].points)
+                                const pointsB = parseFloat(matchList.statistics[b[1]].points)
+
+                                return pointsB - pointsA // Sort in descending order based on points
+                            })
+                            .map((participant, index) => {
+                                const [key, value] = participant
+                                let name = ''
+                                const participantType = participantDetails.find((item) => item.id === value)
+                                
+                                if (participantType) {
+                                    name = participantType.handle || participantType.username
+                                }
+
+                                const calcAvg = (value) => {
+                                    const points = parseFloat(matchList.statistics[value].points)
+                                    const wins = parseFloat(matchList.statistics[value].wins)
+                                    const losses = parseFloat(matchList.statistics[value].losses)
+
+                                    let ratio = points / (wins + losses)
+                                    ratio = isNaN(ratio) ? 0 : ratio
+
+                                    if (wins !== 0 && losses !== 0){
+                                        ratio = points/(wins+losses)
+                                    }                                
+                                    else if (wins === 0 && losses === 0){
+                                        ratio = points
+                                    }
+                                    
+                                    if (Number.isInteger(ratio)) {
+                                        return ratio.toFixed(0)
+                                    } else {
+                                        return ratio.toFixed(2)
+                                    }
+                                }
+
+                                return (
+                                <TableRow key={key}>
+                                    <TableCell component="th" scope="row">
+                                    {index + 1}
+                                    </TableCell>
+                                    <TableCell style={{maxWidth:'150px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{name}</TableCell>
+                                    <TableCell>{matchList.statistics[value].wins}/{matchList.statistics[value].losses}</TableCell>
+                                    <TableCell>{calcAvg(value)}</TableCell>
+                                    <TableCell>{matchList.statistics[value].points}</TableCell>
+                                </TableRow>
+                                )
+                            })}
+                        </TableBody>
+                    </Table>
                 </TableContainer>
 
                 <Stack marginTop='100px' gap='50px'>
@@ -762,11 +813,11 @@ export default function ViewMatch() {
                         (!editMode ?
                             <Button sx={{width:'350px'}} variant='blue' onClick={() => setEditMode(true)}>Edit Score, Matchup and Highlights</Button>
                             :
-                            <Stack>
+                            <Stack width='100%'>
                                 <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
-                                <Box display='flex' gap='50px'>
-                                    <Button sx={{width:'300px'}} variant='blue' onClick={() => saveChanges()}>Save Changes</Button>
-                                    <Button sx={{width:'150px'}} variant='red' onClick={() => {setEditMode(false); revertChanges()}}>Back</Button>
+                                <Box display='flex' gap={isTablet ? '20px' : '50px'} width='100%' justifyContent='center'>
+                                    <Button sx={{width:(isMobile ? '100%' : '300px')}} variant='blue' onClick={() => saveChanges()}>Save Changes</Button>
+                                    <Button sx={{width:(isMobile ? '50%' : '150px')}} variant='red' onClick={() => {setEditMode(false); revertChanges()}}>Back</Button>
                                 </Box>
                             </Stack>
                             

@@ -10,7 +10,7 @@ import { getDocs, collection, doc, setDoc, where, query, orderBy} from 'firebase
 import { useMediaQuery } from 'react-responsive'
 
 export default function Navbar() {
-    const adjustNav = useMediaQuery({ query: '(max-width: 1115px)' })
+    const adjust1115 = useMediaQuery({ query: '(max-width: 1115px)' })
     const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
     const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
 
@@ -159,7 +159,7 @@ export default function Navbar() {
 
             <Modal open={openResponsiveNav} onClose={() => setOpenResponsiveNav(false)}  sx={{display:'flex', justifyContent:'flex-end'}}>
                 <Stack className='responsiveNavMenu' height='100vh' width={isMobile ? '65%' : isTablet ? '40%' : undefined} bgcolor='#EEE'>
-                    <Box display='flex' justifyContent='flex-end' padding='30px 40px'>
+                    <Box display='flex' justifyContent='flex-end' padding={isMobile ? '30px 15px 0 0' : '30px 40px'}>
                         <a onClick={() => setOpenResponsiveNav(false)}><CloseIcon sx={{color:'#222', fontSize:'40px'}}/></a>
                     </Box>
                     <Stack alignItems='center'>
@@ -209,7 +209,7 @@ export default function Navbar() {
                 <Box width='80%' display='flex' justifyContent='space-between'>
                     <Box display='flex' alignItems='center' justifyContent='space-between' padding='45px 0' gap='30px'>
                         <a href='/'><img height='30px' src={require('../img/logo/logoBlack.png')}/></a>
-                        {!adjustNav && 
+                        {!adjust1115 && 
                             <a href='/' style={{marginLeft:'10px'}}><Typography variant='action'>Home</Typography></a>
                         }
                         <a href='/Tournaments'><Typography variant='action'>Tournaments</Typography></a>
@@ -281,142 +281,6 @@ export default function Navbar() {
                         </Box>
                     </Stack>
                     :
-                    <Stack width='50%' justifyContent='center' bgcolor='#EEE' borderRadius='0 15px 15px 0' padding='0 35px'>
-                        <Stack width='100%' height='95%' gap='30px' alignItems='center' justifyContent='center'>
-                            <Typography variant='h3Caps'>Let's Get Started!</Typography>
-                            <form style={{width:'100%'}} onSubmit={createAccount}>
-                                <Stack gap='10px' marginBottom='50px'>
-                                    <TextField className='loginSignUpTextField' onChange={(e) => setRegUsername(e.target.value)} fullWidth variant='standard' label='Username' inputProps={{pattern:'^[A-Za-z0-9_]+$'}} required/>
-                                    <TextField className='loginSignUpTextField' onChange={(e) => setRegFullName(e.target.value)} fullWidth variant='standard' label='Full Name' inputProps={{pattern:'^[^0-9]+$'}} required/>
-                                    <TextField className='loginSignUpTextField' onChange={(e) => setRegEmail(e.target.value)} fullWidth variant='standard' label='Email' type='email' required/>
-                                    <Box display='flex' gap='30px'>
-                                        <FormControl variant='standard' className='dropdownList' fullWidth required>
-                                            <InputLabel>Gender</InputLabel>
-                                            <Select label='Gender' value={regGender} onChange={(e) => setRegGender(e.target.value)} required>
-                                                {genders.map((gender) => {
-                                                    return <MenuItem value={gender} key={gender}><Typography variant='action'>{gender}</Typography></MenuItem>
-                                                })}
-                                            </Select>
-                                        </FormControl>
-                                        <FormControl variant='standard' className='dropdownList' fullWidth required>
-                                            <InputLabel>Region</InputLabel>
-                                            <Select label='Region' value={regRegion} onChange={(e) => setRegRegion(e.target.value)} required>
-                                                {regions.map((region) => {
-                                                    return <MenuItem value={region} key={region}><Typography variant='action'>{region}</Typography></MenuItem>
-                                                })}
-                                            </Select>
-                                        </FormControl>
-                                    </Box>
-                                    <FormControl variant='standard' className='dropdownList' fullWidth required>
-                                        <InputLabel>Sport(s)</InputLabel>
-                                        <Select label='Sport(s)' sx={{textTransform:'uppercase', fontWeight:'bold', maxWidth:'315px'}} value={regSports} onChange={concatSports} renderValue={(selected) => selected.join(', ')} multiple required>
-                                            {sportsList?.map((sport) => {
-                                                return <MenuItem value={sport.name} key={sport.name}>
-                                                    <Checkbox checked={regSports.indexOf(sport.name) > -1} />
-                                                    <Typography variant='action'>{sport.name}</Typography>
-                                                </MenuItem>
-                                            })}
-                                        </Select>
-                                    </FormControl>
-                                    
-
-                                    <TextField className='loginSignUpTextField' onChange={(e) => setRegPassword(e.target.value)} fullWidth variant='standard' label='Password' type='password' required/>
-                                    <TextField className='loginSignUpTextField' onChange={(e) => setRegConfirmPassword(e.target.value)} fullWidth variant='standard' label='Confirm password' type='password' required/>
-                                </Stack>
-                                <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography></Box>
-                                <Button fullWidth variant='red' type='submit'>Sign Up</Button>
-                            </form>
-                        </Stack>
-                        <Box display='flex' alignItems='center' justifyContent='center' height='5%'>
-                            <Typography variant='loginSignUp'>Already have an account? <a href='#' onClick={() => changeLoginSignUp('login')}><Typography sx={{textDecoration:'underline', color:'#006DEE'}} variant='loginSignUp'>Login</Typography></a></Typography>
-                        </Box>
-                    </Stack>
-                }
-            </Box>
-        </Modal>
-        </>
-    )
-    return (
-        <>
-        <Box width='100%' display='flex' justifyContent='center' position='absolute'>
-            <Box width='90%' display='flex' justifyContent='space-between' alignItems='center' padding='30px 0'>
-                <a href='/'><img height='30px' src={require('../img/logo/logoBlack.png')}/></a>
-                <Button sx={{padding:'0', height:'fit-content'}} onClick={() => setOpenResponsiveNav(true)}><MenuIcon sx={{fontSize:'40px', color:'#222'}} /></Button>
-            </Box>
-        </Box>
-
-        <Modal open={openResponsiveNav} onClose={() => setOpenResponsiveNav(false)}  sx={{display:'flex', justifyContent:'flex-end'}}>
-            <Stack height='100vh' width='40%' bgcolor='#EEE'>
-                <Box display='flex' justifyContent='flex-end' padding='30px 60px'>
-                    <a onClick={() => setOpenResponsiveNav(false)}><CloseIcon sx={{color:'#222', fontSize:'40px'}}/></a>
-                </Box>
-                <Stack alignItems='center'>
-                    <a href='/' className='responsiveNavLinks'><Typography variant='action'>Home</Typography></a>
-                    <a href='/Tournaments' className='responsiveNavLinks'><Typography variant='action'>Tournaments</Typography></a>
-                    <a href='/NewsArticles' className='responsiveNavLinks'><Typography variant='action'>News Articles</Typography></a>
-                    <a href='/PlayersTeams' className='responsiveNavLinks'><Typography variant='action'>Players & Teams</Typography></a>
-                    <hr style={{width:'90%', margin:'20px 0'}}/>
-                    {!user ?
-                        <Box display='flex' alignItems='center' margin='15px 0' padding='10px' bgcolor='white' borderRadius='15px' boxShadow='0 5px 10px rgba(0, 0, 0, 0.3)'>
-                            <Button onClick={() => {setOpenModal(true); changeLoginSignUp('login');}} style={{padding:'10px 15px'}}><Typography variant='action'>Login</Typography></Button>
-                            <Button onClick={() => {setOpenModal(true); changeLoginSignUp('signUp');}} variant='red'>Sign Up</Button>
-                        </Box>
-                        :
-                        <>
-                        <Box padding='20px 0' display='flex' alignItems='center'>
-                            <img height='50px' style={{borderRadius:'100%'}} src={localStorage['fullName'] !== 'undefined' ? require('../img/account/users.png') : require('../img/account/admin.png')}/>
-                            <Box display='flex'>
-                                <Typography variant='navDropdown' maxWidth='150px' overflow='hidden' whiteSpace='nowrap' textOverflow='ellipsis'>
-                                    {localStorage['fullName'] !== 'undefined' ? localStorage['fullName'] : 'Admin'}
-                                </Typography>
-                            </Box>
-                        </Box>
-                        {moreUserInfo?.type === 'admin' ?
-                            <>
-                            <a href='/ManageAccounts' className='responsiveNavLinks'><img width='18px' src={require('../img/icons/account.png')}/><Typography variant='navDropdown'>Manage Accounts</Typography></a>
-                            <a href='/ManageTournaments' className='responsiveNavLinks'><img width='18px' src={require('../img/icons/tournament.png')}/><Typography variant='navDropdown'>Manage Tournaments</Typography></a>
-                            <a href='/ManageNewsArticles' className='responsiveNavLinks'><img width='18px' src={require('../img/icons/news.png')}/><Typography variant='navDropdown'>Manage News Articles</Typography></a>
-                            <a href='/ManageSports' className='responsiveNavLinks'><img width='18px' src={require('../img/icons/sports.png')}/><Typography variant='navDropdown'>Manage Sports</Typography></a>
-                            </>
-                            :
-                            <>
-                            <a href='/ManageAccountProfile' className='responsiveNavLinks'><img width='18px' src={require('../img/icons/account.png')}/><Typography variant='navDropdown'>Account & Profile</Typography></a>
-                            <a href='/MyTournaments' className='responsiveNavLinks'><img width='18px' src={require('../img/icons/tournament.png')}/><Typography variant='navDropdown'>My Tournaments</Typography></a>
-                            <a href='/MyNewsArticles' className='responsiveNavLinks'><img width='18px' src={require('../img/icons/news.png')}/><Typography variant='navDropdown'>My News Articles</Typography></a>
-                            </>
-                        }
-                        <a onClick={() => handleLogout()} className='responsiveNavLinks'><img width='18px' src={require('../img/icons/logout.png')}/><Typography variant='navDropdown'>Logout</Typography></a>
-                        </>
-                    }
-                </Stack>
-            </Stack>
-        </Modal>
-
-        <Modal open={openModal} onClose={() => setOpenModal(false)} disableScrollLock>
-            <Box className='ModalLoginSignUp' display='flex' borderRadius='15px' width='700px' height='700px' margin='120px auto'>
-                <Stack width='50%' justifyContent='center' alignItems='center' gap='100px' borderRadius='15px 0 0 15px' sx={{backgroundImage: `url('${loginSignUpBG}')`, backgroundRepeat:"no-repeat", backgroundSize:'cover'}}>
-                </Stack>
-
-                {loginSignUp === 'login' ?
-                    <Stack width='50%' justifyContent='center' bgcolor='#EEE' borderRadius='0 15px 15px 0' padding='0 35px'>
-                        <Stack width='100%' height='95%' gap='50px' alignItems='center' justifyContent='center'>
-                            <Typography variant='h3Caps'>Welcome Back!</Typography>
-                            <form style={{width:'100%'}} onSubmit={handleLogin}>
-                                <Stack gap='10px' marginBottom='50px'>
-                                    <TextField className='loginSignUpTextField' onChange={(e) => setLoginEmail(e.target.value)} fullWidth variant='standard' label='Email' type='email' required/>
-                                    <TextField className='loginSignUpTextField' onChange={(e) => setLoginPassword(e.target.value)} fullWidth variant='standard' label='Password' type='password' required/>
-                                </Stack>
-                                <Box display='flex' justifyContent='flex-end'><Typography color='red' variant='smallErrorMsg'>{errorMessage}</Typography></Box>
-                                <Button fullWidth variant='red' type='submit'>Login</Button>
-                            </form>
-                        </Stack>
-                        <Box display='flex' alignItems='center' justifyContent='center' height='5%'>
-                            <Typography variant='loginSignUp'>Don't have an account? <a href='#' onClick={() => changeLoginSignUp('signUp')}><Typography sx={{textDecoration:'underline', color:'#006DEE'}} variant='loginSignUp'>Sign Up</Typography></a></Typography>
-                        </Box>
-                    </Stack>
-
-                    :
-
                     <Stack width='50%' justifyContent='center' bgcolor='#EEE' borderRadius='0 15px 15px 0' padding='0 35px'>
                         <Stack width='100%' height='95%' gap='30px' alignItems='center' justifyContent='center'>
                             <Typography variant='h3Caps'>Let's Get Started!</Typography>

@@ -13,10 +13,10 @@ chartjs.register(
 
 export default function ViewProfile() {
     const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
-    const adjustContentMember = useMediaQuery({ query: '(max-width: 790px)' })
-    const adjustContent = useMediaQuery({ query: '(max-width: 740px)' })
+    const adjust790 = useMediaQuery({ query: '(max-width: 790px)' })
+    const adjust740 = useMediaQuery({ query: '(max-width: 740px)' })
     const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
-    const adjustHandle = useMediaQuery({ query: '(max-width: 400px)' })
+    const adjust400 = useMediaQuery({ query: '(max-width: 400px)' })
 
     const { user, moreUserInfo } = UserAuth()
     const profileID = new URLSearchParams(window.location.search).get("id")
@@ -270,14 +270,14 @@ export default function ViewProfile() {
     
     return (
         <>
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
+        <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
             <Box width={isMobile || isTablet ? '90%' : '80%'} display='flex' gap='100px'>
                 {playerTeamDetails.username ?
                     <Stack width='100%' gap='50px'>
                         <Box display='flex' alignContent='center'>
                             <Typography variant='h3'>Player Profile</Typography>
                         </Box>
-                        {adjustContent ? 
+                        {adjust740 ? 
                             <Stack gap='50px'>
                                 <Stack alignItems='center' justifyContent='center' gap='10px' padding={!isTablet && '30px'}>
                                     <Stack gap='5px'>
@@ -291,7 +291,7 @@ export default function ViewProfile() {
                                     <Stack gap='25px'>
                                         <Stack gap='10px'>
                                             <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
-                                            <hr width='100%'/>
+                                            <hr/>
                                         </Stack>
                                         <Box display='flex' justifyContent='space-between' alignItems='center'>
                                             {teamInfo[0] ?
@@ -308,7 +308,7 @@ export default function ViewProfile() {
                                     <Stack gap='25px'>
                                         <Stack gap='10px'>
                                             <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
-                                            <hr width='100%'/>
+                                            <hr/>
                                         </Stack>
                                         <Stack width='100%'>
                                             <Typography fontWeight='bold' variant='body1'>Medals</Typography>
@@ -363,7 +363,7 @@ export default function ViewProfile() {
                                     <Stack gap='25px'>
                                         <Stack gap='10px'>
                                             <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
-                                            <hr width='100%'/>
+                                            <hr/>
                                         </Stack>
                                         <Box display='flex' justifyContent='space-between' alignItems='center'>
                                             {teamInfo[0] ?
@@ -380,7 +380,7 @@ export default function ViewProfile() {
                                     <Stack gap='25px'>
                                         <Stack gap='10px'>
                                             <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
-                                            <hr width='100%'/>
+                                            <hr/>
                                         </Stack>
                                         <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
                                             <Stack width='100%'>
@@ -430,16 +430,16 @@ export default function ViewProfile() {
                             <Box display='flex' alignContent='center'>
                                 <Typography variant='h3'>Team Profile</Typography>
                             </Box>
-                            {adjustContentMember ?
+                            {adjust790 ?
                                 <Stack gap='50px'>
                                     <Stack width='100%'>
-                                        {adjustHandle ?
+                                        {adjust400 ?
                                             <>
                                             <Stack>
                                                 <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
                                                 <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
                                             </Stack>
-                                            <hr width='100%'/>
+                                            <hr/>
                                             <Stack marginTop='25px' gap='15px'>
                                                 <Stack>
                                                     <Typography fontWeight='bold' variant='body1'>Region</Typography>
@@ -465,7 +465,7 @@ export default function ViewProfile() {
                                                 <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
                                                 <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
                                             </Box>
-                                            <hr width='100%'/>
+                                            <hr/>
                                             <Box display='flex' marginTop='25px'>
                                                 <Stack gap='25px' width='50%'>
                                                     <Stack>
@@ -493,7 +493,7 @@ export default function ViewProfile() {
                                     </Stack>
 
                                     <Stack width='100%'>
-                                        {adjustHandle ?
+                                        {adjust400 ?
                                             <Stack gap='10px'>
                                                 <Box display='flex' gap='25px' alignItems='center'>
                                                     <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
@@ -511,7 +511,7 @@ export default function ViewProfile() {
                                             </Box>
                                         }
                                         
-                                        <hr width='100%'/>
+                                        <hr/>
                                         <Grid container gap='20px' marginTop='25px' alignItems='center'>
                                             {accountsList.map((account, index) => (
                                                 <Grid key={account.id || index} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
@@ -536,8 +536,8 @@ export default function ViewProfile() {
                                             <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
                                             <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
                                         </Box>
-                                        <hr width='100%'/>
-                                        {adjustHandle ?
+                                        <hr/>
+                                        {adjust400 ?
                                             <Stack marginTop='25px'>
                                                 <Stack>
                                                     <Typography fontWeight='bold' variant='body1'>Region</Typography>
@@ -590,7 +590,7 @@ export default function ViewProfile() {
                                             </Box>
                                             <Button sx={{height:'30px'}} variant='red' onClick={() => setOpenConfirmation(true)}>Leave Team</Button>
                                         </Box>
-                                        <hr width='100%'/>
+                                        <hr/>
                                         <Grid container gap='20px' marginTop='25px' alignItems='center'>
                                             {accountsList.map((account, index) => (
                                                 <Grid key={account.id || index} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
@@ -612,7 +612,7 @@ export default function ViewProfile() {
                             <Stack gap='25px'>
                                 <Stack gap='10px'>
                                     <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
-                                    <hr width='100%'/>
+                                    <hr/>
                                 </Stack>
                                 {isMobile ?
                                     <>
@@ -692,7 +692,7 @@ export default function ViewProfile() {
                                 <Box display='flex' gap='50px'>
                                     <Stack width='100%'>
                                         <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                            {adjustHandle ? 
+                                            {adjust400 ? 
                                                 <Stack>
                                                     <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
                                                     <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
@@ -732,9 +732,9 @@ export default function ViewProfile() {
                                                 user && playerTeamDetails?.leader === user.uid && <Button variant='blue' sx={{height:'30px'}} onClick={() => window.location.href='/ManageTeam'}>Manage Team</Button>
                                             }
                                         </Box>
-                                        <hr width='100%'/>
+                                        <hr/>
                                         <Box display='flex' marginTop='25px'>
-                                            {adjustContent ?
+                                            {adjust740 ?
                                                 <Stack gap='15px'>
                                                     <Stack>
                                                         <Typography fontWeight='bold' variant='body1'>Region</Typography>
@@ -787,7 +787,7 @@ export default function ViewProfile() {
                                 <Stack gap='25px'>
                                     <Stack gap='10px'>
                                         <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
-                                        <hr width='100%'/>
+                                        <hr/>
                                     </Stack>
                                     {isMobile ?
                                         <>
@@ -849,7 +849,7 @@ export default function ViewProfile() {
                                             <Line data={graphData} options={graphConfig.options} />
                                             {(sortedDates.length === 0 || sortedScores.length === 0) &&
                                                 <Box position='absolute' top='0' left='5%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
-                                                    <Typography color='#CB3E3E' fontWeight='bold' variant='body1' width='fit-content'>Team has yet to participate in any tournaments</Typography>
+                                                    <Typography color='#CB3E3E' fontWeight='bold' variant='body1' textAlign='center' width='fit-content'>Team has yet to participate in any tournaments</Typography>
                                                 </Box>
                                             }
                                         </Box>

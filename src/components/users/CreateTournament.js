@@ -5,8 +5,13 @@ import { db } from '../../config/firebase';
 import { UserAuth } from '../../config/authContext';
 import { getDoc, getDocs, doc, updateDoc, addDoc, collection, query, orderBy, setDoc } from 'firebase/firestore';
 import { ref, getStorage, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useMediaQuery } from 'react-responsive';
 
 export default function CreateTournament() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const adjust730 = useMediaQuery({ query: '(max-width: 730px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const { user } = UserAuth()
 
     const [openSaveFormatModal, setOpenSaveFormatModal] = useState(false)
@@ -221,8 +226,19 @@ export default function CreateTournament() {
     const getCustomFormats = async () => {
         try {
             const res = await getDoc(doc(db, 'customFormats', user.uid))
-            const resList = res.data()
-            setCustomFormatList(resList?.formats ? resList.formats : [])
+            if (!res.data()) {
+                try {
+                    await setDoc(doc(db, 'customFormats', user.uid), {
+                        formats: []
+                    })
+                } catch (err) {
+                    console.error(err)
+                
+                }
+            } else {
+                const resList = res.data()
+                setCustomFormatList(resList.formats)
+            }
         } catch (err) {
             console.error(err)
         }
@@ -352,71 +368,110 @@ export default function CreateTournament() {
 
     return (
         <>
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Box width='80%' display='flex' gap='100px'>
+        <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            <Box width={isMobile || isTablet ? '90%' : '80%'} display='flex' gap='100px'>
                 <Stack width='100%' gap='50px'>
                     <Box display='flex' alignContent='center'>
                         <Typography variant='h3'>Create Tournament</Typography>
                     </Box>
                     <form onSubmit={createTournament}>
                         <Stack gap='50px'>
-                            <Stack gap='50px'>
+                            <Stack gap={adjust730 ? '20px' : '50px'}>
                                 <Stack>
                                     <Typography variant='subtitle2' textTransform='capitalize'>Format</Typography>
-                                    <Box display='flex' justifyContent='space-between'>
-                                        <Button variant='red' sx={{width:'250px', height:'250px', borderRadius:'18px', opacity: format === 'single-elimination' ? '1' : '0.5'}} onClick={() => setFormat('single-elimination')}><img src={require('../../img/buttons/singleElimBtn.png')} width='250px'/></Button>
-                                        <Button variant='red' sx={{width:'250px', height:'250px', borderRadius:'18px', opacity: format === 'double-elimination' ? '1' : '0.5'}} onClick={() => setFormat('double-elimination')}><img src={require('../../img/buttons/doubleElimBtn.png')} width='250px'/></Button>
-                                        <Button variant='red' sx={{width:'250px', height:'250px', borderRadius:'18px', opacity: format === 'round-robin' ? '1' : '0.5'}} onClick={() => setFormat('round-robin')}><img src={require('../../img/buttons/roundRobinBtn.png')} width='250px'/></Button>
-                                        <Button variant='red' sx={{width:'250px', height:'250px', borderRadius:'18px', opacity: format === 'custom' ? '1' : '0.5'}} onClick={() => setFormat('custom')}><img src={require('../../img/buttons/customFormatBtn.png')} width='250px'/></Button>
-                                    </Box>
+                                    {isMobile ?
+                                        <Box display='flex' justifyContent='space-between' alignItems='center' gap='10px'>
+                                            <Stack gap='10px'>
+                                                <Button variant='red' sx={{padding:'0', width:'100%', borderRadius:'18px', opacity: format === 'single-elimination' ? '1' : '0.5'}} onClick={() => setFormat('single-elimination')}><img src={require('../../img/buttons/singleElimBtn.png')} width='100%'/></Button>
+                                                <Button variant='red' sx={{padding:'0', width:'100%', borderRadius:'18px', opacity: format === 'double-elimination' ? '1' : '0.5'}} onClick={() => setFormat('double-elimination')}><img src={require('../../img/buttons/doubleElimBtn.png')} width='100%'/></Button>
+                                            </Stack>
+                                            <Stack gap='10px'>
+                                                <Button variant='red' sx={{padding:'0', width:'100%', borderRadius:'18px', opacity: format === 'round-robin' ? '1' : '0.5'}} onClick={() => setFormat('round-robin')}><img src={require('../../img/buttons/roundRobinBtn.png')} width='100%'/></Button>
+                                                <Button variant='red' sx={{padding:'0', width:'100%', borderRadius:'18px', opacity: format === 'custom' ? '1' : '0.5'}} onClick={() => setFormat('custom')}><img src={require('../../img/buttons/customFormatBtn.png')} width='100%'/></Button>
+                                            </Stack>
+                                        </Box>
+                                        :
+                                        <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                            <Button variant='red' sx={{padding:'0', width:'23%', maxWidth:'250px', height:'25%', maxHeight:'250px', borderRadius:'18px', opacity: format === 'single-elimination' ? '1' : '0.5'}} onClick={() => setFormat('single-elimination')}><img src={require('../../img/buttons/singleElimBtn.png')} width='100%'/></Button>
+                                            <Button variant='red' sx={{padding:'0', width:'23%', maxWidth:'250px', height:'25%', maxHeight:'250px', borderRadius:'18px', opacity: format === 'double-elimination' ? '1' : '0.5'}} onClick={() => setFormat('double-elimination')}><img src={require('../../img/buttons/doubleElimBtn.png')} width='100%'/></Button>
+                                            <Button variant='red' sx={{padding:'0', width:'23%', maxWidth:'250px', height:'25%', maxHeight:'250px', borderRadius:'18px', opacity: format === 'round-robin' ? '1' : '0.5'}} onClick={() => setFormat('round-robin')}><img src={require('../../img/buttons/roundRobinBtn.png')} width='100%'/></Button>
+                                            <Button variant='red' sx={{padding:'0', width:'23%', maxWidth:'250px', height:'25%', maxHeight:'250px', borderRadius:'18px', opacity: format === 'custom' ? '1' : '0.5'}} onClick={() => setFormat('custom')}><img src={require('../../img/buttons/customFormatBtn.png')} width='100%'/></Button>
+                                        </Box>
+                                    }
                                 </Stack>
                                 
                                 {format === 'custom' &&
                                     <>
-                                    <Box display='flex' justifyContent='space-between'>
-                                        <TextField value={noRounds} onChange={(e) => setNoRounds(e.target.value)} className='inputTextField' variant='outlined' label='Number of Rounds' type='number' sx={{width:'180px'}} required/>
-                                        <Box display='flex' gap='20px' alignItems='center'>
-                                            <Button variant='blue' onClick={() => {setOpenCustomFormatModal(true); getCustomFormats()}}>Browse Saved Formats</Button>
-                                            <Button variant='red' onClick={() => setOpenSaveFormatModal(true)}>Save This Format</Button>
+                                    {adjust730 ?
+                                        <>
+                                        <Box display='flex' justifyContent='space-between'>
+                                            <TextField value={noRounds} onChange={(e) => setNoRounds(e.target.value)} className='inputTextField' variant='outlined' label='Number of Rounds' type='number' sx={{width:'180px'}} required/>
                                         </Box>
-                                    </Box>
 
-                                    {noRounds > 0 &&
-                                        <Stack>
-                                            <Typography variant='subtitle2' textTransform='capitalize'>Matches Per Round</Typography>
-                                            <Grid container gap='20px' marginTop='10px' alignItems='center'>
-                                                {Array.from({ length: noRounds }, (_, i) =>
-                                                    <Grid key={i} item>
-                                                        <TextField value={matchesPerRound[i] || ''} onChange={(e) => {
-                                                                const updatedMatchesPerRound = [...matchesPerRound]
-                                                                updatedMatchesPerRound[i] = e.target.value
-                                                                setMatchesPerRound(updatedMatchesPerRound)
-                                                        }} className='inputTextField' variant='outlined' label={`Round ${i+1}`} type='number' sx={{width:'180px'}} required/>
-                                                    </Grid>
-                                                )}
-                                            </Grid>
-                                        </Stack>
+                                        {noRounds > 0 &&
+                                            <Stack>
+                                                <Typography variant='subtitle2' textTransform='capitalize'>Matches Per Round</Typography>
+                                                <Grid container gap='20px' marginTop='10px' alignItems='center'>
+                                                    {Array.from({ length: noRounds }, (_, i) =>
+                                                        <Grid key={i} item>
+                                                            <TextField value={matchesPerRound[i] || ''} onChange={(e) => {
+                                                                    const updatedMatchesPerRound = [...matchesPerRound]
+                                                                    updatedMatchesPerRound[i] = e.target.value
+                                                                    setMatchesPerRound(updatedMatchesPerRound)
+                                                            }} className='inputTextField' variant='outlined' label={`Round ${i+1}`} type='number' sx={{width:'120px'}} required/>
+                                                        </Grid>
+                                                    )}
+                                                </Grid>
+                                            </Stack>
+                                        }
+                                        <Box display='flex' gap='25px' alignItems='center'>
+                                            <Button variant='blue' onClick={() => {setOpenCustomFormatModal(true); getCustomFormats()}} fullWidth>Browse Saved Formats</Button>
+                                            <Button variant='red' onClick={() => setOpenSaveFormatModal(true)} fullWidth>Save This Format</Button>
+                                        </Box>
+                                        </>
+                                        :
+                                        <>
+                                        <Box display='flex' justifyContent='space-between'>
+                                            <TextField value={noRounds} onChange={(e) => setNoRounds(e.target.value)} className='inputTextField' variant='outlined' label='Number of Rounds' type='number' sx={{width:'180px'}} required/>
+                                            <Box display='flex' gap='20px' alignItems='center'>
+                                                <Button variant='blue' onClick={() => {setOpenCustomFormatModal(true); getCustomFormats()}}>Browse Saved Formats</Button>
+                                                <Button variant='red' onClick={() => setOpenSaveFormatModal(true)}>Save This Format</Button>
+                                            </Box>
+                                        </Box>
+
+                                        {noRounds > 0 &&
+                                            <Stack>
+                                                <Typography variant='subtitle2' textTransform='capitalize'>Matches Per Round</Typography>
+                                                <Grid container gap='20px' marginTop='10px' alignItems='center'>
+                                                    {Array.from({ length: noRounds }, (_, i) =>
+                                                        <Grid key={i} item>
+                                                            <TextField value={matchesPerRound[i] || ''} onChange={(e) => {
+                                                                    const updatedMatchesPerRound = [...matchesPerRound]
+                                                                    updatedMatchesPerRound[i] = e.target.value
+                                                                    setMatchesPerRound(updatedMatchesPerRound)
+                                                            }} className='inputTextField' variant='outlined' label={`Round ${i+1}`} type='number' sx={{width:'180px'}} required/>
+                                                        </Grid>
+                                                    )}
+                                                </Grid>
+                                            </Stack>
+                                        }
+                                        </>
                                     }
+                                    
                                     </>
                                 }
 
-                                <hr style={{width:'100%'}}/>
+                                <hr/>
                             </Stack>
-                            <Box display='flex' gap='100px'>
+                            {adjust730 ?
                                 <Stack gap='25px' width='100%'>
                                     <TextField value={title} onChange={(e) => setTitle(e.target.value)} className='inputTextField' variant='outlined' label='Title' required/>
                                     <TextField value={description} onChange={(e) => setDescription(e.target.value)} className='inputTextField' variant='outlined' label='Description' multiline rows={10} required/>
-                                    <Stack width='fit-content'>
-                                        <Typography variant='subtitle2' textTransform='capitalize'>Banner Image</Typography>
-                                        <input type="file" accept="image/*"  onChange={(e)=>setBannerImg(e.target.files[0])} required/>
-                                    </Stack>
-                                </Stack>
-                                <Stack gap='25px' width='100%'>
-                                    <Box display='flex' gap='50px'>
+                                    <Box display='flex' gap={isTablet ? '20px' : '50px'}>
                                         <TextField value={startDate} onChange={(e) => {setStartDate(e.target.value); 
                                             if (e.target.value > endDate) {
                                                 setEndDate(e.target.value)
-                                              }
+                                            }
                                         }} className='inputTextField' variant='outlined' label='Start Date' type='date' InputProps={{
                                             inputProps: {
                                                 min: new Date().toISOString().split('T')[0],
@@ -428,7 +483,7 @@ export default function CreateTournament() {
                                             },
                                         }} fullWidth required/>
                                     </Box>
-                                    <Box display='flex' gap='50px'>
+                                    <Box display='flex' gap={isTablet ? '20px' : '50px'}>
                                         <TextField value={venue} onChange={(e) => setVenue(e.target.value)} className='inputTextField' variant='outlined' label='Venue' fullWidth required/>
                                         <FormControl className='dropdownList' fullWidth>
                                             <InputLabel>Region</InputLabel>
@@ -439,7 +494,7 @@ export default function CreateTournament() {
                                             </Select>
                                         </FormControl>
                                     </Box>
-                                    <Box display='flex' gap='50px'>
+                                    <Box display='flex' gap={isTablet ? '20px' : '50px'}>
                                         <FormControl className='dropdownList' fullWidth>
                                             <InputLabel>Sport</InputLabel>
                                             <Select value={sport} onChange={(e) => setSport(e.target.value)} label='Sport' required>
@@ -457,7 +512,7 @@ export default function CreateTournament() {
                                             </Select>
                                         </FormControl>
                                     </Box>
-                                    <Box display='flex' gap='50px'>
+                                    <Box display='flex' gap={isTablet ? '20px' : '50px'}>
                                         <FormControl className='dropdownList' fullWidth>
                                             <InputLabel>Gender</InputLabel>
                                             <Select value={gender} onChange={(e) => setGender(e.target.value)} label='Gender' required>
@@ -468,12 +523,85 @@ export default function CreateTournament() {
                                         </FormControl>
                                         <TextField value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} className='inputTextField' variant='outlined' label='Max Participants' type='number' fullWidth required/>
                                     </Box>
+                                    <Stack>
+                                        <Typography variant='subtitle2' textTransform='capitalize'>Banner Image</Typography>
+                                        <input type="file" accept="image/*"  onChange={(e)=>setBannerImg(e.target.files[0])} required/>
+                                    </Stack>
                                 </Stack>
-                            </Box>
+                                :
+                                <Box display='flex' gap={isTablet ? '30px' : '100px'}>
+                                    <Stack gap='25px' width='100%'>
+                                        <TextField value={title} onChange={(e) => setTitle(e.target.value)} className='inputTextField' variant='outlined' label='Title' required/>
+                                        <TextField value={description} onChange={(e) => setDescription(e.target.value)} className='inputTextField' variant='outlined' label='Description' multiline rows={10} required/>
+                                        <Stack width='fit-content'>
+                                            <Typography variant='subtitle2' textTransform='capitalize'>Banner Image</Typography>
+                                            <input type="file" accept="image/*"  onChange={(e)=>setBannerImg(e.target.files[0])} required/>
+                                        </Stack>
+                                    </Stack>
+                                    <Stack gap='25px' width='100%'>
+                                        <Box display='flex' gap={isTablet ? '20px' : '50px'}>
+                                            <TextField value={startDate} onChange={(e) => {setStartDate(e.target.value); 
+                                                if (e.target.value > endDate) {
+                                                    setEndDate(e.target.value)
+                                                }
+                                            }} className='inputTextField' variant='outlined' label='Start Date' type='date' InputProps={{
+                                                inputProps: {
+                                                    min: new Date().toISOString().split('T')[0],
+                                                },
+                                            }} fullWidth required/>
+                                            <TextField value={endDate} onChange={(e) => setEndDate(e.target.value)} className='inputTextField' variant='outlined' label='End Date' type='date' InputProps={{
+                                                inputProps: {
+                                                    min: new Date(startDate).toISOString().split('T')[0],
+                                                },
+                                            }} fullWidth required/>
+                                        </Box>
+                                        <Box display='flex' gap={isTablet ? '20px' : '50px'}>
+                                            <TextField value={venue} onChange={(e) => setVenue(e.target.value)} className='inputTextField' variant='outlined' label='Venue' fullWidth required/>
+                                            <FormControl className='dropdownList' fullWidth>
+                                                <InputLabel>Region</InputLabel>
+                                                <Select value={region} onChange={(e) => setRegion(e.target.value)} label='Region' required>
+                                                    {regions.map((region) => {
+                                                        return <MenuItem value={region} key={region}><Typography variant='action'>{region}</Typography></MenuItem>
+                                                    })}
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                        <Box display='flex' gap={isTablet ? '20px' : '50px'}>
+                                            <FormControl className='dropdownList' fullWidth>
+                                                <InputLabel>Sport</InputLabel>
+                                                <Select value={sport} onChange={(e) => setSport(e.target.value)} label='Sport' required>
+                                                    {sportList.map((sport) => {
+                                                        return <MenuItem value={sport.name} key={sport.name}><Typography variant='action'>{sport.name}</Typography></MenuItem>
+                                                    })}
+                                                </Select>
+                                            </FormControl>
+                                            <FormControl className='dropdownList' fullWidth>
+                                                <InputLabel>Type</InputLabel>
+                                                <Select value={type} onChange={(e) => setType(e.target.value)} label='Type' required>
+                                                    {types.map((type) => {
+                                                        return <MenuItem value={type} key={type}><Typography variant='action'>{type}</Typography></MenuItem>
+                                                    })}
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
+                                        <Box display='flex' gap={isTablet ? '20px' : '50px'}>
+                                            <FormControl className='dropdownList' fullWidth>
+                                                <InputLabel>Gender</InputLabel>
+                                                <Select value={gender} onChange={(e) => setGender(e.target.value)} label='Gender' required>
+                                                    {genders.map((gender) => {
+                                                        return <MenuItem value={gender} key={gender}><Typography variant='action'>{gender}</Typography></MenuItem>
+                                                    })}
+                                                </Select>
+                                            </FormControl>
+                                            <TextField value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} className='inputTextField' variant='outlined' label='Max Participants' type='number' fullWidth required/>
+                                        </Box>
+                                    </Stack>
+                                </Box>
+                            }
                             <Stack width='100%' gap='10px'>
-                                <hr style={{width:'100%'}}/>
+                                <hr/>
                                 <Typography variant='subtitle2' textTransform='capitalize'>Optional</Typography>
-                                <Box display='flex' gap='50px'>
+                                <Box display='flex' gap={isTablet ? '20px' : '50px'}>
                                     <TextField value={firstPrize} onChange={(e) => setFirstPrize(e.target.value)} className='inputTextField' variant='outlined' label='First Prize' fullWidth/>
                                     <TextField value={secondPrize} onChange={(e) => setSecondPrize(e.target.value)} className='inputTextField' variant='outlined' label='Second Prize' fullWidth/>
                                     <TextField value={thirdPrize} onChange={(e) => setThirdPrize(e.target.value)} className='inputTextField' variant='outlined' label='Third Prize' fullWidth/>
@@ -481,9 +609,9 @@ export default function CreateTournament() {
                             </Stack>
 
                             <Stack marginTop='25px' gap='5px'>                         
-                                <Box display='flex' gap='50px' justifyContent='center'>
-                                    <Button sx={{width:'250px'}} variant='blue' type='submit'>Create Tournament</Button>
-                                    <Button sx={{width:'120px'}} variant='red' onClick={() => window.history.back()}>Back</Button>
+                                <Box display='flex' gap={isMobile ? '20px' : '50px'} justifyContent='center'>
+                                    <Button sx={{width:(isMobile ? '100%' : '250px')}} variant='blue' type='submit'>Create Tournament</Button>
+                                    <Button sx={{width:(isMobile ? '50%' : '250px')}} variant='red' onClick={() => window.history.back()}>Back</Button>
                                 </Box>
                             </Stack>
                         </Stack>
@@ -493,7 +621,7 @@ export default function CreateTournament() {
         </Box>
 
         <Modal open={openSaveFormatModal} onClose={() => {setOpenSaveFormatModal(false); setErrorMessage('')}} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='300px' padding='30px 0' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='80%' maxWidth='300px' padding='30px 0' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <form onSubmit={saveCustomFormat}>
                     <Stack gap='20px'>
                         <Stack>
@@ -510,7 +638,7 @@ export default function CreateTournament() {
         </Modal>
 
         <Modal open={openCustomFormatModal} onClose={() => {setOpenCustomFormatModal(false)}} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='300px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='80%' maxWidth='300px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%' gap='40px'>
                     <Stack gap='15px'>
                         <form style={{display:'flex', width:'100%'}} onSubmit={searchFormat}>
@@ -534,7 +662,7 @@ export default function CreateTournament() {
         </Modal>
 
         <Modal open={openViewModal} onClose={() => setOpenViewModal(false)} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='350px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='80%' maxWidth='350px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%' gap='40px'>
                     <Stack gap='15px'>
                         <Typography textTransform='uppercase' variant='h5'>Format Details:</Typography>

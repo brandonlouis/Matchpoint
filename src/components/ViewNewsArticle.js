@@ -7,7 +7,7 @@ import { useMediaQuery } from 'react-responsive'
 
 export default function ViewNewsArticle() {
     const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
-    const adjustInfo = useMediaQuery({ query: '(max-width: 750px)' })
+    const adjust750 = useMediaQuery({ query: '(max-width: 750px)' })
     const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
 
     const articleID = new URLSearchParams(window.location.search).get("id")
@@ -76,14 +76,14 @@ export default function ViewNewsArticle() {
 
 
     return (
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
+        <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
             <Stack width={isMobile || isTablet ? '80%' : '65%'} gap='20px'>
                 <img src={newsArticleDetails.bannerURL}/>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     <Stack gap='50px' width='100%'>
                         <Stack gap='15px'>
                             <Typography variant='h2'>{newsArticleDetails.title}</Typography>
-                            {adjustInfo ? 
+                            {adjust750 ? 
                                 <Stack gap='10px'>
                                     <Typography color='#666' fontWeight='600' variant='subtitle2'>
                                         {authorName}&nbsp;&nbsp;|&nbsp;&nbsp;  {newsArticleDetails.date && newsArticleDetails.date.length === 3 &&
@@ -115,7 +115,7 @@ export default function ViewNewsArticle() {
                         </Stack>
                         <Typography sx={{whiteSpace:'pre-line'}} variant='body1'>{newsArticleDetails.content}</Typography>
                         <Stack marginTop='100px' gap='35px'>
-                            <hr width='100%'/>
+                            <hr/>
                             <Typography variant='h3'>More Articles</Typography>
 
                             <Grid container gap='35px' alignItems='stretch'>

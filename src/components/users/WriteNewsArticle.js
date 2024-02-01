@@ -5,8 +5,12 @@ import { db } from '../../config/firebase';
 import { UserAuth } from '../../config/authContext';
 import { addDoc, getDocs, collection, updateDoc, query, where} from 'firebase/firestore';
 import { ref, getStorage, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useMediaQuery } from 'react-responsive';
 
 export default function WriteNewsArticle() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const { user } = UserAuth()
 
     const [openViewModal, setOpenViewModal] = useState(false)
@@ -65,16 +69,16 @@ export default function WriteNewsArticle() {
                     sport: selectedTournamentSport,
                     bannerURL: '',
                 })
-            
-                await uploadBytes(ref(getStorage(), `newsArticles/${docRef.id}-banner`), bannerImg).then((snapshot) => {
-                    getDownloadURL(snapshot.ref).then(function(downloadURL) {
-                        updateDoc(docRef, {
-                            bannerURL: downloadURL
-                        })
-                    })
+
+                const snapshot = await uploadBytes(ref(getStorage(), `newsArticles/${docRef.id}-banner`), bannerImg)
+                const downloadURL = await getDownloadURL(snapshot.ref)
+              
+                await updateDoc(docRef, {
+                    bannerURL: downloadURL
                 })
+
                 alert('News Article successfully published')
-                window.location.href = `/ViewNewsArticle?id=${docRef.id}`  
+                window.location.href = `/ViewNewsArticle?id=${docRef.id}`
             } catch (err) {
                 console.error(err)
             }
@@ -86,9 +90,9 @@ export default function WriteNewsArticle() {
 
     return (
         <>
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Box width='80%' display='flex' gap='100px'>
-                <Stack width='50%'>
+        <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            <Box width={isMobile || isTablet ? '90%' : '80%'} display='flex' gap='100px'>
+                <Stack width='100%'>
                     <Box display='flex' alignContent='center'>
                         <Typography variant='h3'>Write News Article</Typography>
                     </Box>
@@ -110,8 +114,8 @@ export default function WriteNewsArticle() {
                             <Stack marginTop='25px' gap='5px'>
                                 <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
 
-                                <Box display='flex' gap='50px' justifyContent='flex-start'>
-                                    <Button sx={{width:'250px'}} variant='blue' type='submit'>Publish</Button>
+                                <Box display='flex' gap={isMobile ? '20px' : '50px'} justifyContent={isTablet ? 'center' : 'flex-start'}>
+                                    <Button sx={{width:(isMobile ? '100%' : '250px')}} variant='blue' type='submit'>Publish</Button>
                                     <Button sx={{width:'120px'}} variant='red' onClick={() => window.location.href = `/MyNewsArticles`}>Back</Button>
                                 </Box>
                             </Stack>
@@ -122,10 +126,10 @@ export default function WriteNewsArticle() {
         </Box>
         
         <Modal open={openViewModal} onClose={() => {setOpenViewModal(false)}} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='815px' maxHeight='600px' padding='50px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' maxWidth='815px' maxHeight='600px' padding={isMobile ? '20px' : '50px'} margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%' gap='30px'>
                     <Box display='flex' width='100%' justifyContent='center'>
-                        <form style={{display:'flex', width:'50%'}} onSubmit={searchTournament}>
+                        <form style={{display:'flex', width:'100%', maxWidth:'450px'}} onSubmit={searchTournament}>
                             <TextField className='searchTextField' value={searchCriteria} placeholder='SEARCH TOURNAMENT' onChange={(e) => setSearchCriteria(e.target.value)} sx={{width:'100% !important'}}/>
                             <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
                         </form>

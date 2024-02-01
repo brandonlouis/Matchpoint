@@ -8,9 +8,10 @@ import { useMediaQuery } from 'react-responsive'
 
 export default function Home() {
     const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
-    const adjustBanner = useMediaQuery({ query: '(max-width: 900px)' })
-    const adjustAboutUs = useMediaQuery({ query: '(max-width: 750px)' })
+    const adjust900 = useMediaQuery({ query: '(max-width: 900px)' })
+    const adjust750 = useMediaQuery({ query: '(max-width: 750px)' })
     const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+    const adjust500 = useMediaQuery({ query: '(max-width: 500px)' })
 
     const [tournamentList, setTournamentList] = useState([])
     const [newsArticleList, setNewsArticleList] = useState([])
@@ -77,8 +78,8 @@ export default function Home() {
 
     return (
         <Stack height='100%' width='100%'>
-            <Box display='flex' justifyContent={adjustBanner ? 'center' : 'flex-end'} height='100%' sx={{backgroundImage: `url('${lightningBG}')`, backgroundRepeat: "no-repeat", backgroundPosition: "right top", backgroundAttachment:'fixed'}}>
-                {adjustBanner ?
+            <Box display='flex' justifyContent={adjust900 ? 'center' : 'flex-end'} height='100%' sx={{backgroundImage: `url('${lightningBG}')`, backgroundRepeat: "no-repeat", backgroundPosition: "right top", backgroundAttachment:'fixed'}}>
+                {adjust900 ?
                     <Stack justifyContent='center' alignItems='center' paddingTop='120px' overflow='hidden'>
                         <img style={{height:'530px'}} src={require('../img/elements/team.png')}/>
                         
@@ -117,9 +118,9 @@ export default function Home() {
                         <Typography variant='body1'>We keep things simple and flexible. Host your very own tournaments in under 3 minutes.</Typography>
                     </Stack>
 
-                    {adjustAboutUs ? 
+                    {adjust750 ? 
                         <Stack justifyContent='center' alignItems='center' gap='100px'>
-                            <Box bgcolor='#CB3E3E' height='50%' width='10px' position='absolute' zIndex='1'></Box>
+                            <Box bgcolor='#CB3E3E' height='80%' width='10px' position='absolute' zIndex='1'></Box>
 
                             <Box width='80%' height='100%' display='flex' zIndex='2'>
                                 <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px' alignItems='center'>
@@ -192,11 +193,17 @@ export default function Home() {
             
             <Box display='flex' justifyContent='center' padding='130px 0'>
                 <Stack width={isMobile || isTablet ? '90%' : '80%'} justifyContent='center'>
-                    <Box display='flex' justifyContent='space-between' alignContent='center'>
-                        <Typography variant='h3'>Tournaments</Typography>
-                        <a href='/Tournaments'><Typography color='#006DEE' fontSize='14px' letterSpacing='2px' variant='action'>See More Tournaments</Typography></a>
-                    </Box>
-
+                    {adjust500 ?
+                        <Stack gap='5px'>
+                            <Typography variant='h3'>Tournaments</Typography>
+                            <a href='/Tournaments'><Typography color='#006DEE' fontSize='14px' letterSpacing='2px' variant='action'>See More Tournaments</Typography></a>
+                        </Stack>
+                        :
+                        <Box display='flex' justifyContent='space-between' alignContent='center'>
+                            <Typography variant='h3'>Tournaments</Typography>
+                            <a href='/Tournaments'><Typography color='#006DEE' fontSize='14px' letterSpacing='2px' variant='action'>See More Tournaments</Typography></a>
+                        </Box>
+                    }
                     <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                         {tournamentList.map((tournament) => (
                             <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
@@ -237,10 +244,18 @@ export default function Home() {
 
             <Box display='flex' justifyContent='center' padding='90px 0' bgcolor='#EEE'>
                 <Stack width={isMobile || isTablet ? '90%' : '80%'} justifyContent='center'>
-                    <Box display='flex' justifyContent='space-between' alignContent='center'>
-                        <Typography variant='h3'>News Articles</Typography>
-                        <a href='/NewsArticles'><Typography color='#006DEE' fontSize='14px' letterSpacing='2px' variant='action'>See More Articles</Typography></a>
-                    </Box>
+                    {adjust500 ?
+                        <Stack gap='5px'>
+                            <Typography variant='h3'>News Articles</Typography>
+                            <a href='/NewsArticles'><Typography color='#006DEE' fontSize='14px' letterSpacing='2px' variant='action'>See More Articles</Typography></a>
+                        </Stack>
+                        :
+                        <Box display='flex' justifyContent='space-between' alignContent='center'>
+                            <Typography variant='h3'>News Articles</Typography>
+                            <a href='/NewsArticles'><Typography color='#006DEE' fontSize='14px' letterSpacing='2px' variant='action'>See More Articles</Typography></a>
+                        </Box>
+                    }
+                    
 
                     <Grid container gap='20px' marginTop='50px'>
                         {newsArticleList.map((newsArticle) => (
@@ -273,7 +288,7 @@ export default function Home() {
 
             <Box display='flex' justifyContent='center' height='250px' sx={{backgroundImage: `url('${newsletterBG}')`, backgroundRepeat:"no-repeat", backgroundSize:'cover'}}>
                 <Stack width={isMobile || isTablet ? '90%' : '80%'} alignItems='center' justifyContent='center'>
-                    <Typography color='white' variant='h3'>Join our newsletter</Typography>
+                    <Typography color='white' variant='h3' textAlign='center'>Join our newsletter</Typography>
                     <Typography color='white' marginBottom='20px' textAlign='center' variant='body1'>Be the first to be notified on the latest tournaments and articles.</Typography>
 
                     <Box display='flex' justifyContent='center' gap='20px' width='100%'>

@@ -25,6 +25,13 @@ td {
     vertical-align: top;
 }
 
+hr {
+    height: 1px;
+    background-color: #BBB;
+    border: none;
+    width: 100%;
+}
+
 .ModalLoginSignUp {
     animation: animatePopDown 0.3s ease-out;
 }

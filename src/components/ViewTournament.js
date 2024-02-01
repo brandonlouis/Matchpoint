@@ -12,7 +12,7 @@ import { useMediaQuery } from 'react-responsive';
 
 export default function ViewTournament() {
     const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
-    const adjustDetails = useMediaQuery({ query: '(max-width: 730px)' })
+    const adjust730 = useMediaQuery({ query: '(max-width: 730px)' })
     const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
 
     const tournamentID = new URLSearchParams(window.location.search).get("id")
@@ -383,7 +383,7 @@ export default function ViewTournament() {
 
     return (
         <>
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
+        <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
             <Stack width={isMobile || isTablet ? '80%' : '65%'} gap='20px'>
                 <img src={tournamentDetails.imgURL}/>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
@@ -407,7 +407,7 @@ export default function ViewTournament() {
                             }
                         </Stack>
 
-                        {adjustDetails ? 
+                        {adjust730 ? 
                             <Stack gap='10px'>
                                 <Box width='fit-content' display='flex' alignItems='center' gap='20px'>
                                     <img width='60px' src={require('../img/icons/trophy.png')} />
@@ -488,9 +488,9 @@ export default function ViewTournament() {
                         <Typography variant='body1'>{tournamentDetails.description}</Typography>
 
 
-                        {adjustDetails ?
+                        {adjust730 ?
                             <Stack gap='50px'>
-                                <Stack width='50%' gap='15px'>
+                                <Stack width='100%' gap='15px'>
                                     <Typography textTransform='uppercase' variant='h5'>Tournament Summary</Typography>
                                     <table>
                                         <tbody>
@@ -529,7 +529,7 @@ export default function ViewTournament() {
                                         </tbody>
                                     </table>
                                 </Stack>
-                                <Stack width='50%' gap='15px'>
+                                <Stack width='100%' gap='15px'>
                                     <Typography textTransform='uppercase' variant='h5'>Prizes</Typography>
                                     <table>
                                         <tbody>
@@ -560,53 +560,6 @@ export default function ViewTournament() {
                                         </tbody>
                                     </table>
                                 </Stack>
-                                {(viewerType === 'host' || viewerType === 'collaborator') &&
-                                    <Box display='flex' gap='25px'>
-                                        <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
-                                            <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                                <Stack>
-                                                    <Typography variant='h5' textTransform='uppercase'>Participants</Typography>
-                                                    <Typography variant='body2'>{tournamentDetails.participants?.length}/{tournamentDetails.maxParticipants}</Typography>
-                                                </Stack>
-                                                {tournamentDetails.participants?.length < tournamentDetails.maxParticipants && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('participants')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
-                                            </Box>
-                                            <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
-                                                <Stack height='100%' sx={{overflowY:'auto'}}>
-                                                    {participantList.map((participant) => 
-                                                        <Box onClick={() => {viewAccount(participant.id)}} key={participant.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
-                                                            <Stack overflow='hidden'>
-                                                                <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{tournamentDetails.type === 'team' ? participant.handle : participant.username}</Typography>
-                                                                <Typography variant='body2' sx={{textTransform: tournamentDetails.type !== 'team' ? 'capitalize' : 'none', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{tournamentDetails.type === 'team' ? participant.name : participant.fullName}</Typography>
-                                                            </Stack>
-                                                            <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
-                                                        </Box>
-                                                    )}
-                                                </Stack>
-                                            </Box>
-                                        </Stack>
-                                        {viewerType !== 'collaborator' && 
-                                            <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
-                                                <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                                    <Typography variant='h5' textTransform='uppercase'>Collaborators</Typography>
-                                                    {viewerType === 'host' && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('collaborators')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
-                                                </Box>
-                                                <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
-                                                    <Stack height='100%' sx={{overflowY:'auto'}}>
-                                                        {collaboratorList.map((collaborator) => 
-                                                            <Box onClick={() => {viewAccount(collaborator.id)}} key={collaborator.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
-                                                                <Stack>
-                                                                    <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{collaborator.username}</Typography>
-                                                                    <Typography variant='body2' textTransform='capitalize' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{collaborator.fullName}</Typography>
-                                                                </Stack>
-                                                                <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
-                                                            </Box>
-                                                        )}
-                                                    </Stack>
-                                                </Box>
-                                            </Stack>
-                                        }
-                                    </Box> 
-                                }
                             </Stack>
                             :
                             <Box display='flex' justifyContent='space-between'>
@@ -680,23 +633,47 @@ export default function ViewTournament() {
                                         </tbody>
                                     </table>
                                 </Stack>
-                                {(viewerType === 'host' || viewerType === 'collaborator') &&
-                                    <Box display='flex' gap='25px'>
+                            </Box>
+                        }
+
+                        {(viewerType === 'host' || viewerType === 'collaborator') &&
+                            (isMobile ?
+                                <Stack display='flex' gap='25px'>
+                                    <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
+                                        <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                            <Stack>
+                                                <Typography variant='h5' textTransform='uppercase'>Participants</Typography>
+                                                <Typography variant='body2'>{tournamentDetails.participants?.length}/{tournamentDetails.maxParticipants}</Typography>
+                                            </Stack>
+                                            {tournamentDetails.participants?.length < tournamentDetails.maxParticipants && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('participants')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
+                                        </Box>
+                                        <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
+                                            <Stack height='100%' sx={{overflowY:'auto'}}>
+                                                {participantList.map((participant) => 
+                                                    <Box onClick={() => {viewAccount(participant.id)}} key={participant.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
+                                                        <Stack overflow='hidden'>
+                                                            <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{tournamentDetails.type === 'team' ? participant.handle : participant.username}</Typography>
+                                                            <Typography variant='body2' sx={{textTransform: tournamentDetails.type !== 'team' ? 'capitalize' : 'none', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{tournamentDetails.type === 'team' ? participant.name : participant.fullName}</Typography>
+                                                        </Stack>
+                                                        <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
+                                                    </Box>
+                                                )}
+                                            </Stack>
+                                        </Box>
+                                    </Stack>
+                                    {viewerType !== 'collaborator' && 
                                         <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
                                             <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                                <Stack>
-                                                    <Typography variant='h5' textTransform='uppercase'>Participants</Typography>
-                                                    <Typography variant='body2'>{tournamentDetails.participants?.length}/{tournamentDetails.maxParticipants}</Typography>
-                                                </Stack>
-                                                {tournamentDetails.participants?.length < tournamentDetails.maxParticipants && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('participants')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
+                                                <Typography variant='h5' textTransform='uppercase'>Collaborators</Typography>
+                                                {viewerType === 'host' && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('collaborators')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
                                             </Box>
                                             <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
                                                 <Stack height='100%' sx={{overflowY:'auto'}}>
-                                                    {participantList.map((participant) => 
-                                                        <Box onClick={() => {viewAccount(participant.id)}} key={participant.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
-                                                            <Stack overflow='hidden'>
-                                                                <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{tournamentDetails.type === 'team' ? participant.handle : participant.username}</Typography>
-                                                                <Typography variant='body2' sx={{textTransform: tournamentDetails.type !== 'team' ? 'capitalize' : 'none', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{tournamentDetails.type === 'team' ? participant.name : participant.fullName}</Typography>
+                                                    {collaboratorList.map((collaborator) => 
+                                                        <Box onClick={() => {viewAccount(collaborator.id)}} key={collaborator.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
+                                                            <Stack>
+                                                                <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{collaborator.username}</Typography>
+                                                                <Typography variant='body2' textTransform='capitalize' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{collaborator.fullName}</Typography>
                                                             </Stack>
                                                             <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
                                                         </Box>
@@ -704,102 +681,146 @@ export default function ViewTournament() {
                                                 </Stack>
                                             </Box>
                                         </Stack>
-                                        {viewerType !== 'collaborator' && 
-                                            <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
-                                                <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                                    <Typography variant='h5' textTransform='uppercase'>Collaborators</Typography>
-                                                    {viewerType === 'host' && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('collaborators')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
-                                                </Box>
-                                                <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
-                                                    <Stack height='100%' sx={{overflowY:'auto'}}>
-                                                        {collaboratorList.map((collaborator) => 
-                                                            <Box onClick={() => {viewAccount(collaborator.id)}} key={collaborator.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
-                                                                <Stack>
-                                                                    <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{collaborator.username}</Typography>
-                                                                    <Typography variant='body2' textTransform='capitalize' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{collaborator.fullName}</Typography>
-                                                                </Stack>
-                                                                <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
-                                                            </Box>
-                                                        )}
-                                                    </Stack>
-                                                </Box>
+                                    }
+                                </Stack> 
+                                :
+                                <Box display='flex' gap='25px'>
+                                    <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
+                                        <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                            <Stack>
+                                                <Typography variant='h5' textTransform='uppercase'>Participants</Typography>
+                                                <Typography variant='body2'>{tournamentDetails.participants?.length}/{tournamentDetails.maxParticipants}</Typography>
                                             </Stack>
-                                        }
-                                    </Box> 
+                                            {tournamentDetails.participants?.length < tournamentDetails.maxParticipants && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('participants')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
+                                        </Box>
+                                        <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
+                                            <Stack height='100%' sx={{overflowY:'auto'}}>
+                                                {participantList.map((participant) => 
+                                                    <Box onClick={() => {viewAccount(participant.id)}} key={participant.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
+                                                        <Stack overflow='hidden'>
+                                                            <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{tournamentDetails.type === 'team' ? participant.handle : participant.username}</Typography>
+                                                            <Typography variant='body2' sx={{textTransform: tournamentDetails.type !== 'team' ? 'capitalize' : 'none', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{tournamentDetails.type === 'team' ? participant.name : participant.fullName}</Typography>
+                                                        </Stack>
+                                                        <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
+                                                    </Box>
+                                                )}
+                                            </Stack>
+                                        </Box>
+                                    </Stack>
+                                    {viewerType !== 'collaborator' && 
+                                        <Stack bgcolor='#E4E4E4' width='200px' height='160px' borderRadius='15px' padding='15px' gap='10px'>
+                                            <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                                <Typography variant='h5' textTransform='uppercase'>Collaborators</Typography>
+                                                {viewerType === 'host' && <Button variant='green' sx={{padding:'0', width:'35px', minWidth:'40px', height:'35px'}} onClick={() => openSearch('collaborators')}><AddIcon sx={{fontSize:'30px'}}/></Button>}
+                                            </Box>
+                                            <Box bgcolor='white' borderRadius='7.5px' height='100%' overflow='hidden'>
+                                                <Stack height='100%' sx={{overflowY:'auto'}}>
+                                                    {collaboratorList.map((collaborator) => 
+                                                        <Box onClick={() => {viewAccount(collaborator.id)}} key={collaborator.id} display='flex' justifyContent='space-between' alignItems='center' padding='5px 10px' borderBottom='1px solid #E4E4E4' sx={{cursor:'pointer'}}>
+                                                            <Stack>
+                                                                <Typography variant='subtitle3' fontWeight='bold' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>@{collaborator.username}</Typography>
+                                                                <Typography variant='body2' textTransform='capitalize' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{collaborator.fullName}</Typography>
+                                                            </Stack>
+                                                            <ArrowForwardIosIcon sx={{fontSize:'20px'}}/>
+                                                        </Box>
+                                                    )}
+                                                </Stack>
+                                            </Box>
+                                        </Stack>
+                                    }
+                                </Box> 
+                            )
+                        }
+                        
+                        {adjust730 ?
+                            <Stack alignItems='center' marginTop='25px' gap='30px'>
+                                {(viewerType === 'host' || viewerType === 'collaborator') && 
+                                    <>
+                                    {viewerType === 'host' && <Button variant='blue' sx={{width:'100%'}} onClick={() => editTournament(tournamentDetails.id)}>Edit Tournament</Button>}
+                                    <Button variant='blue' sx={{width:'100%'}} onClick={() => viewMatch(tournamentID)}>Manage Score & Matchup</Button>
+                                    {viewerType === 'host' && (!(tournamentDetails.date?.end.toDate() < Date.now()) && tournamentDetails.status === 1) && <Button variant='red' sx={{width:'100%'}} onClick={() => setOpenSuspendConfirmation(true)}>Suspend Tournament</Button>}
+                                    </>
+                                }
+
+                                {viewerType === 'spectator' && (tournamentDetails.date?.end.toDate() < Date.now() ? (
+                                    // If tournament has ended
+                                    <Button sx={{ width:'100%' }} variant="red" onClick={() => viewMatch(tournamentID)}>View Results</Button>
+                                    ) : tournamentDetails.date?.start.toDate() <= Date.now() && tournamentDetails.date?.end.toDate() >= Date.now() ? (
+                                        // If tournament is live
+                                        <Button sx={{ width:'100%' }} variant="red" onClick={() => viewMatch(tournamentID)}>View Match</Button>
+                                    ) : !user ? (
+                                        // If user is not logged in
+                                        <Button variant="red" disabled>Login to register for this tournament</Button>
+                                    ) : user && !user.email.includes('@matchpoint.com') && user.emailVerified ? (
+                                        tournamentDetails.type === 'team' && (userTeamDetails.leader !== user.uid || userTeamDetails.members.includes(tournamentDetails.host) || userTeamDetails.members?.some(member => tournamentDetails.collaborators.includes(member))) ? (
+                                        <Tooltip TransitionComponent={Zoom} title={userTeamDetails.leader !== user.uid ? 'Only your team leader can register on behalf of the team' : "You can't register for a tournament hosted/collaborated by your team member"} arrow>
+                                            <span><Button variant="red" disabled>Register for this tournament</Button></span>
+                                        </Tooltip>
+                                        ) : (
+                                        tournamentDetails.participants?.length !== parseInt(tournamentDetails.maxParticipants) ? (
+                                            <Button variant="red" onClick={() => registerTournament()}>Register for this tournament</Button>
+                                        ) : (
+                                            <Button variant="red" disabled>Tournament fully registered</Button>
+                                        )
+                                        )
+                                    ) : (
+                                        <Button variant="red" onClick={() => alert("Please verify your account before registering for this tournament")}>Register for this tournament</Button>
+                                    )
+                                )}
+
+                                {viewerType === 'participant' &&
+                                    <Button sx={{width:'100%'}} variant="red" onClick={() => {viewMatch(tournamentID)}}>{tournamentDetails.date?.end.toDate() < Date.now() ? 'View Results' : 'Matchup & Schedule'}</Button>
+                                }
+                            </Stack>
+                            :
+                            <Box display='flex' justifyContent='center' marginTop='25px' gap='30px'>
+                                {(viewerType === 'host' || viewerType === 'collaborator') && 
+                                    <>
+                                    {viewerType === 'host' && <Button variant='blue' sx={{width:'300px'}} onClick={() => editTournament(tournamentDetails.id)}>Edit Tournament</Button>}
+                                    <Button variant='blue' sx={{width:'300px'}} onClick={() => viewMatch(tournamentID)}>Manage Score & Matchup</Button>
+                                    {viewerType === 'host' && (!(tournamentDetails.date?.end.toDate() < Date.now()) && tournamentDetails.status === 1) && <Button variant='red' sx={{width:'250px'}} onClick={() => setOpenSuspendConfirmation(true)}>Suspend Tournament</Button>}
+                                    </>
+                                }
+
+                                {viewerType === 'spectator' && (tournamentDetails.date?.end.toDate() < Date.now() ? (
+                                    // If tournament has ended
+                                    <Button sx={{ width: '300px' }} variant="red" onClick={() => viewMatch(tournamentID)}>View Results</Button>
+                                    ) : tournamentDetails.date?.start.toDate() <= Date.now() && tournamentDetails.date?.end.toDate() >= Date.now() ? (
+                                        // If tournament is live
+                                        <Button sx={{ width: '300px' }} variant="red" onClick={() => viewMatch(tournamentID)}>View Match</Button>
+                                    ) : !user ? (
+                                        // If user is not logged in
+                                        <Button variant="red" disabled>Login to register for this tournament</Button>
+                                    ) : user && !user.email.includes('@matchpoint.com') && user.emailVerified ? (
+                                        tournamentDetails.type === 'team' && (userTeamDetails.leader !== user.uid || userTeamDetails.members.includes(tournamentDetails.host) || userTeamDetails.members?.some(member => tournamentDetails.collaborators.includes(member))) ? (
+                                        <Tooltip TransitionComponent={Zoom} title={userTeamDetails.leader !== user.uid ? 'Only your team leader can register on behalf of the team' : "You can't register for a tournament hosted/collaborated by your team member"} arrow>
+                                            <span><Button variant="red" disabled>Register for this tournament</Button></span>
+                                        </Tooltip>
+                                        ) : (
+                                        tournamentDetails.participants?.length !== parseInt(tournamentDetails.maxParticipants) ? (
+                                            <Button variant="red" onClick={() => registerTournament()}>Register for this tournament</Button>
+                                        ) : (
+                                            <Button variant="red" disabled>Tournament fully registered</Button>
+                                        )
+                                        )
+                                    ) : (
+                                        <Button variant="red" onClick={() => alert("Please verify your account before registering for this tournament")}>Register for this tournament</Button>
+                                    )
+                                )}
+
+                                {viewerType === 'participant' &&
+                                    <Button sx={{width:'300px'}} variant="red" onClick={() => {viewMatch(tournamentID)}}>{tournamentDetails.date?.end.toDate() < Date.now() ? 'View Results' : 'Matchup & Schedule'}</Button>
                                 }
                             </Box>
                         }
                         
-                        <Box display='flex' justifyContent='center' marginTop='25px' gap='30px'>
-                            {(viewerType === 'host' || viewerType === 'collaborator') && 
-                                <>
-                                {viewerType === 'host' && <Button variant='blue' sx={{width:'300px'}} onClick={() => editTournament(tournamentDetails.id)}>Edit Tournament</Button>}
-                                <Button variant='blue' sx={{width:'300px'}} onClick={() => viewMatch(tournamentID)}>Manage Score & Matchup</Button>
-                                {viewerType === 'host' && (!(tournamentDetails.date?.end.toDate() < Date.now()) && tournamentDetails.status === 1) && <Button variant='red' sx={{width:'250px'}} onClick={() => setOpenSuspendConfirmation(true)}>Suspend Tournament</Button>}
-                                </>
-                            }
-
-                                {viewerType === 'spectator' && (
-                                tournamentDetails.date?.end.toDate() < Date.now() ? (
-                                    // If tournament has ended
-                                    <Button sx={{ width: '300px' }} variant="red" onClick={() => viewMatch(tournamentID)}>
-                                    View Results
-                                    </Button>
-                                ) : tournamentDetails.date?.start.toDate() <= Date.now() && tournamentDetails.date?.end.toDate() >= Date.now() ? (
-                                    // If tournament is live
-                                    <Button sx={{ width: '300px' }} variant="red" onClick={() => viewMatch(tournamentID)}>
-                                    View Match
-                                    </Button>
-                                ) : !user ? (
-                                    // If user is not logged in
-                                    <Button variant="red" disabled>
-                                    Login to register for this tournament
-                                    </Button>
-                                ) : user && !user.email.includes('@matchpoint.com') && user.emailVerified ? (
-                                    // If user is logged in, not an admin, and email is verified
-                                    tournamentDetails.type === 'team' && (userTeamDetails.leader !== user.uid || userTeamDetails.members.includes(tournamentDetails.host) || userTeamDetails.members?.some(member => tournamentDetails.collaborators.includes(member))) ? (
-                                    <Tooltip TransitionComponent={Zoom} title={userTeamDetails.leader !== user.uid ? 'Only your team leader can register on behalf of the team' : "You can't register for a tournament hosted/collaborated by your team member"} arrow>
-                                        <span>
-                                        <Button variant="red" disabled>
-                                            Register for this tournament
-                                        </Button>
-                                        </span>
-                                    </Tooltip>
-                                    ) : (
-                                    tournamentDetails.participants?.length !== parseInt(tournamentDetails.maxParticipants) ? (
-                                        <Button variant="red" onClick={() => registerTournament()}>
-                                        Register for this tournament
-                                        </Button>
-                                    ) : (
-                                        <Button variant="red" disabled>
-                                        Tournament fully registered
-                                        </Button>
-                                    )
-                                    )
-                                ) : (
-                                    // If user's email is not verified
-                                    <Button variant="red" onClick={() => alert("Please verify your account before registering for this tournament")}>
-                                    Register for this tournament
-                                    </Button>
-                                )
-                                )}
-
-
-                        
-
-
-
-                            {viewerType === 'participant' &&
-                                <Button sx={{width:'300px'}} variant="red" onClick={() => {viewMatch(tournamentID)}}>{tournamentDetails.date?.end.toDate() < Date.now() ? 'View Results' : 'Matchup & Schedule'}</Button>
-                            }
-                        </Box>
                     </Stack>
                 </Box>
             </Stack>
         </Box>
 
         <Modal open={openAddUserModal} onClose={() => {setOpenAddUserModal(false)}} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='400px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='80%' maxWidth='400px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%' gap='40px'>
                     <Stack gap='30px'>
                         <form style={{display:'flex', width:'100%'}} onSubmit={searchUser}>
@@ -853,7 +874,7 @@ export default function ViewTournament() {
         </Modal>
 
         <Modal open={openViewModal} onClose={() => {setOpenViewModal(false)}} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='400px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='80%' maxWidth='400px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%' gap='40px'>
                     <Stack gap='15px'>
                         {tournamentDetails.participants?.includes(accountDetails.id) ? (
@@ -868,7 +889,7 @@ export default function ViewTournament() {
                         <table>
                             <tbody>
                                 <tr>
-                                    <td width='120px'>
+                                    <td width={isMobile ? '90px' : '120px'}>
                                         <Typography variant='subtitle2'>{accountDetails.handle ? 'Handle' : 'Username'}:</Typography>
                                     </td>
                                     <td>

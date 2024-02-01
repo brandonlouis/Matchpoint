@@ -2,15 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { Box, Button, Checkbox, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
 import { db } from '../../config/firebase';
 import { UserAuth } from '../../config/authContext';
-import { getDoc, getDocs, updateDoc, collection, doc, where, query, orderBy, sum } from 'firebase/firestore';
+import { getDoc, getDocs, updateDoc, collection, doc, where, query, orderBy } from 'firebase/firestore';
 import { Line } from 'react-chartjs-2';
 import { Chart as chartjs, LineElement, CategoryScale, LinearScale, PointElement, Tooltip as ChartTooltip  } from 'chart.js';
+import { useMediaQuery } from 'react-responsive';
 
 chartjs.register(
     LineElement, CategoryScale, LinearScale, PointElement, ChartTooltip
 )
 
 export default function ManageAccountProfile() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const adjust900 = useMediaQuery({ query: '(max-width: 900px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+    const adjust450 = useMediaQuery({ query: '(max-width: 450px)' })
+
     const { user, moreUserInfo, emailVerification } = UserAuth()
     const { changeEmail, changePassword } = UserAuth()
 
@@ -310,126 +316,134 @@ export default function ManageAccountProfile() {
 
 
     return (
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Box width='80%' display='flex' gap='100px'>
-                <Box display='flex' gap='50px'>
-                    <Stack gap='10px'>
-                        <Button onClick={() => toggleAccountProfileMode('account')} sx={{opacity: accountProfileMode !== 'account' && '.3'}}><Typography variant='action'>Account</Typography></Button>
-                        <Button onClick={() => toggleAccountProfileMode('profile')} sx={{opacity: accountProfileMode !== 'profile' && '.3'}}><Typography variant='action'>Profile</Typography></Button>
-                    </Stack>
-                    <Box borderLeft='1px solid #BBB' height='120px'></Box>
-                </Box>
-                {accountProfileMode === 'account' ?
-                    <Stack width='50%'>
-                        <Box display='flex' alignContent='center'>
-                            <Typography variant='h3'>{editMode && 'Edit'} Account</Typography>
+        <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            {isMobile ?
+                <Stack width='90%' display='flex' gap='30px'>
+                    <Stack display='flex' gap='10px'>
+                        <Box display='flex' gap='15px'>
+                            <Button onClick={() => toggleAccountProfileMode('account')} sx={{opacity: accountProfileMode !== 'account' && '.3'}}><Typography variant='action'>Account</Typography></Button>
+                            <Button onClick={() => toggleAccountProfileMode('profile')} sx={{opacity: accountProfileMode !== 'profile' && '.3'}}><Typography variant='action'>Profile</Typography></Button>
                         </Box>
-                        <form style={{marginTop:'50px'}} onSubmit={updateAccount}>
-                            <Stack gap='25px'>
-                                <TextField value={username} onChange={(e) => setUsername(e.target.value)}className='inputTextField' variant='outlined' label='Username' inputProps={{pattern:'^[A-Za-z0-9_]+$'}} required disabled={!editMode}/>
-                                <TextField value={fullName} onChange={(e) => setFullName(e.target.value)} className='inputTextField' variant='outlined' label='Full Name' inputProps={{pattern:'^[^0-9]+$'}} required disabled={!editMode}/>
-                                <Stack gap='10px'>
-                                    <TextField value={email} onChange={(e) => setEmail(e.target.value)} className='inputTextField' variant='outlined' label='Email' type='email' required disabled={!editMode}/>
-                                    {!user.emailVerified && <Button sx={{height: '30px', width: 'fit-content'}} variant='red' onClick={() => verifyEmail()}>Verify Email</Button>}
-                                </Stack>
+                        <hr/>
+                    </Stack>
+                    {accountProfileMode === 'account' ?
+                        <Stack width='100%'>
+                            <Box display='flex' alignContent='center'>
+                                <Typography variant='h3'>{editMode && 'Edit'} Account</Typography>
+                            </Box>
+                            <form style={{marginTop:'50px'}} onSubmit={updateAccount}>
+                                <Stack gap='25px'>
+                                    <TextField value={username} onChange={(e) => setUsername(e.target.value)}className='inputTextField' variant='outlined' label='Username' inputProps={{pattern:'^[A-Za-z0-9_]+$'}} required disabled={!editMode}/>
+                                    <TextField value={fullName} onChange={(e) => setFullName(e.target.value)} className='inputTextField' variant='outlined' label='Full Name' inputProps={{pattern:'^[^0-9]+$'}} required disabled={!editMode}/>
+                                    <Stack gap='10px'>
+                                        <TextField value={email} onChange={(e) => setEmail(e.target.value)} className='inputTextField' variant='outlined' label='Email' type='email' required disabled={!editMode}/>
+                                        {!user.emailVerified && <Button sx={{height: '30px', width: 'fit-content'}} variant='red' onClick={() => verifyEmail()}>Verify Email</Button>}
+                                    </Stack>
 
-                                <Box display='flex' gap='50px'>
+                                    <Box display='flex' gap='50px'>
+                                        <FormControl className='dropdownList' fullWidth required disabled={!editMode}>
+                                            <InputLabel>Gender</InputLabel>
+                                            <Select label='Gender' value={gender} onChange={(e) => setGender(e.target.value)} required disabled={!editMode}>
+                                                {genders.map((gender) => {
+                                                    return <MenuItem value={gender} key={gender}><Typography variant='action'>{gender}</Typography></MenuItem>
+                                                })}
+                                            </Select>
+                                        </FormControl>
+                                        <FormControl className='dropdownList' fullWidth required disabled={!editMode}>
+                                            <InputLabel>Region</InputLabel>
+                                            <Select value={region} onChange={(e) => setRegion(e.target.value)} label='Region' required disabled={!editMode}>
+                                                {regions.map((region) => {
+                                                    return <MenuItem value={region} key={region}><Typography variant='action'>{region}</Typography></MenuItem>
+                                                })}
+                                            </Select>
+                                        </FormControl>
+                                    </Box>
                                     <FormControl className='dropdownList' fullWidth required disabled={!editMode}>
-                                        <InputLabel>Gender</InputLabel>
-                                        <Select label='Gender' value={gender} onChange={(e) => setGender(e.target.value)} required disabled={!editMode}>
-                                            {genders.map((gender) => {
-                                                return <MenuItem value={gender} key={gender}><Typography variant='action'>{gender}</Typography></MenuItem>
+                                        <InputLabel>Sport(s)</InputLabel>
+                                        <Select label='Sport(s)' sx={{textTransform:'uppercase', fontWeight:'bold'}} value={sports} onChange={concatSports} renderValue={(selected) => selected.join(', ')} multiple required disabled={!editMode}>
+                                            {sportsList?.map((sport) => {
+                                                return <MenuItem value={sport.name} key={sport.name}>
+                                                    <Checkbox checked={sports.indexOf(sport.name) > -1} />
+                                                    <Typography variant='action'>{sport.name}</Typography>
+                                                </MenuItem>
                                             })}
                                         </Select>
                                     </FormControl>
-                                    <FormControl className='dropdownList' fullWidth required disabled={!editMode}>
-                                        <InputLabel>Region</InputLabel>
-                                        <Select value={region} onChange={(e) => setRegion(e.target.value)} label='Region' required disabled={!editMode}>
-                                            {regions.map((region) => {
-                                                return <MenuItem value={region} key={region}><Typography variant='action'>{region}</Typography></MenuItem>
-                                            })}
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-                                <FormControl className='dropdownList' fullWidth required disabled={!editMode}>
-                                    <InputLabel>Sport(s)</InputLabel>
-                                    <Select label='Sport(s)' sx={{textTransform:'uppercase', fontWeight:'bold'}} value={sports} onChange={concatSports} renderValue={(selected) => selected.join(', ')} multiple required disabled={!editMode}>
-                                        {sportsList?.map((sport) => {
-                                            return <MenuItem value={sport.name} key={sport.name}>
-                                                <Checkbox checked={sports.indexOf(sport.name) > -1} />
-                                                <Typography variant='action'>{sport.name}</Typography>
-                                            </MenuItem>
-                                        })}
-                                    </Select>
-                                </FormControl>
-                                {editMode &&
-                                    <>
-                                        <TextField value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className='inputTextField' variant='outlined' label='New Password' type='password'/>
-                                        <TextField value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className='inputTextField' variant='outlined' label='Confirm Password' type='password'/>
-                                    </>
-                                }
+                                    {editMode &&
+                                        <>
+                                            <TextField value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className='inputTextField' variant='outlined' label='New Password' type='password'/>
+                                            <TextField value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className='inputTextField' variant='outlined' label='Confirm Password' type='password'/>
+                                        </>
+                                    }
 
-                                <Stack marginTop='25px' gap='5px'>
-                                    <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
-                                    
-                                    <Box display='flex' gap='50px' justifyContent='flex-start'>
-                                        {editMode ?
-                                            <>
-                                                <Button sx={{width:'250px'}} variant='blue' type='submit'>Save Changes</Button>
-                                                <Button sx={{width:'120px'}} variant='red' onClick={() => {toggleEditMode(false); revertChanges()}}>Back</Button>
-                                            </>
-                                            :
-                                            <Button onClick={(e) => {e.preventDefault(); toggleEditMode(true)}} sx={{width:'250px'}} variant='blue'>Edit Account</Button>
-                                        }
-                                    </Box>
-                                </Stack>
-                            </Stack>
-                        </form>
-                    </Stack>
-                    :
-                    <Stack width='100%' gap='50px'>
-                        <Box display='flex' alignContent='center'>
-                            <Typography variant='h3'>Profile</Typography>
-                        </Box>
-                        <Box display='flex' gap='50px'>
-                            <Stack alignItems='center' justifyContent='center' gap='10px' padding='30px'>
-                                <Stack gap='5px'>
-                                    <Typography variant='h5'>@{moreUserInfo?.username}</Typography>
-                                    <Typography textTransform='capitalize' textAlign='center' variant='subtitle4'>{moreUserInfo?.fullName}</Typography>
-                                </Stack>
-                                <Typography color='#888' variant='subtitle2'>{moreUserInfo?.region}</Typography>
-                            </Stack>
-
-                            <Stack gap='50px' width='100%'>
-                                <Stack gap='25px'>
-                                    <Stack gap='10px'>
-                                        <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
-                                        <hr width='100%'/>
+                                    <Stack marginTop='25px' gap='5px'>
+                                        <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
+                                        
+                                        <Box display='flex' gap='50px' justifyContent='flex-start'>
+                                            {editMode ?
+                                                <>
+                                                    <Button variant='blue' type='submit' fullWidth>Save Changes</Button>
+                                                    <Button sx={{width:'120px'}} variant='red' onClick={() => {toggleEditMode(false); revertChanges()}}>Back</Button>
+                                                </>
+                                                :
+                                                <Button onClick={(e) => {e.preventDefault(); toggleEditMode(true)}}variant='blue' fullWidth>Edit Account</Button>
+                                            }
+                                        </Box>
                                     </Stack>
-                                    <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                        {teamInfo[0] ?
-                                            <>
-                                                <Typography variant='body1'  color='#222'>@{teamInfo[0].handle}</Typography>
-                                                <Button sx={{height:'30px'}} variant='blue' onClick={() => {teamInfo[0].leader == user.uid ? window.location.href='/ManageTeam' : window.location.href=`ViewProfile?id=${teamInfo[0]?.id}`}}>View Team</Button>
-                                            </>
-                                            :
-                                            <>
-                                                <Typography variant='body1'>Not in a team</Typography>
-                                                <Box display='flex' gap='10px'>
-                                                    <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'}>Join a Team</Button>
-                                                    <Button sx={{ height: '30px' }} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/CreateTeam' : alert("Please verify your account before creating a team")}}>Create a Team</Button>
-                                                </Box>
-                                            </>
-                                        }
-                                    </Box>
+                                </Stack>
+                            </form>
+                        </Stack>
+                        :
+                        <Stack width='100%' gap='50px'>
+                            <Box display='flex' alignContent='center'>
+                                <Typography variant='h3'>Profile</Typography>
+                            </Box>
+                            <Stack display='flex' gap='50px'>
+                                <Stack alignItems='center' justifyContent='center' gap='10px'>
+                                    <Stack gap='5px'>
+                                        <Typography variant='h5'>@{moreUserInfo?.username}</Typography>
+                                        <Typography textTransform='capitalize' textAlign='center' variant='subtitle4'>{moreUserInfo?.fullName}</Typography>
+                                    </Stack>
+                                    <Typography color='#888' variant='subtitle2'>{moreUserInfo?.region}</Typography>
                                 </Stack>
 
-                                <Stack gap='25px'>
-                                    <Stack gap='10px'>
-                                        <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
-                                        <hr width='100%'/>
+                                <Stack gap='50px' width='100%'>
+                                    <Stack gap='25px'>
+                                        <Stack gap='10px'>
+                                            <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
+                                            <hr/>
+                                        </Stack>
+                                        <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                            {teamInfo[0] ?
+                                                <>
+                                                    <Typography variant='body1'  color='#222'>@{teamInfo[0].handle}</Typography>
+                                                    <Button sx={{height:'30px'}} variant='blue' onClick={() => {teamInfo[0].leader == user.uid ? window.location.href='/ManageTeam' : window.location.href=`ViewProfile?id=${teamInfo[0]?.id}`}}>View Team</Button>
+                                                </>
+                                                : adjust450 ?
+                                                    <Stack width='100%'>
+                                                        <Typography variant='body1'>Not in a team</Typography>
+                                                        <Box display='flex' gap='10px'>
+                                                            <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'} fullWidth>Join a Team</Button>
+                                                            <Button sx={{ height: '30px' }} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/CreateTeam' : alert("Please verify your account before creating a team")}} fullWidth>Create a Team</Button>
+                                                        </Box>
+                                                    </Stack>
+                                                :
+                                                <>
+                                                    <Typography variant='body1'>Not in a team</Typography>
+                                                    <Box display='flex' gap='10px'>
+                                                        <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'}>Join a Team</Button>
+                                                        <Button sx={{ height: '30px' }} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/CreateTeam' : alert("Please verify your account before creating a team")}}>Create a Team</Button>
+                                                    </Box>
+                                                </>
+                                            }
+                                        </Box>
                                     </Stack>
-                                    <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
+
+                                    <Stack gap='25px'>
+                                        <Stack gap='10px'>
+                                            <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
+                                            <hr/>
+                                        </Stack>
                                         <Stack width='100%'>
                                             <Typography fontWeight='bold' variant='body1'>Medals</Typography>
                                             <Box display='flex' gap='25px'>
@@ -453,25 +467,268 @@ export default function ManageAccountProfile() {
                                                 <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
                                             </Box>
                                         </Stack>
-                                    </Box>
-                                    <Stack paddingTop='8px'>
-                                        <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
-                                        <Box position='relative' display='flex' justifyContent='center'>
-                                            <Line data={graphData} options={graphConfig.options} />
-                                            {(sortedDates.length === 0 || sortedScores.length === 0) &&
-                                                <Box position='absolute' top='0' left='7%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
-                                                    <Typography color='#CB3E3E' fontWeight='bold' variant='body1' width='fit-content'>You have yet to participate in any tournaments</Typography>
-                                                </Box>
-                                            }
-                                        </Box>
-                                        <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly'><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
+                                        <Stack paddingTop='8px'>
+                                            <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
+                                            <Box position='relative' display='flex' justifyContent='center'>
+                                                <Line data={graphData} options={graphConfig.options} />
+                                                {(sortedDates.length === 0 || sortedScores.length === 0) &&
+                                                    <Box position='absolute' top='0' left='7%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
+                                                        <Typography color='#CB3E3E' fontWeight='bold' variant='body1' width='fit-content'>You have yet to participate in any tournaments</Typography>
+                                                    </Box>
+                                                }
+                                            </Box>
+                                            <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly' flexDirection='column'><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
+                                        </Stack>
                                     </Stack>
                                 </Stack>
                             </Stack>
-                        </Box>
-                    </Stack>
-                }
-            </Box>
+                        </Stack>
+                    }
+                </Stack>
+                :
+                <Box width={isTablet ? '90%' : '80%'} display='flex' gap={isTablet ? '50px' : '100px'}>
+                    <Box display='flex' gap={isTablet ? '25px' : '50px'}>
+                        <Stack gap='10px'>
+                            <Button onClick={() => toggleAccountProfileMode('account')} sx={{opacity: accountProfileMode !== 'account' && '.3'}}><Typography variant='action'>Account</Typography></Button>
+                            <Button onClick={() => toggleAccountProfileMode('profile')} sx={{opacity: accountProfileMode !== 'profile' && '.3'}}><Typography variant='action'>Profile</Typography></Button>
+                        </Stack>
+                        <Box borderLeft='1px solid #BBB' height='120px'></Box>
+                    </Box>
+                    {accountProfileMode === 'account' ?
+                        <Stack width={isTablet ? '100%' : '50%'}>
+                            <Box display='flex' alignContent='center'>
+                                <Typography variant='h3'>{editMode && 'Edit'} Account</Typography>
+                            </Box>
+                            <form style={{marginTop:'50px'}} onSubmit={updateAccount}>
+                                <Stack gap='25px'>
+                                    <TextField value={username} onChange={(e) => setUsername(e.target.value)}className='inputTextField' variant='outlined' label='Username' inputProps={{pattern:'^[A-Za-z0-9_]+$'}} required disabled={!editMode}/>
+                                    <TextField value={fullName} onChange={(e) => setFullName(e.target.value)} className='inputTextField' variant='outlined' label='Full Name' inputProps={{pattern:'^[^0-9]+$'}} required disabled={!editMode}/>
+                                    <Stack gap='10px'>
+                                        <TextField value={email} onChange={(e) => setEmail(e.target.value)} className='inputTextField' variant='outlined' label='Email' type='email' required disabled={!editMode}/>
+                                        {!user.emailVerified && <Button sx={{height: '30px', width: 'fit-content'}} variant='red' onClick={() => verifyEmail()}>Verify Email</Button>}
+                                    </Stack>
+
+                                    <Box display='flex' gap='50px'>
+                                        <FormControl className='dropdownList' fullWidth required disabled={!editMode}>
+                                            <InputLabel>Gender</InputLabel>
+                                            <Select label='Gender' value={gender} onChange={(e) => setGender(e.target.value)} required disabled={!editMode}>
+                                                {genders.map((gender) => {
+                                                    return <MenuItem value={gender} key={gender}><Typography variant='action'>{gender}</Typography></MenuItem>
+                                                })}
+                                            </Select>
+                                        </FormControl>
+                                        <FormControl className='dropdownList' fullWidth required disabled={!editMode}>
+                                            <InputLabel>Region</InputLabel>
+                                            <Select value={region} onChange={(e) => setRegion(e.target.value)} label='Region' required disabled={!editMode}>
+                                                {regions.map((region) => {
+                                                    return <MenuItem value={region} key={region}><Typography variant='action'>{region}</Typography></MenuItem>
+                                                })}
+                                            </Select>
+                                        </FormControl>
+                                    </Box>
+                                    <FormControl className='dropdownList' fullWidth required disabled={!editMode}>
+                                        <InputLabel>Sport(s)</InputLabel>
+                                        <Select label='Sport(s)' sx={{textTransform:'uppercase', fontWeight:'bold'}} value={sports} onChange={concatSports} renderValue={(selected) => selected.join(', ')} multiple required disabled={!editMode}>
+                                            {sportsList?.map((sport) => {
+                                                return <MenuItem value={sport.name} key={sport.name}>
+                                                    <Checkbox checked={sports.indexOf(sport.name) > -1} />
+                                                    <Typography variant='action'>{sport.name}</Typography>
+                                                </MenuItem>
+                                            })}
+                                        </Select>
+                                    </FormControl>
+                                    {editMode &&
+                                        <>
+                                            <TextField value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className='inputTextField' variant='outlined' label='New Password' type='password'/>
+                                            <TextField value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className='inputTextField' variant='outlined' label='Confirm Password' type='password'/>
+                                        </>
+                                    }
+
+                                    <Stack marginTop='25px' gap='5px'>
+                                        <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
+                                        
+                                        <Box display='flex' gap='50px' justifyContent='flex-start'>
+                                            {editMode ?
+                                                <>
+                                                    <Button variant='blue' type='submit' fullWidth>Save Changes</Button>
+                                                    <Button sx={{width:'120px'}} variant='red' onClick={() => {toggleEditMode(false); revertChanges()}}>Back</Button>
+                                                </>
+                                                :
+                                                <Button onClick={(e) => {e.preventDefault(); toggleEditMode(true)}} sx={{width:'250px'}} variant='blue'>Edit Account</Button>
+                                            }
+                                        </Box>
+                                    </Stack>
+                                </Stack>
+                            </form>
+                        </Stack>
+                        :
+                        <Stack width='100%' gap='50px'>
+                            <Box display='flex' alignContent='center'>
+                                <Typography variant='h3'>Profile</Typography>
+                            </Box>
+                            {adjust900 ?
+                                <Stack display='flex' gap='50px'>
+                                    <Stack alignItems='center' justifyContent='center' gap='10px' padding={!isTablet && '30px'}>
+                                        <Stack gap='5px'>
+                                            <Typography variant='h5'>@{moreUserInfo?.username}</Typography>
+                                            <Typography textTransform='capitalize' textAlign='center' variant='subtitle4'>{moreUserInfo?.fullName}</Typography>
+                                        </Stack>
+                                        <Typography color='#888' variant='subtitle2'>{moreUserInfo?.region}</Typography>
+                                    </Stack>
+
+                                    <Stack gap='50px' width='100%'>
+                                        <Stack gap='25px'>
+                                            <Stack gap='10px'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
+                                                <hr/>
+                                            </Stack>
+                                            <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                                {teamInfo[0] ?
+                                                    <>
+                                                        <Typography variant='body1'  color='#222'>@{teamInfo[0].handle}</Typography>
+                                                        <Button sx={{height:'30px'}} variant='blue' onClick={() => {teamInfo[0].leader == user.uid ? window.location.href='/ManageTeam' : window.location.href=`ViewProfile?id=${teamInfo[0]?.id}`}}>View Team</Button>
+                                                    </>
+                                                    :
+                                                    <>
+                                                        <Typography variant='body1'>Not in a team</Typography>
+                                                        <Box display='flex' gap='10px'>
+                                                            <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'}>Join a Team</Button>
+                                                            <Button sx={{ height: '30px' }} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/CreateTeam' : alert("Please verify your account before creating a team")}}>Create a Team</Button>
+                                                        </Box>
+                                                    </>
+                                                }
+                                            </Box>
+                                        </Stack>
+
+                                        <Stack gap='25px'>
+                                            <Stack gap='10px'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
+                                                <hr/>
+                                            </Stack>
+                                            <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
+                                                <Stack width='100%'>
+                                                    <Typography fontWeight='bold' variant='body1'>Medals</Typography>
+                                                    <Box display='flex' gap='25px'>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../../img/icons/first.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.first}</Typography>
+                                                        </Box>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../../img/icons/second.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.second}</Typography>
+                                                        </Box>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../../img/icons/third.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.third}</Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </Stack>
+                                                <Stack width='100%'>
+                                                    <Typography fontWeight='bold' variant='body1'>Tournaments Played</Typography>
+                                                    <Box display='flex'>
+                                                        <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
+                                                    </Box>
+                                                </Stack>
+                                            </Box>
+                                            <Stack paddingTop='8px'>
+                                                <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
+                                                <Box position='relative' display='flex' justifyContent='center'>
+                                                    <Line data={graphData} options={graphConfig.options} />
+                                                    {(sortedDates.length === 0 || sortedScores.length === 0) &&
+                                                        <Box position='absolute' top='0' left='7%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
+                                                            <Typography color='#CB3E3E' fontWeight='bold' variant='body1' width='fit-content'>You have yet to participate in any tournaments</Typography>
+                                                        </Box>
+                                                    }
+                                                </Box>
+                                                <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly'><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
+                                            </Stack>
+                                        </Stack>
+                                    </Stack>
+                                </Stack>
+                                :
+                                <Box display='flex' gap='50px'>
+                                    <Stack alignItems='center' justifyContent='center' gap='10px' padding={!isTablet && '30px'}>
+                                        <Stack gap='5px'>
+                                            <Typography variant='h5'>@{moreUserInfo?.username}</Typography>
+                                            <Typography textTransform='capitalize' textAlign='center' variant='subtitle4'>{moreUserInfo?.fullName}</Typography>
+                                        </Stack>
+                                        <Typography color='#888' variant='subtitle2'>{moreUserInfo?.region}</Typography>
+                                    </Stack>
+
+                                    <Stack gap='50px' width='100%'>
+                                        <Stack gap='25px'>
+                                            <Stack gap='10px'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
+                                                <hr/>
+                                            </Stack>
+                                            <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                                {teamInfo[0] ?
+                                                    <>
+                                                        <Typography variant='body1'  color='#222'>@{teamInfo[0].handle}</Typography>
+                                                        <Button sx={{height:'30px'}} variant='blue' onClick={() => {teamInfo[0].leader == user.uid ? window.location.href='/ManageTeam' : window.location.href=`ViewProfile?id=${teamInfo[0]?.id}`}}>View Team</Button>
+                                                    </>
+                                                    :
+                                                    <>
+                                                        <Typography variant='body1'>Not in a team</Typography>
+                                                        <Box display='flex' gap='10px'>
+                                                            <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'}>Join a Team</Button>
+                                                            <Button sx={{ height: '30px' }} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/CreateTeam' : alert("Please verify your account before creating a team")}}>Create a Team</Button>
+                                                        </Box>
+                                                    </>
+                                                }
+                                            </Box>
+                                        </Stack>
+
+                                        <Stack gap='25px'>
+                                            <Stack gap='10px'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
+                                                <hr/>
+                                            </Stack>
+                                            <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
+                                                <Stack width='100%'>
+                                                    <Typography fontWeight='bold' variant='body1'>Medals</Typography>
+                                                    <Box display='flex' gap='25px'>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../../img/icons/first.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.first}</Typography>
+                                                        </Box>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../../img/icons/second.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.second}</Typography>
+                                                        </Box>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../../img/icons/third.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.third}</Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </Stack>
+                                                <Stack width='100%'>
+                                                    <Typography fontWeight='bold' variant='body1'>Tournaments Played</Typography>
+                                                    <Box display='flex'>
+                                                        <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
+                                                    </Box>
+                                                </Stack>
+                                            </Box>
+                                            <Stack paddingTop='8px'>
+                                                <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
+                                                <Box position='relative' display='flex' justifyContent='center'>
+                                                    <Line data={graphData} options={graphConfig.options} />
+                                                    {(sortedDates.length === 0 || sortedScores.length === 0) &&
+                                                        <Box position='absolute' top='0' left='7%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
+                                                            <Typography color='#CB3E3E' fontWeight='bold' variant='body1' width='fit-content'>You have yet to participate in any tournaments</Typography>
+                                                        </Box>
+                                                    }
+                                                </Box>
+                                                <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly'><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
+                                            </Stack>
+                                        </Stack>
+                                    </Stack>
+                                </Box>
+                            }
+                        </Stack>
+                    }
+                </Box>
+            }
         </Box>
     )
 }

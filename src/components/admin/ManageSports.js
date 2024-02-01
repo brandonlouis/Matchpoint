@@ -4,8 +4,12 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import AddIcon from '@mui/icons-material/Add';
 import { db } from '../../config/firebase';
 import { getDocs, getDoc, doc, collection, query, orderBy, where, addDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { useMediaQuery } from 'react-responsive';
 
 export default function ManageSports() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const [openViewModal, setOpenViewModal] = useState(false)
     const [openAddModal, setOpenAddModal] = useState(false)
     const [openConfirmation, setOpenConfirmation] = useState(false)
@@ -122,18 +126,34 @@ export default function ManageSports() {
     
     return (
         <>
-        <Box height='100%' width='100%' minHeight='280px' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='80%'>
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
-                    <Typography variant='h3'>Manage Sports</Typography>
-                    <Box display='flex' gap='15px'>
-                        <Button style={{height:'45px', width:'65px'}} onClick={() => setOpenAddModal(true)} variant='green'><AddIcon sx={{fontSize:'35px'}}/></Button>
-                        <form style={{display:'flex'}} onSubmit={searchSport}>
-                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
-                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
-                        </form>
+        <Box height='100%' width='100%' minHeight='280px' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            <Stack width={isMobile || isTablet ? '90%' : '80%'}>
+                {isMobile ?
+                    <Stack justifyContent='center' gap='25px'>
+                        <Box display='flex' justifyContent='space-between' alignItems='center'>
+                            <Typography variant='h3'>Manage Sports</Typography>
+                            <Button style={{height:'45px', width:'65px'}} onClick={() => setOpenAddModal(true)} variant='green'><AddIcon sx={{fontSize:'35px'}}/></Button>
+                        </Box>
+                        <Box>
+                            <form style={{display:'flex'}} onSubmit={searchSport}>
+                                <TextField className='searchTextField'  sx={{width:'100% !important'}} placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Box>
+                    </Stack>
+                    :
+                    <Box display='flex' justifyContent='space-between' alignItems='center'>
+                        <Typography variant='h3'>Manage Sports</Typography>
+                        <Box display='flex' gap='15px'>
+                            <Button style={{height:'45px', width:'65px'}} onClick={() => setOpenAddModal(true)} variant='green'><AddIcon sx={{fontSize:'35px'}}/></Button>
+                            <form style={{display:'flex'}} onSubmit={searchSport}>
+                                <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Box>
                     </Box>
-                </Box>
+                }
+                
                 <Grid container gap='20px' alignItems='stretch' marginTop='50px'>
                     {sportsList.map((sport) => (
                         <Grid key={sport.id} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>

@@ -6,8 +6,13 @@ import { db } from '../../config/firebase';
 import { UserAuth } from '../../config/authContext';
 import { getDoc, getDocs, deleteDoc, doc, collection, query, orderBy } from 'firebase/firestore';
 import { ref, getStorage, deleteObject } from 'firebase/storage';
+import { useMediaQuery } from 'react-responsive';
 
 export default function MyNewsArticles() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const adjust730 = useMediaQuery({ query: '(max-width: 730px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const { user } = UserAuth()
     const navigate = useNavigate()
 
@@ -99,17 +104,33 @@ export default function MyNewsArticles() {
 
     return (
         <>
-        <Box height='100%' width='100%' minHeight='460px' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='80%'>
+        <Box height='100%' width='100%' minHeight='460px' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            <Stack width={isMobile || isTablet ? '90%' : '80%'}>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
-                    <Typography variant='h3'>My News Articles</Typography>
-                    <Box display='flex' gap='15px'>
-                    <Button style={{ height: '45px', width: '65px' }} variant='green' onClick={() => {user.emailVerified ? window.location.href = '/WriteNewsArticle' : alert("Please verify your account before writing a news article")}}> <img src={require('../../img/icons/writeArticle.png')} width='30px' alt="Write Article" /> </Button>
-                        <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
-                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
-                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
-                        </form>
-                    </Box>
+                    {adjust730 ?
+                        <Stack width='100%' gap='25px'>
+                            <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                <Typography variant='h3'>My News Articles</Typography>
+                                <Button style={{ height: '45px', width: '65px' }} variant='green' onClick={() => {user.emailVerified ? window.location.href = '/WriteNewsArticle' : alert("Please verify your account before writing a news article")}}> <img src={require('../../img/icons/writeArticle.png')} width='30px' alt="Write Article" /> </Button>
+                            </Box>
+                            <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
+                                <TextField className='searchTextField' sx={{width:'100% !important'}} placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Stack>
+                        :
+                        <>
+                        <Typography variant='h3'>My News Articles</Typography>
+                        <Box display='flex' gap='15px'>
+                            <Button style={{ height: '45px', width: '65px' }} variant='green' onClick={() => {user.emailVerified ? window.location.href = '/WriteNewsArticle' : alert("Please verify your account before writing a news article")}}> <img src={require('../../img/icons/writeArticle.png')} width='30px' alt="Write Article" /> </Button>
+                            <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
+                                <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Box>
+                        </>
+                    }
+                    
                 </Box>
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {newsArticleList.map((newsArticle) => (
@@ -141,7 +162,7 @@ export default function MyNewsArticles() {
         </Box>
 
         <Modal open={openModal} onClose={() => setOpenModal(false)} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='700px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='90%' maxWidth='700px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%'>
                     <img width='100%' height='250px' style={{objectFit:'cover', borderRadius:'20px 20px 0 0'}} src={newsArticleDetails.bannerURL}/>
 
@@ -150,7 +171,7 @@ export default function MyNewsArticles() {
                         <table style={{tableLayout:'fixed'}}>
                             <tbody>
                                 <tr>
-                                    <td width='150px'>
+                                    <td width={isMobile ? '130px' : '150px'}>
                                         <Typography variant='subtitle2'>Article ID:</Typography>
                                     </td>
                                     <td>
@@ -209,7 +230,7 @@ export default function MyNewsArticles() {
                                 </tr>
                             </tbody>
                         </table>
-                        <Box display='flex' justifyContent='space-between' marginTop='25px' gap='50px'>
+                        <Box display='flex' justifyContent='space-between' marginTop='25px' gap={isTablet ? '20px' : '50px'}>
                             <Button onClick={() => editNewsArticle(newsArticleDetails.id)} fullWidth variant='blue'>Edit News Article</Button>
                             <Button onClick={() => setOpenConfirmation(true)} fullWidth variant='red'>Delete News Article</Button>
                         </Box>

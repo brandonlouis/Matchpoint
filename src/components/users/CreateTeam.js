@@ -4,8 +4,12 @@ import { Box, Button, Checkbox, FormControl, InputLabel, MenuItem, Select, Stack
 import { db } from '../../config/firebase'
 import { UserAuth } from '../../config/authContext'
 import { getDocs, collection, doc, addDoc, setDoc, query, where, orderBy  } from 'firebase/firestore'
+import { useMediaQuery } from 'react-responsive'
 
-export default function CreateTeam() {    
+export default function CreateTeam() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const { user } = UserAuth()
 
     const [handle, setHandle] = useState('')
@@ -82,9 +86,9 @@ export default function CreateTeam() {
 
     
     return (
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Box width='80%' display='flex' gap='100px'>
-                <Stack width='50%'>
+        <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            <Box width={isMobile || isTablet ? '90%' : '80%'} display='flex' gap='100px'>
+                <Stack width='100%'>
                     <Box display='flex' alignContent='center'>
                         <Typography variant='h3'>Create Team</Typography>
                     </Box>
@@ -114,7 +118,7 @@ export default function CreateTeam() {
                                 </Select>
                             </FormControl>
                             
-                            <Box display='flex' gap='40px'>
+                            <Box display='flex' gap={isTablet ? '20px' : '50px'}>
                                 <TextField fullWidth value={capacity} onChange={(e) => setCapacity(e.target.value)} className='inputTextField' variant='outlined' label='Max Capacity' inputProps={{pattern:'^[0-9_]+$'}} required/>
 
                                 <FormControl className='dropdownList' fullWidth>
@@ -139,9 +143,9 @@ export default function CreateTeam() {
                             <Stack marginTop='25px' gap='5px'>
                                 <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
 
-                                <Box display='flex' gap='50px' sx={{justifyContent: 'flex-start'}}>
-                                    <Button sx={{width:'250px'}} variant='blue' type='submit' >Create Team</Button>
-                                    <Button sx={{width:'120px'}} variant='red' onClick={() => window.location.href = `/ManageAccountProfile`}>Back</Button>
+                                <Box display='flex' gap={isTablet ? '20px' : '50px'} justifyContent={isTablet ? 'center' : 'flex-start'}>
+                                    <Button sx={{width:(isMobile ? '100%' : '250px')}} variant='blue' type='submit' >Create Team</Button>
+                                    <Button sx={{width:(isMobile ? '50%' : '120px')}} variant='red' onClick={() => window.location.href = `/ManageAccountProfile`}>Back</Button>
                                 </Box>
                             </Stack>
                         </Stack>       

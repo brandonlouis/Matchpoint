@@ -5,8 +5,13 @@ import AddIcon from '@mui/icons-material/Add';
 import { db } from '../../config/firebase';
 import { UserAuth } from '../../config/authContext';
 import { getDocs, collection, query, where } from 'firebase/firestore';
+import { useMediaQuery } from 'react-responsive';
 
 export default function MyTournaments() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const adjust700 = useMediaQuery({ query: '(max-width: 700px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const { user } = UserAuth()    
     const [tournamentTab, setTournamentTab] = useState('hosted')
 
@@ -122,29 +127,57 @@ export default function MyTournaments() {
             console.error(err)
         }
     }
-
+    
 
     return (
-        <Box height='100%' width='100%' minHeight='500px' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='80%'>
-                <Box display='flex' gap='50px' marginBottom='60px'>
-                    <Button onClick={() => setTournamentTab('hosted')}><Typography className={tournamentTab === 'hosted' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Hosted Tournaments</Typography></Button>
-                    <Button onClick={() => setTournamentTab('collaborating')}><Typography className={tournamentTab === 'collaborating' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Collaborating Tournaments</Typography></Button>
-                    <Button onClick={() => setTournamentTab('participating')}><Typography className={tournamentTab === 'participating' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Participating Tournaments</Typography></Button>
-                </Box>
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
-                    <Typography variant='h3'>{tournamentTab} Tournaments</Typography>
-                    <Box display='flex' alignItems='center' gap='15px'>
-                        {tournamentTab === 'hosted' && user.emailVerified ? 
-                            <Button style={{ height: '45px', width: '65px' }} onClick={() => (window.location.href = '/CreateTournament')} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
-                            :
-                            <Button style={{ height: '45px', width: '65px' }} onClick={() => alert("Please verify your account before hosting a tournament")} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
-                        }
-                        <form style={{display:'flex'}} onSubmit={searchTournament}>
-                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
-                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
-                        </form>
+        <Box height='100%' width='100%' minHeight='500px' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            <Stack width={isMobile || isTablet ? '90%' : '80%'}>
+                {isMobile ?
+                    <Stack marginBottom='60px' gap='15px'>
+                        <Button onClick={() => setTournamentTab('hosted')}><Typography className={tournamentTab === 'hosted' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Hosted Tournaments</Typography></Button>
+                        <Button onClick={() => setTournamentTab('collaborating')}><Typography className={tournamentTab === 'collaborating' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Collaborating Tournaments</Typography></Button>
+                        <Button onClick={() => setTournamentTab('participating')}><Typography className={tournamentTab === 'participating' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Participating Tournaments</Typography></Button>
+                    </Stack>
+                    :
+                    <Box display='flex' gap={!isTablet && '50px'} justifyContent={isTablet && 'space-between'} marginBottom='60px'>
+                        <Button onClick={() => setTournamentTab('hosted')}><Typography className={tournamentTab === 'hosted' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Hosted Tournaments</Typography></Button>
+                        <Button onClick={() => setTournamentTab('collaborating')}><Typography className={tournamentTab === 'collaborating' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Collaborating Tournaments</Typography></Button>
+                        <Button onClick={() => setTournamentTab('participating')}><Typography className={tournamentTab === 'participating' ? 'tournamentTab active' : 'tournamentTab'} variant='action'>Participating Tournaments</Typography></Button>
                     </Box>
+                }
+                
+                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                    {adjust700 ?
+                        <Stack width='100%' gap='25px'>
+                            <Box display='flex' justifyContent='space-between' alignItems='center' width='100%'>
+                                <Typography variant='h3'>{tournamentTab} Tournaments</Typography>
+                                {tournamentTab === 'hosted' && user.emailVerified ? 
+                                    <Button style={{ height: '45px', width: '65px' }} onClick={() => (window.location.href = '/CreateTournament')} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
+                                    :
+                                    <Button style={{ height: '45px', width: '65px' }} onClick={() => alert("Please verify your account before hosting a tournament")} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
+                                }
+                            </Box>
+                            <form style={{display:'flex'}} onSubmit={searchTournament}>
+                                <TextField className='searchTextField' sx={{width:'100% !important'}} placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Stack>
+                        :
+                        <>
+                        <Typography variant='h3'>{tournamentTab} Tournaments</Typography>
+                        <Box display='flex' alignItems='center' gap='15px'>
+                            {tournamentTab === 'hosted' && user.emailVerified ? 
+                                <Button style={{ height: '45px', width: '65px' }} onClick={() => (window.location.href = '/CreateTournament')} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
+                                :
+                                <Button style={{ height: '45px', width: '65px' }} onClick={() => alert("Please verify your account before hosting a tournament")} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
+                            }
+                            <form style={{display:'flex'}} onSubmit={searchTournament}>
+                                <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Box>
+                        </>
+                    }
                 </Box>
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {tournamentList.map((tournament) => (

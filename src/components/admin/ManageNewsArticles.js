@@ -3,8 +3,12 @@ import { Box, Button, Card, CardActionArea, CardContent, Dialog, DialogActions, 
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../../config/firebase';
 import { getDoc, getDocs, deleteDoc, doc, collection, query, orderBy } from 'firebase/firestore';
+import { useMediaQuery } from 'react-responsive';
 
 export default function ManageNewsArticles() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const [openModal, setOpenModal] = useState(false)
     const [openConfirmation, setOpenConfirmation] = useState(false)
 
@@ -99,17 +103,30 @@ export default function ManageNewsArticles() {
 
     return (
         <>
-        <Box height='100%' width='100%' minHeight='460px' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='80%'>
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
-                    <Typography variant='h3'>Manage News Articles</Typography>
-                    <Box display='flex'>
-                        <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
-                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
-                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
-                        </form>
+        <Box height='100%' width='100%' minHeight='460px' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            <Stack width={isMobile || isTablet ? '90%' : '80%'}>
+                {isMobile ?
+                    <Stack justifyContent='center' gap='25px'>
+                        <Typography variant='h3'>Manage News Articles</Typography>
+                        <Box>
+                            <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
+                                <TextField className='searchTextField' sx={{width:'100% !important'}} placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Box>
+                    </Stack>
+                    :
+                    <Box display='flex' justifyContent='space-between' alignItems='center'>
+                        <Typography variant='h3'>Manage News Articles</Typography>
+                        <Box>
+                            <form style={{display:'flex'}} onSubmit={searchNewsArticle}>
+                                <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Box>
                     </Box>
-                </Box>
+                }
+                
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {newsArticleList.map((newsArticle) => (
                         <Grid key={newsArticle.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
@@ -140,7 +157,7 @@ export default function ManageNewsArticles() {
         </Box>
 
         <Modal open={openModal} onClose={() => setOpenModal(false)} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='700px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='90%' maxWidth='700px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%'>
                     <img width='100%' height='250px' style={{objectFit:'cover', borderRadius:'20px 20px 0 0'}} src={newsArticleDetails.bannerURL}/>
 

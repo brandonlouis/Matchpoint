@@ -7,12 +7,17 @@ import { UserAuth } from '../../config/authContext'
 import { getDoc, getDocs, updateDoc, collection, deleteDoc, doc, where, query, orderBy, documentId } from 'firebase/firestore'
 import { Line } from 'react-chartjs-2'
 import { Chart as chartjs, LineElement, CategoryScale, LinearScale, PointElement, Tooltip as ChartTooltip } from 'chart.js'
+import { useMediaQuery } from 'react-responsive'
 
 chartjs.register(
     LineElement, CategoryScale, LinearScale, PointElement, ChartTooltip
 )
 
 export default function ManageTeam() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const adjust730 = useMediaQuery({ query: '(max-width: 730px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const { user } = UserAuth()
 
     const [openViewModal, setOpenViewModal] = useState(false)
@@ -310,9 +315,10 @@ export default function ManageTeam() {
         getTeam()
     }, [originalDetails[0]?.members])
 
-    const disbandTeam = async (id) => {
+    const disbandTeam = async (id) => { // TODO: Propagate team deletion to Tournament participants and match participants + matchup
         try {
             await deleteDoc(doc(db, 'teams', id))
+            await deleteDoc(doc(db, 'profiles', id))
             alert('Team disbanded successfully')
             window.location.href = '/ManageAccountProfile'
         } catch (err) {
@@ -378,8 +384,8 @@ export default function ManageTeam() {
 
     return (
         <>
-        <Box height='100%' width='100%' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Box width='80%' display='flex' gap='100px'>
+        <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            <Box width={isMobile || isTablet ? '90%' : '80%'} display='flex' gap='100px'>
                 <Stack width='100%' gap='50px'>
                     <Box display='flex' alignContent='center'>
                         <Typography variant='h3'>{editMode ? 'Edit' : 'Manage'} Team</Typography>
@@ -388,69 +394,313 @@ export default function ManageTeam() {
                     {editMode ?
                         <>
                         <form onSubmit={updateTeam}>
-                            <Box display='flex' gap='50px'>
-                                <Stack width='100%'>
-                                    <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                        <Box display='flex' gap='25px' alignItems='center'>
-                                            <TextField value={name} onChange={(e) => setName(e.target.value)} className='inputTextField' variant='outlined' label='Name' inputProps={{pattern:'^[^0-9]+$'}} required/>
-                                            <TextField value={handle} onChange={(e) => setHandle(e.target.value)} className='inputTextField' variant='outlined' label='Handle' inputProps={{pattern:'^[A-Za-z0-9_]+$'}} required/>
+                            {isTablet ?
+                                <Stack display='flex' gap='50px'>
+                                    <Stack width='100%'>
+                                        <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                            <Box display='flex' gap='25px' alignItems='center'>
+                                                <TextField value={name} onChange={(e) => setName(e.target.value)} className='inputTextField' variant='outlined' label='Name' inputProps={{pattern:'^[^0-9]+$'}} required/>
+                                                <TextField value={handle} onChange={(e) => setHandle(e.target.value)} className='inputTextField' variant='outlined' label='Handle' inputProps={{pattern:'^[A-Za-z0-9_]+$'}} required/>
+                                            </Box>
+                                            <Button onClick={() => setOpenDisbandConfirmation(true)} variant='red'>Disband</Button>
                                         </Box>
-                                        <Button onClick={() => setOpenDisbandConfirmation(true)} variant='red'>Disband</Button>
+                                        <hr/>
+                                        <Box display='flex' marginTop='25px' gap={isMobile ? '25px' : '50px'}>
+                                            <Stack gap='25px' width='50%'>
+                                                <FormControl className='dropdownList'>
+                                                    <InputLabel>Region</InputLabel>
+                                                    <Select value={region} onChange={(e) => setRegion(e.target.value)} label='Region' required>
+                                                        {regions.map((region) => {
+                                                            return <MenuItem value={region} key={region}><Typography variant='action'>{region}</Typography></MenuItem>
+                                                        })}
+                                                    </Select>
+                                                </FormControl>
+                                                <FormControl className='dropdownList' fullWidth>
+                                                    <InputLabel>Gender</InputLabel>
+                                                    <Select label='Gender' value={genderReq} onChange={(e) => setGenderReq(e.target.value)} required>
+                                                        {genders.map((gender) => {
+                                                            return <MenuItem value={gender} key={gender}><Typography variant='action'>{gender}</Typography></MenuItem>
+                                                        })}
+                                                    </Select>
+                                                </FormControl>
+                                                <TextField value={maxCapacity} onChange={(e) => setMaxCapacity(e.target.value)} className='inputTextField' variant='outlined' label='Max Capacity' type='number' required/>
+                                            </Stack>
+                                            <Stack gap='25px' width='50%'>
+                                                <FormControl className='dropdownList'>
+                                                    <InputLabel>Sport(s)</InputLabel>
+                                                    <Select label='Sport(s)' sx={{textTransform:'uppercase', fontWeight:'bold'}} value={sports} onChange={concatSports} renderValue={(selected) => selected.join(', ')} multiple required>
+                                                        {sportsList?.map((sport) => {
+                                                            return <MenuItem value={sport.name} key={sport.name}>
+                                                                <Checkbox checked={sports.indexOf(sport.name) > -1} />
+                                                                <Typography variant='action'>{sport.name}</Typography>
+                                                            </MenuItem>
+                                                        })}
+                                                    </Select>
+                                                </FormControl>
+                                                <FormControl className='dropdownList' fullWidth>
+                                                    <InputLabel>Privacy</InputLabel>
+                                                    <Select label='privacy' value={privacy} onChange={(e) => setPrivacy(e.target.value)} required>
+                                                        {privacies.map((privacy) => {
+                                                            return <MenuItem value={privacy} key={privacy}><Typography variant='action'>{privacy}</Typography></MenuItem>
+                                                        })}
+                                                    </Select>
+                                                </FormControl>
+                                            </Stack>
+                                        </Box>
+                                    </Stack>
+
+                                    <Stack width='100%'>
+                                        <Box display='flex' justifyContent='space-between'>
+                                            <Box display='flex' gap='25px' alignItems='center'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
+                                                <Typography color='#222'>{accountsList.length}/{originalDetails[0]?.maxCapacity}</Typography>
+                                            </Box>
+                                            <Button style={{height:'40px', width:'65px'}} variant='green' onClick={() => setOpenAddMemberModal(true)} disabled={String(accountsList.length) === String(originalDetails[0]?.maxCapacity)}><PersonAddIcon sx={{fontSize:'30px'}}/></Button>
+                                        </Box>
+                                        <hr/>
+                                        <Grid container gap='20px' marginTop='25px' alignItems='center'>
+                                            {accountsList.map((account) => (
+                                                <Grid key={account.id} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                                                    <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
+                                                        <CardActionArea onClick={() => viewAccount(account.id)}>
+                                                            <CardContent sx={{margin:'16px', overflow:'hidden'}}>
+                                                                {originalDetails[0]?.leader === account.id && <img src={require('../../img/icons/crown.png')} height='20px'/>}
+                                                                <Typography variant='h5'>@{account.username}</Typography>
+                                                                <Typography textTransform='capitalize' variant='subtitle4'>{account.fullName}</Typography>
+                                                            </CardContent>
+                                                        </CardActionArea>
+                                                    </Card>
+                                                </Grid>
+                                            ))}
+                                        </Grid>
+                                    </Stack>
+                                </Stack>
+                                :
+                                <Box display='flex' gap='50px'>
+                                    <Stack width='100%'>
+                                        <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                            <Box display='flex' gap='25px' alignItems='center'>
+                                                <TextField value={name} onChange={(e) => setName(e.target.value)} className='inputTextField' variant='outlined' label='Name' inputProps={{pattern:'^[^0-9]+$'}} required/>
+                                                <TextField value={handle} onChange={(e) => setHandle(e.target.value)} className='inputTextField' variant='outlined' label='Handle' inputProps={{pattern:'^[A-Za-z0-9_]+$'}} required/>
+                                            </Box>
+                                            <Button onClick={() => setOpenDisbandConfirmation(true)} variant='red'>Disband</Button>
+                                        </Box>
+                                        <hr/>
+                                        <Box display='flex' marginTop='25px' gap='50px'>
+                                            <Stack gap='25px' width='50%'>
+                                                <FormControl className='dropdownList'>
+                                                    <InputLabel>Region</InputLabel>
+                                                    <Select value={region} onChange={(e) => setRegion(e.target.value)} label='Region' required>
+                                                        {regions.map((region) => {
+                                                            return <MenuItem value={region} key={region}><Typography variant='action'>{region}</Typography></MenuItem>
+                                                        })}
+                                                    </Select>
+                                                </FormControl>
+                                                <FormControl className='dropdownList' fullWidth>
+                                                    <InputLabel>Gender</InputLabel>
+                                                    <Select label='Gender' value={genderReq} onChange={(e) => setGenderReq(e.target.value)} required>
+                                                        {genders.map((gender) => {
+                                                            return <MenuItem value={gender} key={gender}><Typography variant='action'>{gender}</Typography></MenuItem>
+                                                        })}
+                                                    </Select>
+                                                </FormControl>
+                                                <TextField value={maxCapacity} onChange={(e) => setMaxCapacity(e.target.value)} className='inputTextField' variant='outlined' label='Max Capacity' type='number' required/>
+                                            </Stack>
+                                            <Stack gap='25px' width='50%'>
+                                                <FormControl className='dropdownList'>
+                                                    <InputLabel>Sport(s)</InputLabel>
+                                                    <Select label='Sport(s)' sx={{textTransform:'uppercase', fontWeight:'bold'}} value={sports} onChange={concatSports} renderValue={(selected) => selected.join(', ')} multiple required>
+                                                        {sportsList?.map((sport) => {
+                                                            return <MenuItem value={sport.name} key={sport.name}>
+                                                                <Checkbox checked={sports.indexOf(sport.name) > -1} />
+                                                                <Typography variant='action'>{sport.name}</Typography>
+                                                            </MenuItem>
+                                                        })}
+                                                    </Select>
+                                                </FormControl>
+                                                <FormControl className='dropdownList' fullWidth>
+                                                    <InputLabel>Privacy</InputLabel>
+                                                    <Select label='privacy' value={privacy} onChange={(e) => setPrivacy(e.target.value)} required>
+                                                        {privacies.map((privacy) => {
+                                                            return <MenuItem value={privacy} key={privacy}><Typography variant='action'>{privacy}</Typography></MenuItem>
+                                                        })}
+                                                    </Select>
+                                                </FormControl>
+                                            </Stack>
+                                        </Box>
+                                    </Stack>
+
+                                    <Stack width='100%'>
+                                        <Box display='flex' justifyContent='space-between'>
+                                            <Box display='flex' gap='25px' alignItems='center'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
+                                                <Typography color='#222'>{accountsList.length}/{originalDetails[0]?.maxCapacity}</Typography>
+                                            </Box>
+                                            <Button style={{height:'40px', width:'65px'}} variant='green' onClick={() => setOpenAddMemberModal(true)} disabled={String(accountsList.length) === String(originalDetails[0]?.maxCapacity)}><PersonAddIcon sx={{fontSize:'30px'}}/></Button>
+                                        </Box>
+                                        <hr/>
+                                        <Grid container gap='20px' marginTop='25px' alignItems='center'>
+                                            {accountsList.map((account) => (
+                                                <Grid key={account.id} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                                                    <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
+                                                        <CardActionArea onClick={() => viewAccount(account.id)}>
+                                                            <CardContent sx={{margin:'16px', overflow:'hidden'}}>
+                                                                {originalDetails[0]?.leader === account.id && <img src={require('../../img/icons/crown.png')} height='20px'/>}
+                                                                <Typography variant='h5'>@{account.username}</Typography>
+                                                                <Typography textTransform='capitalize' variant='subtitle4'>{account.fullName}</Typography>
+                                                            </CardContent>
+                                                        </CardActionArea>
+                                                    </Card>
+                                                </Grid>
+                                            ))}
+                                        </Grid>
+                                    </Stack>
+                                </Box>
+                            }
+                            <Box marginTop='75px' display='flex' justifyContent='center'>
+                                <Stack gap='5px' width='100%'>
+                                    <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
+                                    <Box display='flex' gap='50px' justifyContent='center'>
+                                        <Button sx={{width:(isMobile ? '100%' : '250px')}} variant='blue' type='submit'>Save Changes</Button>
+                                        <Button sx={{width:'120px'}} variant='red' onClick={() => {toggleEditMode(false); revertChanges()}}>Back</Button>
                                     </Box>
-                                    <hr width='100%'/>
-                                    <Box display='flex' marginTop='25px' gap='50px'>
+                                </Stack>
+                            </Box>
+                        </form>
+                        </>
+                        :
+                        <>
+                        {isMobile ?
+                            <Stack display='flex' gap='50px'>
+                                <Stack width='100%'>
+                                    {adjust730 ?
+                                        <Stack>
+                                            <Typography variant='h5'>{name}</Typography>
+                                            <Typography color='#222'>@{handle}</Typography>
+                                        </Stack>
+                                        :
+                                        <Box display='flex' gap='25px' alignItems='center'>
+                                            <Typography variant='h5'>{name}</Typography>
+                                            <Typography color='#222'>@{handle}</Typography>
+                                        </Box>
+                                    }
+                                    <hr/>
+                                    <Box display='flex' marginTop='25px'>
                                         <Stack gap='25px' width='50%'>
-                                            <FormControl className='dropdownList'>
-                                                <InputLabel>Region</InputLabel>
-                                                <Select value={region} onChange={(e) => setRegion(e.target.value)} label='Region' required>
-                                                    {regions.map((region) => {
-                                                        return <MenuItem value={region} key={region}><Typography variant='action'>{region}</Typography></MenuItem>
-                                                    })}
-                                                </Select>
-                                            </FormControl>
-                                            <FormControl className='dropdownList' fullWidth>
-                                                <InputLabel>Gender</InputLabel>
-                                                <Select label='Gender' value={genderReq} onChange={(e) => setGenderReq(e.target.value)} required>
-                                                    {genders.map((gender) => {
-                                                        return <MenuItem value={gender} key={gender}><Typography variant='action'>{gender}</Typography></MenuItem>
-                                                    })}
-                                                </Select>
-                                            </FormControl>
-                                            <TextField value={maxCapacity} onChange={(e) => setMaxCapacity(e.target.value)} className='inputTextField' variant='outlined' label='Max Capacity' type='number' required/>
+                                            <Stack>
+                                                <Typography fontWeight='bold' variant='body1'>Region</Typography>
+                                                <Typography variant='body1' color='#222' textTransform='capitalize'>{region}</Typography>
+                                            </Stack>
+                                            <Stack>
+                                                <Typography fontWeight='bold' variant='body1'>Gender</Typography>
+                                                <Typography variant='body1' color='#222' textTransform='capitalize'>{genderReq}</Typography>
+                                            </Stack>
                                         </Stack>
                                         <Stack gap='25px' width='50%'>
-                                            <FormControl className='dropdownList'>
-                                                <InputLabel>Sport(s)</InputLabel>
-                                                <Select label='Sport(s)' sx={{textTransform:'uppercase', fontWeight:'bold'}} value={sports} onChange={concatSports} renderValue={(selected) => selected.join(', ')} multiple required>
-                                                    {sportsList?.map((sport) => {
-                                                        return <MenuItem value={sport.name} key={sport.name}>
-                                                            <Checkbox checked={sports.indexOf(sport.name) > -1} />
-                                                            <Typography variant='action'>{sport.name}</Typography>
-                                                        </MenuItem>
-                                                    })}
-                                                </Select>
-                                            </FormControl>
-                                            <FormControl className='dropdownList' fullWidth>
-                                                <InputLabel>Privacy</InputLabel>
-                                                <Select label='privacy' value={privacy} onChange={(e) => setPrivacy(e.target.value)} required>
-                                                    {privacies.map((privacy) => {
-                                                        return <MenuItem value={privacy} key={privacy}><Typography variant='action'>{privacy}</Typography></MenuItem>
-                                                    })}
-                                                </Select>
-                                            </FormControl>
+                                            <Stack>
+                                                <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
+                                                <Typography variant='body1' color='#222' textTransform='capitalize'>{sports.join(', ')}</Typography>
+                                            </Stack>
+                                            <Stack>
+                                                <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
+                                                <Typography variant='body1' color='#222' textTransform='capitalize'>{privacy}</Typography>
+                                            </Stack>
                                         </Stack>
                                     </Box>
                                 </Stack>
 
                                 <Stack width='100%'>
                                     <Box display='flex' justifyContent='space-between'>
-                                        <Box display='flex' gap='25px' alignItems='center'>
-                                            <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
-                                            <Typography color='#222'>{accountsList.length}/{originalDetails[0]?.maxCapacity}</Typography>
-                                        </Box>
-                                        <Button style={{height:'40px', width:'65px'}} variant='green' onClick={() => setOpenAddMemberModal(true)} disabled={String(accountsList.length) === String(originalDetails[0]?.maxCapacity)}><PersonAddIcon sx={{fontSize:'30px'}}/></Button>
+                                        {adjust730 ?
+                                            <Stack>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
+                                                <Typography color='#222'>{accountsList.length}/{maxCapacity}</Typography>
+                                            </Stack>
+                                            :
+                                            <Box display='flex' gap='25px' alignItems='center'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
+                                                <Typography color='#222'>{accountsList.length}/{maxCapacity}</Typography>
+                                            </Box>
+                                        }
+                                        
+                                        
+                                        <Button onClick={(e) => {toggleEditMode(true)}} sx={{height:'30px'}} variant='blue'>Edit Team</Button>
                                     </Box>
-                                    <hr width='100%'/>
+                                    <hr/>
+                                    <Grid container gap='20px' marginTop='25px' alignItems='center'>
+                                        {accountsList.map((account) => (
+                                            <Grid key={account.id} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                                                <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
+                                                    <CardActionArea onClick={() => viewAccount(account.id)}>
+                                                        <CardContent sx={{margin:'16px', overflow:'hidden'}}>
+                                                            {originalDetails[0]?.leader === account.id && <img src={require('../../img/icons/crown.png')} height='20px'/>}
+                                                            <Typography variant='h5'>@{account.username}</Typography>
+                                                            <Typography textTransform='capitalize' variant='subtitle4'>{account.fullName}</Typography>
+                                                        </CardContent>
+                                                    </CardActionArea>
+                                                </Card>
+                                            </Grid>
+                                        ))}
+                                    </Grid>
+                                </Stack>
+                            </Stack>
+                            :
+                            <Box display='flex' gap='50px'>
+                                <Stack width='100%'>
+                                    {adjust730 ?
+                                        <Stack>
+                                            <Typography variant='h5'>{name}</Typography>
+                                            <Typography color='#222'>@{handle}</Typography>
+                                        </Stack>
+                                        :
+                                        <Box display='flex' gap='25px' alignItems='center'>
+                                            <Typography variant='h5'>{name}</Typography>
+                                            <Typography color='#222'>@{handle}</Typography>
+                                        </Box>
+                                    }
+                                    <hr/>
+                                    <Box display='flex' marginTop='25px'>
+                                        <Stack gap='25px' width='50%'>
+                                            <Stack>
+                                                <Typography fontWeight='bold' variant='body1'>Region</Typography>
+                                                <Typography variant='body1' color='#222' textTransform='capitalize'>{region}</Typography>
+                                            </Stack>
+                                            <Stack>
+                                                <Typography fontWeight='bold' variant='body1'>Gender</Typography>
+                                                <Typography variant='body1' color='#222' textTransform='capitalize'>{genderReq}</Typography>
+                                            </Stack>
+                                        </Stack>
+                                        <Stack gap='25px' width='50%'>
+                                            <Stack>
+                                                <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
+                                                <Typography variant='body1' color='#222' textTransform='capitalize'>{sports.join(', ')}</Typography>
+                                            </Stack>
+                                            <Stack>
+                                                <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
+                                                <Typography variant='body1' color='#222' textTransform='capitalize'>{privacy}</Typography>
+                                            </Stack>
+                                        </Stack>
+                                    </Box>
+                                </Stack>
+
+                                <Stack width='100%'>
+                                    <Box display='flex' justifyContent='space-between'>
+                                        {adjust730 ?
+                                            <Stack>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
+                                                <Typography color='#222'>{accountsList.length}/{maxCapacity}</Typography>
+                                            </Stack>
+                                            :
+                                            <Box display='flex' gap='25px' alignItems='center'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
+                                                <Typography color='#222'>{accountsList.length}/{maxCapacity}</Typography>
+                                            </Box>
+                                        }
+                                        
+                                        
+                                        <Button onClick={(e) => {toggleEditMode(true)}} sx={{height:'30px'}} variant='blue'>Edit Team</Button>
+                                    </Box>
+                                    <hr/>
                                     <Grid container gap='20px' marginTop='25px' alignItems='center'>
                                         {accountsList.map((account) => (
                                             <Grid key={account.id} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
@@ -468,83 +718,15 @@ export default function ManageTeam() {
                                     </Grid>
                                 </Stack>
                             </Box>
-                            <Box marginTop='75px' display='flex' justifyContent='center'>
-                                <Stack gap='5px'>
-                                    <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
-                                    <Box display='flex' gap='50px' justifyContent='center'>
-                                        <Button sx={{width:'250px'}} variant='blue' type='submit'>Save Changes</Button>
-                                        <Button sx={{width:'120px'}} variant='red' onClick={() => {toggleEditMode(false); revertChanges()}}>Back</Button>
-                                    </Box>
-                                </Stack>
-                            </Box>
-                        </form>
-                        </>
-                        :
-                        <>
-                        <Box display='flex' gap='50px'>
-                            <Stack width='100%'>
-                                <Box display='flex' gap='25px' alignItems='center'>
-                                    <Typography variant='h5'>{name}</Typography>
-                                    <Typography color='#222'>@{handle}</Typography>
-                                </Box>
-                                
-                                <hr width='100%'/>
-                                <Box display='flex' marginTop='25px'>
-                                    <Stack gap='25px' width='50%'>
-                                        <Stack>
-                                            <Typography fontWeight='bold' variant='body1'>Region</Typography>
-                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{region}</Typography>
-                                        </Stack>
-                                        <Stack>
-                                            <Typography fontWeight='bold' variant='body1'>Gender</Typography>
-                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{genderReq}</Typography>
-                                        </Stack>
-                                    </Stack>
-                                    <Stack gap='25px' width='50%'>
-                                        <Stack>
-                                            <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
-                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{sports.join(', ')}</Typography>
-                                        </Stack>
-                                        <Stack>
-                                            <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
-                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{privacy}</Typography>
-                                        </Stack>
-                                    </Stack>
-                                </Box>
-                            </Stack>
-
-                            <Stack width='100%'>
-                                <Box display='flex' justifyContent='space-between'>
-                                    <Box display='flex' gap='25px' alignItems='center'>
-                                        <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
-                                        <Typography color='#222'>{accountsList.length}/{maxCapacity}</Typography>
-                                    </Box>
-                                    <Button onClick={(e) => {toggleEditMode(true)}} sx={{height:'30px'}} variant='blue'>Edit Team</Button>
-                                </Box>
-                                <hr width='100%'/>
-                                <Grid container gap='20px' marginTop='25px' alignItems='center'>
-                                    {accountsList.map((account) => (
-                                        <Grid key={account.id} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                                            <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
-                                                <CardActionArea onClick={() => viewAccount(account.id)}>
-                                                    <CardContent sx={{margin:'16px', overflow:'hidden'}}>
-                                                        {originalDetails[0]?.leader === account.id && <img src={require('../../img/icons/crown.png')} height='20px'/>}
-                                                        <Typography variant='h5'>@{account.username}</Typography>
-                                                        <Typography textTransform='capitalize' variant='subtitle4'>{account.fullName}</Typography>
-                                                    </CardContent>
-                                                </CardActionArea>
-                                            </Card>
-                                        </Grid>
-                                    ))}
-                                </Grid>
-                            </Stack>
-                        </Box>
+                        }
+                        
                         <Stack gap='25px'>
                             <Stack gap='10px'>
                                 <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
-                                <hr width='100%'/>
+                                <hr/>
                             </Stack>
-                            <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
+                            {isMobile ? 
+                                <>
                                 <Stack width='100%'>
                                     <Typography fontWeight='bold' variant='body1'>Medals</Typography>
                                     <Box display='flex' gap='25px'>
@@ -568,7 +750,35 @@ export default function ManageTeam() {
                                         <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
                                     </Box>
                                 </Stack>
-                            </Box>
+                                </>
+                                :
+                                <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
+                                    <Stack width='100%'>
+                                        <Typography fontWeight='bold' variant='body1'>Medals</Typography>
+                                        <Box display='flex' gap='25px'>
+                                            <Box display='flex' gap='5px'>
+                                                <img width='25px' src={require('../../img/icons/first.png')}/>
+                                                <Typography variant='body1' color='#222'>{profileInfo?.first}</Typography>
+                                            </Box>
+                                            <Box display='flex' gap='5px'>
+                                                <img width='25px' src={require('../../img/icons/second.png')}/>
+                                                <Typography variant='body1' color='#222'>{profileInfo?.second}</Typography>
+                                            </Box>
+                                            <Box display='flex' gap='5px'>
+                                                <img width='25px' src={require('../../img/icons/third.png')}/>
+                                                <Typography variant='body1' color='#222'>{profileInfo?.third}</Typography>
+                                            </Box>
+                                        </Box>
+                                    </Stack>
+                                    <Stack width='100%'>
+                                        <Typography fontWeight='bold' variant='body1'>Tournaments Played</Typography>
+                                        <Box display='flex'>
+                                            <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
+                                        </Box>
+                                    </Stack>
+                                </Box>
+                            }
+                            
                             <Stack paddingTop='8px'>
                                     <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
                                     <Box position='relative' display='flex' justifyContent='center'>
@@ -589,14 +799,14 @@ export default function ManageTeam() {
         </Box>
 
         <Modal open={openViewModal} onClose={() => {setOpenViewModal(false)}} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='400px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='80%' maxWidth='400px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%' gap='40px'>
                     <Stack gap='15px'>
                         <Typography textTransform='uppercase' variant='h5'>Member Details:</Typography>
                         <table>
                             <tbody>
                                 <tr>
-                                    <td width='120px'>
+                                    <td width={isMobile ? '90px' : '120px'}>
                                         <Typography variant='subtitle2'>Username:</Typography>
                                     </td>
                                     <td>
@@ -643,7 +853,7 @@ export default function ManageTeam() {
                         (!openAddMemberModal ?
                             (originalDetails[0]?.leader !== accountDetails?.id && <Button onClick={() => setOpenConfirmation(true)} variant='red' fullWidth>Kick Member</Button>)
                             :
-                            <Box display='flex' gap='50px'>
+                            <Box display='flex' gap={isMobile ? '25px' : '50px'}>
                                 <Button onClick={() => addMember(accountDetails?.id)} variant='blue' fullWidth>Add Member</Button>
                                 <Button onClick={() => setOpenViewModal(false)} variant='red' fullWidth>Back</Button>
                             </Box>
@@ -656,7 +866,7 @@ export default function ManageTeam() {
         </Modal>
 
         <Modal open={openAddMemberModal} onClose={() => {setOpenAddMemberModal(false)}} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='400px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='80%' maxWidth='400px' padding='30px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%' gap='40px'>
                     <Stack gap='30px'>
                         <form style={{display:'flex', width:'100%'}} onSubmit={searchAccount}>

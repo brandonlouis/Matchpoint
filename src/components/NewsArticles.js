@@ -55,7 +55,7 @@ export default function NewsArticles() {
 
 
     return (
-        <Box height='100%' width='100%' minHeight='460px' padding='185px 0 150px' display='flex' justifyContent='center'>
+        <Box height='100%' width='100%' minHeight='460px' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
             <Stack width={isMobile || isTablet ? '90%' : '80%'}>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     {isMobile ? 

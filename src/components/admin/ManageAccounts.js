@@ -4,8 +4,12 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../../config/firebase';
 import { getDocs, getDoc, doc, collection, query, orderBy, deleteDoc } from 'firebase/firestore';
 import axios from 'axios';
+import { useMediaQuery } from 'react-responsive';
 
 export default function ManageAccounts() {
+    const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
+
     const [openModal, setOpenModal] = useState(false)
     const [openConfirmation, setOpenConfirmation] = useState(false)
 
@@ -69,17 +73,30 @@ export default function ManageAccounts() {
     
     return (
         <>
-        <Box height='100%' width='100%' minHeight='280px' padding='185px 0 150px' display='flex' justifyContent='center'>
-            <Stack width='80%'>
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
-                    <Typography variant='h3'>Manage Accounts</Typography>
-                    <Box>
-                        <form style={{display:'flex'}} onSubmit={searchAccount}>
-                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
-                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
-                        </form>
+        <Box height='100%' width='100%' minHeight='280px' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
+            <Stack width={isMobile || isTablet ? '90%' : '80%'}>
+                {isMobile ?
+                    <Stack gap='25px'>
+                        <Typography variant='h3'>Manage Accounts</Typography>
+                        <Box>
+                            <form style={{display:'flex'}} onSubmit={searchAccount}>
+                                <TextField className='searchTextField' sx={{width:'100% !important'}} placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Box>
+                    </Stack>
+                    :
+                    <Box display='flex' justifyContent='space-between' alignItems='center'>
+                        <Typography variant='h3'>Manage Accounts</Typography>
+                        <Box>
+                            <form style={{display:'flex'}} onSubmit={searchAccount}>
+                                <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                        </Box>
                     </Box>
-                </Box>
+                }
+                
                 <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
                     {accountsList.map((account) => (
                         <Grid key={account.id} item width='150px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
@@ -98,7 +115,7 @@ export default function ManageAccounts() {
         </Box>
 
         <Modal open={openModal} onClose={() => setOpenModal(false)} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' width='400px' padding='50px' margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='80%' maxWidth='400px' padding={isMobile ? '20px' : '50px'} margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%' gap='40px'>
                     
                     <Stack gap='15px'>

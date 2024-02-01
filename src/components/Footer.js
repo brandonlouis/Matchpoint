@@ -10,15 +10,15 @@ export default function Footer() {
         <Box width='100%' bgcolor='#222' display='flex' justifyContent='center' height='100%'>
             <Stack width={isMobile || isTablet ? '90%' : '80%'}>
                 <Box display='flex' justifyContent='space-evenly' alignItems='center' padding={isMobile ? '80px 0' : '120px 0'}>
-                    <a style={{height:'40px'}} href='#'><img height='40px' src={require('../img/icons/facebook.png')}/></a>
-                    <img src={require('../img/icons/slash.png')} height='50px' opacity='0'/>
-                    <a style={{height:'40px'}} href='#'><img height='40px' src={require('../img/icons/instagram.png')}/></a>
-                    <img src={require('../img/icons/slash.png')} height='50px' opacity='0.15'/>
-                    <a style={{height:'40px'}} href='#'><img height='40px' src={require('../img/icons/twitter.png')}/></a>
-                    <img src={require('../img/icons/slash.png')} height='50px' opacity='0.15'/>
-                    <a style={{height:'40px'}} href='#'><img height='40px' src={require('../img/icons/youtube.png')}/></a>
-                    <img src={require('../img/icons/slash.png')} height='50px' opacity='0.15'/>
-                    <a style={{height:'40px'}} href='#'><img height='40px' src={require('../img/icons/linkedin.png')}/></a>
+                    <a style={{height:(isMobile ? '30px' : '40px')}} href='#'><img height={isMobile ? '30px' : '40px'} src={require('../img/icons/facebook.png')}/></a>
+                    <img src={require('../img/icons/slash.png')} height={isMobile ? '25px' : '50px'} opacity='0'/>
+                    <a style={{height:(isMobile ? '30px' : '40px')}} href='#'><img height={isMobile ? '30px' : '40px'} src={require('../img/icons/instagram.png')}/></a>
+                    <img src={require('../img/icons/slash.png')} height={isMobile ? '25px' : '50px'} opacity='0.15'/>
+                    <a style={{height:(isMobile ? '30px' : '40px')}} href='#'><img height={isMobile ? '30px' : '40px'} src={require('../img/icons/twitter.png')}/></a>
+                    <img src={require('../img/icons/slash.png')} height={isMobile ? '25px' : '50px'} opacity='0.15'/>
+                    <a style={{height:(isMobile ? '30px' : '40px')}} href='#'><img height={isMobile ? '30px' : '40px'} src={require('../img/icons/youtube.png')}/></a>
+                    <img src={require('../img/icons/slash.png')} height={isMobile ? '25px' : '50px'} opacity='0.15'/>
+                    <a style={{height:(isMobile ? '30px' : '40px')}} href='#'><img height={isMobile ? '30px' : '40px'} src={require('../img/icons/linkedin.png')}/></a>
                 </Box>
 
                 {isMobile ? 
@@ -44,7 +44,6 @@ export default function Footer() {
                         </Box>
                     </Box>
                 }
-                
             </Stack>
         </Box>
     )
