@@ -348,6 +348,7 @@ export default function ManageTeam() {
             matchQuerySnapshot.forEach((docMatch) => {
                 const data = docMatch.data()
                 const participants = data.participants
+                const rounds = data.round
                 const index = data.participants.indexOf(id)
     
                 participants.splice(index, 1) // Remove from match participants list
@@ -361,8 +362,26 @@ export default function ManageTeam() {
                     delete data.statistics[id]
                 }
 
+                // const updatedRounds = {}
+                // rounds.forEach((round) => {
+                //     round.matchesPerRound.forEach((match) => {
+                //         if (match[0].hasOwnProperty(id)) {
+                //             match[0] = { disbanded: match[0][id] }
+                //             delete match[0][id]
+                //         } else if (match[1].hasOwnProperty(id)) {
+                //             match[1] = { disbanded: match[1][id] }
+                //             delete match[1][id]
+                //         }
+                
+                //         if (match[2].victor === id) {
+                //             match[2].victor = 'disbanded'
+                //         }
+                //     })
+                // })
+                
                 const updatePromise = updateDoc(doc(db, 'matches', docMatch.id), {
                     participants,
+                    rounds,
                     statistics: updatedStatistics
                 })
                 matchUpdatePromises.push(updatePromise)

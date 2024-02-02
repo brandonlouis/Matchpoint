@@ -423,7 +423,7 @@ export default function ManageAccountProfile() {
                                                     <Stack width='100%'>
                                                         <Typography variant='body1'>Not in a team</Typography>
                                                         <Box display='flex' gap='10px'>
-                                                            <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'} fullWidth>Join a Team</Button>
+                                                            <Button sx={{height:'30px'}} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/PlayersTeams' : alert("Please verify your account before joining a team")}} fullWidth>Join a Team</Button>
                                                             <Button sx={{ height: '30px' }} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/CreateTeam' : alert("Please verify your account before creating a team")}} fullWidth>Create a Team</Button>
                                                         </Box>
                                                     </Stack>
@@ -431,7 +431,7 @@ export default function ManageAccountProfile() {
                                                 <>
                                                     <Typography variant='body1'>Not in a team</Typography>
                                                     <Box display='flex' gap='10px'>
-                                                        <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'}>Join a Team</Button>
+                                                        <Button sx={{height:'30px'}} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/PlayersTeams' : alert("Please verify your account before joining a team")}}>Join a Team</Button>
                                                         <Button sx={{ height: '30px' }} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/CreateTeam' : alert("Please verify your account before creating a team")}}>Create a Team</Button>
                                                     </Box>
                                                 </>
@@ -592,7 +592,7 @@ export default function ManageAccountProfile() {
                                                     <>
                                                         <Typography variant='body1'>Not in a team</Typography>
                                                         <Box display='flex' gap='10px'>
-                                                            <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'}>Join a Team</Button>
+                                                            <Button sx={{height:'30px'}} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/PlayersTeams' : alert("Please verify your account before joining a team")}}>Join a Team</Button>
                                                             <Button sx={{ height: '30px' }} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/CreateTeam' : alert("Please verify your account before creating a team")}}>Create a Team</Button>
                                                         </Box>
                                                     </>
@@ -671,7 +671,7 @@ export default function ManageAccountProfile() {
                                                     <>
                                                         <Typography variant='body1'>Not in a team</Typography>
                                                         <Box display='flex' gap='10px'>
-                                                            <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href='/PlayersTeams'}>Join a Team</Button>
+                                                            <Button sx={{height:'30px'}} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/PlayersTeams' : alert("Please verify your account before joining a team")}}>Join a Team</Button>
                                                             <Button sx={{ height: '30px' }} variant='blue' onClick={() => {user.emailVerified ? window.location.href = '/CreateTeam' : alert("Please verify your account before creating a team")}}>Create a Team</Button>
                                                         </Box>
                                                     </>

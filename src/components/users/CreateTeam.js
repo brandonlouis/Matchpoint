@@ -75,7 +75,7 @@ export default function CreateTeam() {
                         third: 0,
                         tournamentsParticipated: 0
                     })
-                    alert('Team has been created')
+                    alert('Team created successfully')
                     window.location.href = '/ManageAccountProfile'  
                 })
             }
