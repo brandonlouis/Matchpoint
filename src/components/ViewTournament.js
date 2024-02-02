@@ -172,7 +172,7 @@ export default function ViewTournament() {
                     try {
                         const q = query(collection(db, 'accounts'), orderBy('username'))
                         const data = await getDocs(q)
-                        const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => !tournamentDetails.participants.includes(item.id) && !tournamentDetails.collaborators.includes(item.id) && item.id !== tournamentDetails.host && (item.username?.toLowerCase().includes(searchCriteria.toLowerCase()) || item.fullName?.toLowerCase().includes(searchCriteria.toLowerCase())))
+                        const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => !tournamentDetails.participants.includes(item.id) && !tournamentDetails.collaborators.includes(item.id) && item.id !== tournamentDetails.host && (item.username?.toLowerCase().includes(searchCriteria.toLowerCase()) || item.fullName?.toLowerCase().includes(searchCriteria.toLowerCase())) && item.type !== 'admin')
                         setSearchResultList(resList)
                     } catch (err) {
                         console.error(err);
@@ -192,7 +192,7 @@ export default function ViewTournament() {
                 try {
                     const q = query(collection(db, 'accounts'), orderBy('username'))
                     const data = await getDocs(q)
-                    const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => !tournamentDetails.collaborators.includes(item.id) && !tournamentDetails.participants.includes(item.id) && (item.username?.toLowerCase().includes(searchCriteria.toLowerCase()) || item.fullName?.toLowerCase().includes(searchCriteria.toLowerCase())))
+                    const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => !tournamentDetails.collaborators.includes(item.id) && !tournamentDetails.participants.includes(item.id) && (item.username?.toLowerCase().includes(searchCriteria.toLowerCase()) || item.fullName?.toLowerCase().includes(searchCriteria.toLowerCase())) && item.type !== 'admin')
     
                     setSearchResultList(resList)
                 } catch (err) {

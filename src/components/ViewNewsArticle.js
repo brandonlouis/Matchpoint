@@ -4,7 +4,6 @@ import { FacebookShareButton, TwitterShareButton } from 'react-share'
 import { db } from '../config/firebase'
 import { getDoc, getDocs, doc, collection, query, orderBy, limit } from 'firebase/firestore'
 import { useMediaQuery } from 'react-responsive'
-import { Link } from 'react-router-dom';
 
 export default function ViewNewsArticle() {
     const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
@@ -16,15 +15,17 @@ export default function ViewNewsArticle() {
     const [newsArticleDetails, setNewsArticleDetails] = useState({})
     const [newsArticleList, setNewsArticleList] = useState([])
     const [authorName, setAuthorName] = useState('')
-    const tournamentID = (newsArticleDetails.tournamentID)
+    const [tournamentID, setTournamentID] = useState('')
     
     useEffect(() => {
         const getNewsArticle = async () => {
             try {
                 const res = await getDoc(doc(db, 'newsArticles', articleID))
                 const resList = res.data()
+
                 setNewsArticleDetails(processDate(resList))
-                getAuthorName(resList.author)                
+                setTournamentID(resList.tournamentID)
+                getAuthorName(resList.author)
             } catch (err) {
                 console.error(err)
             }
@@ -73,11 +74,8 @@ export default function ViewNewsArticle() {
     }
 
     const viewNewsArticle=(id)=>{
-        window.location.href = `/ViewNewsArticle?id=${id}`;
-        
+        window.location.href = `/ViewNewsArticle?id=${id}`
     }
-
-    
 
 
     return (
@@ -88,9 +86,7 @@ export default function ViewNewsArticle() {
                     <Stack gap='50px' width='100%'>
                         <Stack gap='15px'>
                             <Typography variant='h2'>{newsArticleDetails.title}</Typography>       
-                            <Typography color='#666' fontWeight='600' variant='subtitle2'>
-                            <Link to={`/ViewTournament?id=/${tournamentID}`}>View tournament details</Link>
-                            </Typography>                 
+                            <a href={`/ViewTournament?id=/${tournamentID}`}><Typography color='#006DEE' fontWeight='600' variant='subtitle2'>View tournament details</Typography> </a>
                             {adjust750 ? 
                                 <Stack gap='10px'>                                    
                                     <Typography color='#666' fontWeight='600' variant='subtitle2'>
@@ -119,7 +115,6 @@ export default function ViewNewsArticle() {
                                     </Box>
                                 </Box>
                             }
-                            
                         </Stack>
                         <Typography sx={{whiteSpace:'pre-line'}} variant='body1'>{newsArticleDetails.content}</Typography>
                         <Stack marginTop='100px' gap='35px'>

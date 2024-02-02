@@ -42,7 +42,7 @@ export default function PlayersTeams() {
                 const teamQ = query(collection(db, 'teams'), orderBy('handle'))
                 const teamData = await getDocs(teamQ)
 
-                const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.type !== 'admin')
                 const teamList = teamData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.privacy === 'public') // Filter out private teams
 
                 const filteredList = [...accList, ...teamList].filter((item) => {

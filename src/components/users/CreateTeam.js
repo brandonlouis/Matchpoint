@@ -18,7 +18,7 @@ export default function CreateTeam() {
     const [sports, setSports] = useState([])
     const [capacity, setCapacity] = useState('')
     const [gender, setGender] = useState('')
-    const [privacy, setPrivacy] = useState('')
+    const [privacy, setPrivacy] = useState('public')
     const [sportsList, setSportsList] = useState([])
     
     const genders = ["male", "female", "mixed"]
