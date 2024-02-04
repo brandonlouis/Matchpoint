@@ -34,6 +34,8 @@ export default function ViewMatch() {
     const [youtubeURL, setYoutubeURL] = useState([])
 
     const [errorMessage, setErrorMessage] = useState('')
+
+    const [isLoading, setIsLoading] = useState(true)
     
 
     useEffect(() => { // Handle retrieving tournament list on initial load
@@ -41,6 +43,12 @@ export default function ViewMatch() {
             try {
                 const res = await getDoc(doc(db, 'tournaments', matchID))
                 const resList = { ...res.data(), id: res.id }
+
+                if (resList.host === undefined) {
+                    setTournamentDetails({})
+                    setIsLoading(false)
+                    return
+                }
 
                 setTournamentDetails(resList)
                 if (user.uid === resList.host || resList.collaborators?.includes(user.uid)) {
@@ -55,6 +63,12 @@ export default function ViewMatch() {
                 const res = await getDoc(doc(db, 'matches', matchID))
                 const resList = res.data()
 
+                if (resList === undefined) {
+                    setMatchList({})
+                    setIsLoading(false)
+                    return
+                }
+
                 getParticipants(resList)
                 
                 Object.entries(resList.round).forEach(([key, value]) => {
@@ -64,6 +78,8 @@ export default function ViewMatch() {
                 })
                 setMatchList(resList)
                 setYoutubeURL(resList.highlights)
+
+                setIsLoading(false)
             } catch (err) {
                 console.error(err)
             }
@@ -455,28 +471,57 @@ export default function ViewMatch() {
     return (
         <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
             <Stack width={isMobile || isTablet ? '90%' : '80%'}>
-                {adjust730 ?
-                    <Stack justifyContent='space-between' gap={adjust470 ? '30px' : '15px'}>
-                        <Typography variant='h3'>{viewerType === 'host&collab' ? 'Manage' : 'Match'} Score & Matchup</Typography>
-                        {adjust470 ?
-                            <Stack gap='20px'>
-                                <Button sx={{width:'100%', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
+                {Object.keys(tournamentDetails).length === 0 && !isLoading ?
+                    <Stack height='500px' width='100%' justifyContent='center' alignItems='center'>
+                        <Typography variant='h3' textAlign='center'>Match does not exist</Typography>
+                    </Stack>
+                    : !isLoading &&
+                    <>
+                    {adjust730 ?
+                        <Stack justifyContent='space-between' gap={adjust470 ? '30px' : '15px'}>
+                            <Typography variant='h3'>{viewerType === 'host&collab' ? 'Manage' : 'Match'} Score & Matchup</Typography>
+                            {adjust470 ?
+                                <Stack gap='20px'>
+                                    <Button sx={{width:'100%', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
 
-                                <Button sx={{ width: '100%', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
-                                <Menu PaperProps={{ sx: { width: '100%' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
-                                <MenuItem onClick={generateAndDownloadExcel}> <Typography variant='navDropdown'>.XLSX</Typography> </MenuItem>
-                                <MenuItem onClick={generateAndDownloadTextFile}> <Typography variant='navDropdown'>.TXT</Typography> </MenuItem>
-                                <MenuItem onClick={() => window.print()}> <Typography variant='navDropdown'>.PDF</Typography></MenuItem>
-                                </Menu>
+                                    <Button sx={{ width: '100%', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
+                                    <Menu PaperProps={{ sx: { width: '100%' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
+                                    <MenuItem onClick={generateAndDownloadExcel}> <Typography variant='navDropdown'>.XLSX</Typography> </MenuItem>
+                                    <MenuItem onClick={generateAndDownloadTextFile}> <Typography variant='navDropdown'>.TXT</Typography> </MenuItem>
+                                    <MenuItem onClick={() => window.print()}> <Typography variant='navDropdown'>.PDF</Typography></MenuItem>
+                                    </Menu>
 
-                                <Button sx={{width:'100%', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorElSchedule(e.currentTarget);setOpenFormatDropdownSchedule(true);}}>Schedule</Button>
-                                <Menu PaperProps={{ sx: { width: '100%' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElSchedule} open={openFormatDropdownSchedule} onClose={() => {setAnchorElSchedule(null); setOpenFormatDropdownSchedule(false);}} disableScrollLock>
-                                    <MenuItem onClick={generateAndDownloadExcelSche}><Typography variant='navDropdown'>.XLSX</Typography></MenuItem>
-                                    <MenuItem onClick={generateAndDownloadTxtSche}><Typography variant='navDropdown'>.TXT</Typography></MenuItem>
-                                    <MenuItem onClick={() => window.print()}><Typography variant='navDropdown'>.PDF</Typography></MenuItem>  
-                                </Menu>   
-                            </Stack>
-                            :
+                                    <Button sx={{width:'100%', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorElSchedule(e.currentTarget);setOpenFormatDropdownSchedule(true);}}>Schedule</Button>
+                                    <Menu PaperProps={{ sx: { width: '100%' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElSchedule} open={openFormatDropdownSchedule} onClose={() => {setAnchorElSchedule(null); setOpenFormatDropdownSchedule(false);}} disableScrollLock>
+                                        <MenuItem onClick={generateAndDownloadExcelSche}><Typography variant='navDropdown'>.XLSX</Typography></MenuItem>
+                                        <MenuItem onClick={generateAndDownloadTxtSche}><Typography variant='navDropdown'>.TXT</Typography></MenuItem>
+                                        <MenuItem onClick={() => window.print()}><Typography variant='navDropdown'>.PDF</Typography></MenuItem>  
+                                    </Menu>   
+                                </Stack>
+                                :
+                                <Box display='flex' gap='20px'>
+                                    <Button sx={{width:'120px', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
+
+                                    <Button sx={{ width: '150px', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
+                                    <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
+                                    <MenuItem onClick={generateAndDownloadExcel}> <Typography variant='navDropdown'>.XLSX</Typography> </MenuItem>
+                                    <MenuItem onClick={generateAndDownloadTextFile}> <Typography variant='navDropdown'>.TXT</Typography> </MenuItem>
+                                    <MenuItem onClick={() => window.print()}> <Typography variant='navDropdown'>.PDF</Typography></MenuItem>
+                                    </Menu>
+
+                                    <Button sx={{width:'150px', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorElSchedule(e.currentTarget);setOpenFormatDropdownSchedule(true);}}>Schedule</Button>
+                                    <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElSchedule} open={openFormatDropdownSchedule} onClose={() => {setAnchorElSchedule(null); setOpenFormatDropdownSchedule(false);}} disableScrollLock>
+                                        <MenuItem onClick={generateAndDownloadExcelSche}><Typography variant='navDropdown'>.XLSX</Typography></MenuItem>
+                                        <MenuItem onClick={generateAndDownloadTxtSche}><Typography variant='navDropdown'>.TXT</Typography></MenuItem>
+                                        <MenuItem onClick={() => window.print()}><Typography variant='navDropdown'>.PDF</Typography></MenuItem>  
+                                    </Menu>   
+                                </Box>
+                            }
+                            
+                        </Stack>
+                        :
+                        <Box display='flex' justifyContent='space-between' alignItems='center'>
+                            <Typography variant='h3'>{viewerType === 'host&collab' ? 'Manage' : 'Match'} Score & Matchup</Typography>
                             <Box display='flex' gap='20px'>
                                 <Button sx={{width:'120px', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
 
@@ -494,339 +539,329 @@ export default function ViewMatch() {
                                     <MenuItem onClick={() => window.print()}><Typography variant='navDropdown'>.PDF</Typography></MenuItem>  
                                 </Menu>   
                             </Box>
-                        }
-                        
-                    </Stack>
-                    :
-                    <Box display='flex' justifyContent='space-between' alignItems='center'>
-                        <Typography variant='h3'>{viewerType === 'host&collab' ? 'Manage' : 'Match'} Score & Matchup</Typography>
-                        <Box display='flex' gap='20px'>
-                            <Button sx={{width:'120px', height:'30px'}} startIcon={<RefreshIcon/>} variant='red' onClick={() => {window.location.reload()}}>Refresh</Button>
-
-                            <Button sx={{ width: '150px', height: '30px' }} startIcon={<DownloadIcon />} variant='blue' onClick={(e) => {setAnchorElScoresheet(e.currentTarget); setOpenFormatDropdownScoresheet(true);}}>Scoresheet</Button>
-                            <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}  transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElScoresheet} open={openFormatDropdownScoresheet} onClose={() => {setAnchorElScoresheet(null); setOpenFormatDropdownScoresheet(false);}} disableScrollLock>
-                            <MenuItem onClick={generateAndDownloadExcel}> <Typography variant='navDropdown'>.XLSX</Typography> </MenuItem>
-                            <MenuItem onClick={generateAndDownloadTextFile}> <Typography variant='navDropdown'>.TXT</Typography> </MenuItem>
-                            <MenuItem onClick={() => window.print()}> <Typography variant='navDropdown'>.PDF</Typography></MenuItem>
-                            </Menu>
-
-                            <Button sx={{width:'150px', height:'30px'}} startIcon={<DownloadIcon/>} variant='blue' onClick={(e) => {setAnchorElSchedule(e.currentTarget);setOpenFormatDropdownSchedule(true);}}>Schedule</Button>
-                            <Menu PaperProps={{ sx: { width: '150px' } }} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }} anchorEl={anchorElSchedule} open={openFormatDropdownSchedule} onClose={() => {setAnchorElSchedule(null); setOpenFormatDropdownSchedule(false);}} disableScrollLock>
-                                <MenuItem onClick={generateAndDownloadExcelSche}><Typography variant='navDropdown'>.XLSX</Typography></MenuItem>
-                                <MenuItem onClick={generateAndDownloadTxtSche}><Typography variant='navDropdown'>.TXT</Typography></MenuItem>
-                                <MenuItem onClick={() => window.print()}><Typography variant='navDropdown'>.PDF</Typography></MenuItem>  
-                            </Menu>   
                         </Box>
-                    </Box>
-                }
-                
-                <Stack marginTop='50px'>
-                    <Typography color='#CB3E3E' textTransform='uppercase' variant='subtitle1'>Ranking Table</Typography>
-                </Stack>
-                <TableContainer sx={{width:'100%', maxWidth:'500px'}} component={Paper}>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell><Typography textTransform='capitalize' color='#222' variant='subtitle2'>Rank</Typography></TableCell>
-                                <TableCell width='150px'><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Participant</Typography></TableCell>
-                                <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>W/L</Typography></TableCell>
-                                <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Avg Score</Typography></TableCell>
-                                <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Points</Typography></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {matchList.participants !== undefined && Object.entries(matchList.participants).sort((a, b) => {
-                                const pointsA = parseFloat(matchList.statistics[a[1]].points)
-                                const pointsB = parseFloat(matchList.statistics[b[1]].points)
-
-                                return pointsB - pointsA // Sort in descending order based on points
-                            })
-                            .map((participant, index) => {
-                                const [key, value] = participant
-                                let name = ''
-                                const participantType = participantDetails.find((item) => item.id === value)
-                                
-                                if (participantType) {
-                                    name = participantType.handle || participantType.username
-                                }
-
-                                const calcAvg = (value) => {
-                                    const points = parseFloat(matchList.statistics[value].points)
-                                    const wins = parseFloat(matchList.statistics[value].wins)
-                                    const losses = parseFloat(matchList.statistics[value].losses)
-
-                                    let ratio = points / (wins + losses)
-                                    ratio = isNaN(ratio) ? 0 : ratio
-
-                                    if (wins !== 0 && losses !== 0){
-                                        ratio = points/(wins+losses)
-                                    }                                
-                                    else if (wins === 0 && losses === 0){
-                                        ratio = points
-                                    }
-                                    
-                                    if (Number.isInteger(ratio)) {
-                                        return ratio.toFixed(0)
-                                    } else {
-                                        return ratio.toFixed(2)
-                                    }
-                                }
-
-                                return (
-                                <TableRow key={key}>
-                                    <TableCell component="th" scope="row">
-                                    {index + 1}
-                                    </TableCell>
-                                    <TableCell style={{maxWidth:'150px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{name}</TableCell>
-                                    <TableCell>{matchList.statistics[value].wins}/{matchList.statistics[value].losses}</TableCell>
-                                    <TableCell>{calcAvg(value)}</TableCell>
-                                    <TableCell>{matchList.statistics[value].points}</TableCell>
+                    }
+                    
+                    <Stack marginTop='50px'>
+                        <Typography color='#CB3E3E' textTransform='uppercase' variant='subtitle1'>Ranking Table</Typography>
+                    </Stack>
+                    <TableContainer sx={{width:'100%', maxWidth:'500px'}} component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell><Typography textTransform='capitalize' color='#222' variant='subtitle2'>Rank</Typography></TableCell>
+                                    <TableCell width='150px'><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Participant</Typography></TableCell>
+                                    <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>W/L</Typography></TableCell>
+                                    <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Avg Score</Typography></TableCell>
+                                    <TableCell><Typography textTransform='capitalize' color='#222'  variant='subtitle2'>Points</Typography></TableCell>
                                 </TableRow>
-                                )
-                            })}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                            </TableHead>
+                            <TableBody>
+                                {matchList.participants !== undefined && Object.entries(matchList.participants).sort((a, b) => {
+                                    const pointsA = parseFloat(matchList.statistics[a[1]].points)
+                                    const pointsB = parseFloat(matchList.statistics[b[1]].points)
 
-                <Stack marginTop='100px' gap='50px'>
-                    {matchList.round !== undefined && Object.entries(matchList.round).map(([key, value], index, entriesArray) => (
-                        <Stack key={key} gap='10px'>
-                            <Stack>
-                                <Typography color='#CB3E3E' textTransform='uppercase' variant='subtitle1'>{index === entriesArray.length - 1 ? 'Grand Finals' : `Round ${key}`}</Typography>
-                                {!editMode ?
-                                    <Typography marginTop='-5px' textTransform='uppercase' variant='body2'>{`${value.time.toLocaleString('en-US', { month: 'short', day: '2-digit', hour: 'numeric', minute: '2-digit', hour12: true })}`}</Typography>
-                                    :
-                                    <TextField type="datetime-local" id={key} variant='outlined' className='inputTextField' size='small' sx={{width:'250px'}} onChange={updateRoundTime} value={formatDateTime(new Date(value.time))}
-                                        InputProps={{
-                                            inputProps: {
-                                                min: tournamentDetails.date?.start.toDate().toISOString().slice(0, 16),
-                                                max: tournamentDetails.date?.end.toDate().toISOString().slice(0, 16),
-                                            },
-                                    }} 
-                                    required/>
-                                }
+                                    return pointsB - pointsA // Sort in descending order based on points
+                                })
+                                .map((participant, index) => {
+                                    if (participant[1] === 'disbanded') { // Exclude disbanded teams from the ranking table
+                                        return
+                                    }
+
+                                    const [key, value] = participant
+                                    let name = ''
+                                    const participantType = participantDetails.find((item) => item.id === value)
+                                    
+                                    if (participantType) {
+                                        name = participantType.handle || participantType.username
+                                    }
+
+                                    const calcAvg = (value) => {
+                                        const points = parseFloat(matchList.statistics[value].points)
+                                        const wins = parseFloat(matchList.statistics[value].wins)
+                                        const losses = parseFloat(matchList.statistics[value].losses)
+
+                                        let ratio = points / (wins + losses)
+                                        ratio = isNaN(ratio) ? 0 : ratio
+
+                                        if (wins !== 0 && losses !== 0){
+                                            ratio = points/(wins+losses)
+                                        }                                
+                                        else if (wins === 0 && losses === 0){
+                                            ratio = points
+                                        }
+                                        
+                                        if (Number.isInteger(ratio)) {
+                                            return ratio.toFixed(0)
+                                        } else {
+                                            return ratio.toFixed(2)
+                                        }
+                                    }
+
+                                    return (
+                                    <TableRow key={key}>
+                                        <TableCell component="th" scope="row">
+                                        {index + 1}
+                                        </TableCell>
+                                        <TableCell style={{maxWidth:'150px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{name}</TableCell>
+                                        <TableCell>{matchList.statistics[value].wins}/{matchList.statistics[value].losses}</TableCell>
+                                        <TableCell>{calcAvg(value)}</TableCell>
+                                        <TableCell>{matchList.statistics[value].points}</TableCell>
+                                    </TableRow>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+
+                    <Stack marginTop='100px' gap='50px'>
+                        {matchList.round !== undefined && Object.entries(matchList.round).map(([key, value], index, entriesArray) => (
+                            <Stack key={key} gap='10px'>
+                                <Stack>
+                                    <Typography color='#CB3E3E' textTransform='uppercase' variant='subtitle1'>{index === entriesArray.length - 1 ? 'Grand Finals' : `Round ${key}`}</Typography>
+                                    {!editMode ?
+                                        <Typography marginTop='-5px' textTransform='uppercase' variant='body2'>{`${value.time.toLocaleString('en-US', { month: 'short', day: '2-digit', hour: 'numeric', minute: '2-digit', hour12: true })}`}</Typography>
+                                        :
+                                        <TextField type="datetime-local" id={key} variant='outlined' className='inputTextField' size='small' sx={{width:'250px'}} onChange={updateRoundTime} value={formatDateTime(new Date(value.time))}
+                                            InputProps={{
+                                                inputProps: {
+                                                    min: tournamentDetails.date?.start.toDate().toISOString().slice(0, 16),
+                                                    max: tournamentDetails.date?.end.toDate().toISOString().slice(0, 16),
+                                                },
+                                        }} 
+                                        required/>
+                                    }
+                                </Stack>
+                                <Grid container columnGap='50px' rowGap='30px' alignItems='stretch'>
+                                    {Object.entries(value.match).map(([key2, value2]) => (
+                                        <Grid key={key2} item width='250px'>
+                                            <Stack gap='5px'>
+                                                {Object.keys(JSON.parse(JSON.stringify(value2[0]))).join('') === Object.values(JSON.parse(JSON.stringify(value2[2]))).join('') && Object.values(JSON.parse(JSON.stringify(value2[2]))).join('') !== '' ?
+                                                    <Box bgcolor='#EEE' borderRadius='5px' display='flex' gap='10px' justifyContent='space-between' alignItems='center' style={{padding: index === entriesArray.length - 1 ? '10px' : '0 10px', border: index === entriesArray.length - 1 && '1px solid #36C944'}}>
+                                                        <Box display='flex' minWidth={editMode ? '65%' : '75%'}>
+                                                            {!editMode ?
+                                                                <Typography color='#222' variant='body2' sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                    {Object.entries(JSON.parse(JSON.stringify(value2[0]))).map(([key2]) => {
+                                                                        const participantType = participantDetails.find((item) => item.id === key2)
+                                                                        if (participantType) {
+                                                                            return participantType.handle || participantType.username
+                                                                        } else {
+                                                                            return (key2 === 'disbanded' && "<Team Disbanded>")
+                                                                        }
+                                                                    }).join('')}
+                                                                </Typography>
+                                                                :
+                                                                <FormControl className='dropdownList' fullWidth>
+                                                                    <Select variant='standard' label='Team' name={`${key}:${key2}:0`} value={Object.keys(value2[0]).join('') || ''} onChange={updateMatchUp} required>
+                                                                        <MenuItem value="">
+                                                                            <Typography>
+                                                                            &nbsp;
+                                                                            </Typography>
+                                                                        </MenuItem>
+                                                                        
+                                                                        {participantDetails.map((participant) => {
+                                                                            return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
+                                                                        })}
+                                                                    </Select>
+                                                                </FormControl>
+                                                            }
+                                                        </Box>
+                                                        <Box display='flex' alignItems='center' justifyContent='flex-end' minWidth={editMode ? '35%' : '20%'}>
+                                                            {!editMode ?
+                                                                <>
+                                                                <Typography fontWeight='600' color='#36C944' variant='body2'>{`${Object.values(JSON.parse(JSON.stringify(value2[0]))).join('')}`}</Typography>
+                                                                <EmojiEventsIcon sx={{ color:'#D0AF00', fontSize: '20px', padding: '5px 0px 5px 10px' }} />
+                                                                </>
+                                                                :
+                                                                <>
+                                                                <TextField className='matchScoreTextField' type='number' size='small' id={`${key}:${key2}:0`} value={Object.values(value2[0]).join('') || ''} onChange={updateScore} required />
+                                                                <Button onClick={updateVictor} name={Object.keys(value2[0]).join('') || ''} id={`${key}:${key2}:0`} sx={{minWidth:'35px', width:'35px', height:'100%', padding:'3px'}}><EmojiEventsIcon sx={{color:'#D0AF00', fontSize:'20px'}}/></Button>
+                                                                </>
+                                                            }
+                                                        </Box>
+                                                    </Box>
+                                                    :
+                                                    <Box bgcolor='#EEE' borderRadius='5px' display='flex' gap='10px' justifyContent='space-between' alignItems='center' style={{padding: index === entriesArray.length - 1 ? '10px' : '0 10px', border: index === entriesArray.length - 1 && '1px solid #222'}}>
+                                                        <Box display='flex' minWidth={editMode ? '65%' : '75%'}>
+                                                            {!editMode ?
+                                                                <Typography color='#222' variant='body2' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
+                                                                    {Object.entries(JSON.parse(JSON.stringify(value2[0]))).map(([key2]) => {
+                                                                        const participantType = participantDetails.find((item) => item.id === key2)
+                                                                        if (participantType) {
+                                                                            return participantType.handle || participantType.username
+                                                                        } else {
+                                                                            return (key2 === 'disbanded' && "<Team Disbanded>")
+                                                                        }
+                                                                    }).join('')}
+                                                                </Typography>
+                                                                :
+                                                                <FormControl className='dropdownList' fullWidth>
+                                                                    <Select variant='standard' label='Team' name={`${key}:${key2}:0`} value={Object.keys(value2[0]).join('') || ''} onChange={updateMatchUp} required>
+                                                                        <MenuItem value="">
+                                                                            <Typography>
+                                                                            &nbsp;
+                                                                            </Typography>
+                                                                        </MenuItem>
+
+                                                                        {participantDetails.map((participant) => {
+                                                                            return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
+                                                                        })}
+                                                                    </Select>
+                                                                </FormControl>
+                                                            }
+                                                        </Box>
+                                                        <Box display='flex' alignItems='center' justifyContent='flex-end' minWidth={editMode ? '35%' : '20%'}>
+                                                            {!editMode ?
+                                                                <>
+                                                                <Typography fontWeight='600' color='#888' variant='body2'>{`${Object.values(JSON.parse(JSON.stringify(value2[0]))).join('')}`}</Typography>
+                                                                <EmojiEventsIcon sx={{ color:'#888', fontSize: '20px', padding: '5px 0px 5px 10px' }} />
+                                                                </>
+                                                                :
+                                                                <>
+                                                                <TextField className='matchScoreTextField' type='number' size='small' id={`${key}:${key2}:0`} value={Object.values(value2[0]).join('') || ''} onChange={updateScore} required />
+                                                                <Button onClick={updateVictor} name={Object.keys(value2[0]).join('') || ''} id={`${key}:${key2}:0`} sx={{minWidth:'35px', width:'35px', height:'100%', padding:'3px'}}><EmojiEventsIcon sx={{color:'#888', fontSize:'20px'}}/></Button>
+                                                                </>
+                                                            }
+                                                        </Box>
+                                                    </Box>
+                                                }
+                                                {Object.keys(JSON.parse(JSON.stringify(value2[1]))).join('') === Object.values(JSON.parse(JSON.stringify(value2[2]))).join('') && Object.values(JSON.parse(JSON.stringify(value2[2]))).join('') !== '' ?
+                                                    <Box bgcolor='#EEE' borderRadius='5px' display='flex' gap='10px' justifyContent='space-between' alignItems='center' style={{padding: index === entriesArray.length - 1 ? '10px' : '0 10px', border: index === entriesArray.length - 1 && '1px solid #36C944'}}>
+                                                        <Box display='flex' minWidth={editMode ? '65%' : '75%'}>
+                                                            {!editMode ?
+                                                                <Typography color='#222' variant='body2' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
+                                                                    {Object.entries(JSON.parse(JSON.stringify(value2[1]))).map(([key2]) => {
+                                                                        const participantType = participantDetails.find((item) => item.id === key2)
+                                                                        if (participantType) {
+                                                                            return participantType.handle || participantType.username
+                                                                        } else {
+                                                                            return (key2 === 'disbanded' && "<Team Disbanded>")
+                                                                        }
+                                                                    }).join('')}
+                                                                </Typography>
+                                                                :
+                                                                <FormControl className='dropdownList' fullWidth>
+                                                                    <Select variant='standard' label='Team' name={`${key}:${key2}:1`} value={Object.keys(value2[1]).join('') || ''} onChange={updateMatchUp} required>
+                                                                        <MenuItem value="">
+                                                                            <Typography>
+                                                                            &nbsp;
+                                                                            </Typography>
+                                                                        </MenuItem>
+
+                                                                        {participantDetails.map((participant) => {
+                                                                            return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
+                                                                        })}
+                                                                    </Select>
+                                                                </FormControl>
+                                                            }
+                                                        </Box>
+                                                        <Box display='flex' alignItems='center' justifyContent='flex-end' minWidth={editMode ? '35%' : '20%'}>
+                                                            {!editMode ?
+                                                                <>
+                                                                <Typography fontWeight='600' color='#36C944' variant='body2'>{`${Object.values(JSON.parse(JSON.stringify(value2[1]))).join('')}`}</Typography>
+                                                                <EmojiEventsIcon sx={{color:'#D0AF00', fontSize: '20px', padding: '5px 0px 5px 10px'}} />
+                                                                </>
+                                                                :
+                                                                <>
+                                                                <TextField className='matchScoreTextField' type='number' size='small' id={`${key}:${key2}:1`} value={Object.values(value2[1]).join('') || ''} onChange={updateScore} required />
+                                                                <Button onClick={updateVictor} name={Object.keys(value2[1]).join('') || ''} id={`${key}:${key2}:1`} sx={{minWidth:'35px', width:'35px', height:'100%', padding:'3px'}}><EmojiEventsIcon sx={{color:'#D0AF00', fontSize:'20px'}}/></Button>
+                                                                </>
+                                                            }
+                                                        </Box>
+                                                    </Box>
+                                                    :
+                                                    <Box bgcolor='#EEE' borderRadius='5px' display='flex' gap='10px' justifyContent='space-between' alignItems='center' style={{padding: index === entriesArray.length - 1 ? '10px' : '0 10px', border: index === entriesArray.length - 1 && '1px solid #222'}}>
+                                                        <Box display='flex' minWidth={editMode ? '65%' : '75%'}>
+                                                            {!editMode ?
+                                                                <Typography color='#222' variant='body2' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
+                                                                    {Object.entries(JSON.parse(JSON.stringify(value2[1]))).map(([key2]) => {
+                                                                        const participantType = participantDetails.find((item) => item.id === key2)
+                                                                        if (participantType) {
+                                                                            return participantType.handle || participantType.username
+                                                                        } else {
+                                                                            return (key2 === 'disbanded' && "<Team Disbanded>")
+                                                                        }
+                                                                    }).join('')}
+                                                                </Typography>
+                                                                :
+                                                                <FormControl className='dropdownList' fullWidth>
+                                                                    <Select variant='standard' label='Team' name={`${key}:${key2}:1`} value={Object.keys(value2[1]).join('') || ''} onChange={updateMatchUp} required>
+                                                                        <MenuItem value="">
+                                                                            <Typography>
+                                                                            &nbsp;
+                                                                            </Typography>
+                                                                        </MenuItem>
+
+                                                                        {participantDetails.map((participant) => {
+                                                                            return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
+                                                                        })}
+                                                                    </Select>
+                                                                </FormControl>
+                                                            }
+                                                        </Box>
+                                                        <Box display='flex' alignItems='center' justifyContent='flex-end' minWidth={editMode ? '35%' : '20%'}>
+                                                            {!editMode ?
+                                                                <>
+                                                                <Typography fontWeight='600' color='#888' variant='body2'>{`${Object.values(JSON.parse(JSON.stringify(value2[1]))).join('')}`}</Typography>
+                                                                <EmojiEventsIcon sx={{color:'#888', fontSize: '20px', padding: '5px 0px 5px 10px'}} />
+                                                                </>
+                                                                :
+                                                                <>
+                                                                <TextField className='matchScoreTextField' type='number' size='small' id={`${key}:${key2}:1`} value={Object.values(value2[1]).join('') || ''} onChange={updateScore} required />
+                                                                <Button onClick={updateVictor} name={Object.keys(value2[1]).join('') || ''} id={`${key}:${key2}:1`} sx={{minWidth:'35px', width:'35px', height:'100%', padding:'3px'}}><EmojiEventsIcon sx={{color:'#888', fontSize:'20px'}}/></Button>
+                                                                </>
+                                                            }
+                                                        </Box>
+                                                    </Box>
+                                                }
+                                            </Stack>
+                                        </Grid>
+                                    ))}
+                                </Grid>
                             </Stack>
-                            <Grid container columnGap='50px' rowGap='30px' alignItems='stretch'>
-                                {Object.entries(value.match).map(([key2, value2]) => (
-                                    <Grid key={key2} item width='250px'>
-                                        <Stack gap='5px'>
-                                            {Object.keys(JSON.parse(JSON.stringify(value2[0]))).join('') === Object.values(JSON.parse(JSON.stringify(value2[2]))).join('') && Object.values(JSON.parse(JSON.stringify(value2[2]))).join('') !== '' ?
-                                                <Box bgcolor='#EEE' borderRadius='5px' display='flex' gap='10px' justifyContent='space-between' alignItems='center' style={{padding: index === entriesArray.length - 1 ? '10px' : '0 10px', border: index === entriesArray.length - 1 && '1px solid #36C944'}}>
-                                                    <Box display='flex' minWidth={editMode ? '65%' : '75%'}>
-                                                        {!editMode ?
-                                                            <Typography color='#222' variant='body2' sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                                {Object.entries(JSON.parse(JSON.stringify(value2[0]))).map(([key2]) => {
-                                                                    const participantType = participantDetails.find((item) => item.id === key2)
-                                                                    if (participantType) {
-                                                                        return participantType.handle || participantType.username
-                                                                    }
-                                                                }).join('')}
-                                                            </Typography>
-                                                            :
-                                                            <FormControl className='dropdownList' fullWidth>
-                                                                <Select variant='standard' label='Team' name={`${key}:${key2}:0`} value={Object.keys(value2[0]).join('') || ''} onChange={updateMatchUp} required>
-                                                                    <MenuItem value="">
-                                                                        <Typography>
-                                                                        &nbsp;
-                                                                        </Typography>
-                                                                    </MenuItem>
-                                                                    
-                                                                    {participantDetails.map((participant) => {
-                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
-                                                                    })}
-                                                                </Select>
-                                                            </FormControl>
-                                                        }
-                                                    </Box>
-                                                    <Box display='flex' alignItems='center' justifyContent='flex-end' minWidth={editMode ? '35%' : '20%'}>
-                                                        {!editMode ?
-                                                            <>
-                                                            <Typography fontWeight='600' color='#36C944' variant='body2'>{`${Object.values(JSON.parse(JSON.stringify(value2[0]))).join('')}`}</Typography>
-                                                            <EmojiEventsIcon sx={{ color:'#D0AF00', fontSize: '20px', padding: '5px 0px 5px 10px' }} />
-                                                            </>
-                                                            :
-                                                            <>
-                                                            <TextField className='matchScoreTextField' type='number' size='small' id={`${key}:${key2}:0`} value={Object.values(value2[0]).join('') || ''} onChange={updateScore} required />
-                                                            <Button onClick={updateVictor} name={Object.keys(value2[0]).join('') || ''} id={`${key}:${key2}:0`} sx={{minWidth:'35px', width:'35px', height:'100%', padding:'3px'}}><EmojiEventsIcon sx={{color:'#D0AF00', fontSize:'20px'}}/></Button>
-                                                            </>
-                                                        }
-                                                    </Box>
-                                                </Box>
-                                                :
-                                                <Box bgcolor='#EEE' borderRadius='5px' display='flex' gap='10px' justifyContent='space-between' alignItems='center' style={{padding: index === entriesArray.length - 1 ? '10px' : '0 10px', border: index === entriesArray.length - 1 && '1px solid #222'}}>
-                                                    <Box display='flex' minWidth={editMode ? '65%' : '75%'}>
-                                                        {!editMode ?
-                                                            <Typography color='#222' variant='body2' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
-                                                                {Object.entries(JSON.parse(JSON.stringify(value2[0]))).map(([key2]) => {
-                                                                    const participantType = participantDetails.find((item) => item.id === key2)
-                                                                    if (participantType) {
-                                                                        return participantType.handle || participantType.username
-                                                                    }
-                                                                }).join('')}
-                                                            </Typography>
-                                                            :
-                                                            <FormControl className='dropdownList' fullWidth>
-                                                                <Select variant='standard' label='Team' name={`${key}:${key2}:0`} value={Object.keys(value2[0]).join('') || ''} onChange={updateMatchUp} required>
-                                                                    <MenuItem value="">
-                                                                        <Typography>
-                                                                        &nbsp;
-                                                                        </Typography>
-                                                                    </MenuItem>
+                        ))}
+                    </Stack>
 
-                                                                    {participantDetails.map((participant) => {
-                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
-                                                                    })}
-                                                                </Select>
-                                                            </FormControl>
-                                                        }
-                                                    </Box>
-                                                    <Box display='flex' alignItems='center' justifyContent='flex-end' minWidth={editMode ? '35%' : '20%'}>
-                                                        {!editMode ?
-                                                            <>
-                                                            <Typography fontWeight='600' color='#888' variant='body2'>{`${Object.values(JSON.parse(JSON.stringify(value2[0]))).join('')}`}</Typography>
-                                                            <EmojiEventsIcon sx={{ color:'#888', fontSize: '20px', padding: '5px 0px 5px 10px' }} />
-                                                            </>
-                                                            :
-                                                            <>
-                                                            <TextField className='matchScoreTextField' type='number' size='small' id={`${key}:${key2}:0`} value={Object.values(value2[0]).join('') || ''} onChange={updateScore} required />
-                                                            <Button onClick={updateVictor} name={Object.keys(value2[0]).join('') || ''} id={`${key}:${key2}:0`} sx={{minWidth:'35px', width:'35px', height:'100%', padding:'3px'}}><EmojiEventsIcon sx={{color:'#888', fontSize:'20px'}}/></Button>
-                                                            </>
-                                                        }
-                                                    </Box>
-                                                </Box>
-                                            }
-                                            {Object.keys(JSON.parse(JSON.stringify(value2[1]))).join('') === Object.values(JSON.parse(JSON.stringify(value2[2]))).join('') && Object.values(JSON.parse(JSON.stringify(value2[2]))).join('') !== '' ?
-                                                <Box bgcolor='#EEE' borderRadius='5px' display='flex' gap='10px' justifyContent='space-between' alignItems='center' style={{padding: index === entriesArray.length - 1 ? '10px' : '0 10px', border: index === entriesArray.length - 1 && '1px solid #36C944'}}>
-                                                    <Box display='flex' minWidth={editMode ? '65%' : '75%'}>
-                                                        {!editMode ?
-                                                            <Typography color='#222' variant='body2' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
-                                                                {Object.entries(JSON.parse(JSON.stringify(value2[1]))).map(([key2]) => {
-                                                                    const participantType = participantDetails.find((item) => item.id === key2)
-                                                                    if (participantType) {
-                                                                        return participantType.handle || participantType.username
-                                                                    }
-                                                                }).join('')}
-                                                            </Typography>
-                                                            :
-                                                            <FormControl className='dropdownList' fullWidth>
-                                                                <Select variant='standard' label='Team' name={`${key}:${key2}:1`} value={Object.keys(value2[1]).join('') || ''} onChange={updateMatchUp} required>
-                                                                    <MenuItem value="">
-                                                                        <Typography>
-                                                                        &nbsp;
-                                                                        </Typography>
-                                                                    </MenuItem>
-
-                                                                    {participantDetails.map((participant) => {
-                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
-                                                                    })}
-                                                                </Select>
-                                                            </FormControl>
-                                                        }
-                                                    </Box>
-                                                    <Box display='flex' alignItems='center' justifyContent='flex-end' minWidth={editMode ? '35%' : '20%'}>
-                                                        {!editMode ?
-                                                            <>
-                                                            <Typography fontWeight='600' color='#36C944' variant='body2'>{`${Object.values(JSON.parse(JSON.stringify(value2[1]))).join('')}`}</Typography>
-                                                            <EmojiEventsIcon sx={{color:'#D0AF00', fontSize: '20px', padding: '5px 0px 5px 10px'}} />
-                                                            </>
-                                                            :
-                                                            <>
-                                                            <TextField className='matchScoreTextField' type='number' size='small' id={`${key}:${key2}:1`} value={Object.values(value2[1]).join('') || ''} onChange={updateScore} required />
-                                                            <Button onClick={updateVictor} name={Object.keys(value2[1]).join('') || ''} id={`${key}:${key2}:1`} sx={{minWidth:'35px', width:'35px', height:'100%', padding:'3px'}}><EmojiEventsIcon sx={{color:'#D0AF00', fontSize:'20px'}}/></Button>
-                                                            </>
-                                                        }
-                                                    </Box>
-                                                </Box>
-                                                :
-                                                <Box bgcolor='#EEE' borderRadius='5px' display='flex' gap='10px' justifyContent='space-between' alignItems='center' style={{padding: index === entriesArray.length - 1 ? '10px' : '0 10px', border: index === entriesArray.length - 1 && '1px solid #222'}}>
-                                                    <Box display='flex' minWidth={editMode ? '65%' : '75%'}>
-                                                        {!editMode ?
-                                                            <Typography color='#222' variant='body2' sx={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
-                                                                {Object.entries(JSON.parse(JSON.stringify(value2[1]))).map(([key2]) => {
-                                                                    const participantType = participantDetails.find((item) => item.id === key2)
-                                                                    if (participantType) {
-                                                                        return participantType.handle || participantType.username
-                                                                    }
-                                                                }).join('')}
-                                                            </Typography>
-                                                            :
-                                                            <FormControl className='dropdownList' fullWidth>
-                                                                <Select variant='standard' label='Team' name={`${key}:${key2}:1`} value={Object.keys(value2[1]).join('') || ''} onChange={updateMatchUp} required>
-                                                                    <MenuItem value="">
-                                                                        <Typography>
-                                                                        &nbsp;
-                                                                        </Typography>
-                                                                    </MenuItem>
-
-                                                                    {participantDetails.map((participant) => {
-                                                                        return <MenuItem value={participant.id} key={participant.id}><Typography variant='action' textTransform='lowercase'>{participant.handle || participant.username}</Typography></MenuItem>
-                                                                    })}
-                                                                </Select>
-                                                            </FormControl>
-                                                        }
-                                                    </Box>
-                                                    <Box display='flex' alignItems='center' justifyContent='flex-end' minWidth={editMode ? '35%' : '20%'}>
-                                                        {!editMode ?
-                                                            <>
-                                                            <Typography fontWeight='600' color='#888' variant='body2'>{`${Object.values(JSON.parse(JSON.stringify(value2[1]))).join('')}`}</Typography>
-                                                            <EmojiEventsIcon sx={{color:'#888', fontSize: '20px', padding: '5px 0px 5px 10px'}} />
-                                                            </>
-                                                            :
-                                                            <>
-                                                            <TextField className='matchScoreTextField' type='number' size='small' id={`${key}:${key2}:1`} value={Object.values(value2[1]).join('') || ''} onChange={updateScore} required />
-                                                            <Button onClick={updateVictor} name={Object.keys(value2[1]).join('') || ''} id={`${key}:${key2}:1`} sx={{minWidth:'35px', width:'35px', height:'100%', padding:'3px'}}><EmojiEventsIcon sx={{color:'#888', fontSize:'20px'}}/></Button>
-                                                            </>
-                                                        }
-                                                    </Box>
-                                                </Box>
-                                            }
-                                        </Stack>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </Stack>
-                    ))}
-                </Stack>
-
-                <Stack marginTop='50px' gap='20px'>
-                    <Typography variant='h3'>Match Highlights</Typography>   
-                    {editMode && (                 
-                        <TextField value={youtubeURL ? youtubeURL.join('\n') : ''} onChange={updateMatchHighlights} type='text' className='inputTextField' variant='outlined' label='Enter Youtube URL, separated by new line' multiline rows={10} required />                     
-                    )}
-                    {(youtubeURL?.length > 0 && youtubeURL?.filter(url => url.includes("www.youtube.com"))) ? 
-                        (
-                            <Grid container gap='35px' alignItems='stretch'>
-                                {youtubeURL?.filter(url => url.trim() !== '' && url.includes("www.youtube.com")).map((url, index) => (
-                                    <iframe key={index} title={`YouTube Video ${index + 1}`} width="550" height="310" src={getYoutubeEmbedUrl(url)} allow="autoplay; encrypted-media" allowFullScreen />
-                                ))}
-                            </Grid>
-                        ) : (
-                            <Box display='flex' justifyContent='center' alignItems='center' height='150px'>
-                                <Typography variant='body1'>No highlights uploaded</Typography>
-                            </Box>
-                        )
-                    }
-                </Stack>
-
-                <Stack alignItems='center' marginTop='75px'>
-                    {viewerType === 'host&collab' ?
-                        (!editMode ?
-                            <Button sx={{width:'350px'}} variant='blue' onClick={() => setEditMode(true)}>Edit Score, Matchup and Highlights</Button>
-                            :
-                            <Stack width='100%'>
-                                <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
-                                <Box display='flex' gap={isTablet ? '20px' : '50px'} width='100%' justifyContent='center'>
-                                    <Button sx={{width:(isMobile ? '100%' : '300px')}} variant='blue' onClick={() => saveChanges()}>Save Changes</Button>
-                                    <Button sx={{width:(isMobile ? '50%' : '150px')}} variant='red' onClick={() => {setEditMode(false); revertChanges()}}>Back</Button>
+                    <Stack marginTop='50px' gap='20px'>
+                        <Typography variant='h3'>Match Highlights</Typography>   
+                        {editMode && (                 
+                            <TextField value={youtubeURL ? youtubeURL.join('\n') : ''} onChange={updateMatchHighlights} type='text' className='inputTextField' variant='outlined' label='Enter Youtube URL, separated by new line' multiline rows={10} required />                     
+                        )}
+                        {(youtubeURL?.length > 0 && youtubeURL?.filter(url => url.includes("www.youtube.com"))) ? 
+                            (
+                                <Grid container gap='35px' alignItems='stretch'>
+                                    {youtubeURL?.filter(url => url.trim() !== '' && url.includes("www.youtube.com")).map((url, index) => (
+                                        <iframe key={index} title={`YouTube Video ${index + 1}`} width="550" height="310" src={getYoutubeEmbedUrl(url)} allow="autoplay; encrypted-media" allowFullScreen />
+                                    ))}
+                                </Grid>
+                            ) : (
+                                <Box display='flex' justifyContent='center' alignItems='center' height='150px'>
+                                    <Typography variant='body1'>No highlights uploaded</Typography>
                                 </Box>
-                            </Stack>
-                            
-                        )
-                        :
-                        <Button sx={{width:'300px'}} variant='red' onClick={() => {window.location.href = `/ViewTournament?id=${matchID}`}}>Back</Button>
-                    }
-                </Stack>
-                
+                            )
+                        }
+                    </Stack>
+
+                    <Stack alignItems='center' marginTop='75px'>
+                        {viewerType === 'host&collab' ?
+                            (!editMode ?
+                                <Button sx={{width:'350px'}} variant='blue' onClick={() => setEditMode(true)}>Edit Score, Matchup and Highlights</Button>
+                                :
+                                <Stack width='100%'>
+                                    <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
+                                    <Box display='flex' gap={isTablet ? '20px' : '50px'} width='100%' justifyContent='center'>
+                                        <Button sx={{width:(isMobile ? '100%' : '300px')}} variant='blue' onClick={() => saveChanges()}>Save Changes</Button>
+                                        <Button sx={{width:(isMobile ? '50%' : '150px')}} variant='red' onClick={() => {setEditMode(false); revertChanges()}}>Back</Button>
+                                    </Box>
+                                </Stack>
+                                
+                            )
+                            :
+                            <Button sx={{width:'300px'}} variant='red' onClick={() => {window.location.href = `/ViewTournament?id=${matchID}`}}>Back</Button>
+                        }
+                    </Stack>
+                    </>
+                }
             </Stack>
         </Box>
     )

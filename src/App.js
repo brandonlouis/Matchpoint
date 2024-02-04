@@ -258,27 +258,6 @@ const theme = createTheme({
                             borderRadius: '15px',
                         },
                     },
-                    "&.newsletterTextField": {
-                        backgroundColor: '#FFF',
-                        borderRadius: '15px',
-                        width:'100%',
-                        maxWidth:'500px',
-                        height: '45px',
-
-                        "& .MuiInputBase-root": {
-                            fontFamily: 'Saira Semi Condensed',
-                            fontWeight: 'bold',
-                            borderRadius: '15px',
-                            height: '45px',
-                        },
-                        "& .MuiOutlinedInput-input": {
-                            height: '12px',
-                        },
-                        "& .Mui-focused": {
-                            borderRadius: '15px',
-                            height: '45px',
-                        },
-                    },
                     "&.loginSignUpTextField": {
                         "& .MuiInputBase-input": {
                             fontFamily: 'Saira Semi Condensed',

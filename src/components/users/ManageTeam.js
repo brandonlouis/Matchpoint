@@ -82,15 +82,16 @@ export default function ManageTeam() {
                 setGenderReq(resList[0]?.genderReq)
                 setPrivacy(resList[0]?.privacy)
 
+                getProfile(resList[0]?.id)
                 getTournament(resList[0]?.id)
                 getMatch(resList[0]?.id)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getProfile = async () => {
+        const getProfile = async (teamID) => {
             try {
-                const res = await getDoc(doc(db, 'profiles', user.uid))
+                const res = await getDoc(doc(db, 'profiles', teamID))
                 const resList = res.data()
                 setProfileInfo(resList)
             } catch (err) {
@@ -129,7 +130,6 @@ export default function ManageTeam() {
         }
         getSports()
         getTeam()
-        getProfile()
     }, [])
 
     useEffect(() => {
@@ -250,7 +250,7 @@ export default function ManageTeam() {
     
                 const q = query(collection(db, 'accounts'), where(documentId(), 'in', accountsNotInTeam))
                 const data = await getDocs(q)
-                const resList = data.docs.map(doc => ({ ...doc.data(), id: doc.id })).filter(account => account.type !== 'admin' && (account.username.includes(searchCriteria.toLowerCase()) || account.fullName.includes(searchCriteria.toLowerCase())))
+                const resList = data.docs.map(doc => ({ ...doc.data(), id: doc.id })).filter(account => account.type !== 'admin' && (account.username.includes(searchCriteria.toLowerCase()) || account.fullName.includes(searchCriteria.toLowerCase())) && account.sportInterests.some(sport => originalDetails[0].sports?.includes(sport)) && (account.gender === originalDetails[0]?.genderReq || originalDetails[0]?.genderReq === 'mixed'))
     
                 setSearchAccountsList(resList)
             } catch (err) {
@@ -353,35 +353,38 @@ export default function ManageTeam() {
     
                 participants.splice(index, 1) // Remove from match participants list
 
-                const updatedStatistics = {}
-                if (data.statistics.hasOwnProperty(id)) { // Replace statistics with <Team Disbanded> key
+                // Update statistics
+                let updatedStatistics = { ...data.statistics }
+                if (data.statistics.hasOwnProperty(id)) {
                     updatedStatistics = {
-                        ...data.statistics,
+                        ...updatedStatistics,
                         disbanded: data.statistics[id]
                     }
-                    delete data.statistics[id]
+                    delete updatedStatistics[id]
                 }
 
-                // const updatedRounds = {}
-                // rounds.forEach((round) => {
-                //     round.matchesPerRound.forEach((match) => {
-                //         if (match[0].hasOwnProperty(id)) {
-                //             match[0] = { disbanded: match[0][id] }
-                //             delete match[0][id]
-                //         } else if (match[1].hasOwnProperty(id)) {
-                //             match[1] = { disbanded: match[1][id] }
-                //             delete match[1][id]
-                //         }
+                // Update rounds
+                const updatedRounds = Object.entries(rounds).reduce((acc, [roundNoKey, roundNo]) => {
+                    const updatedMatches = Object.entries(roundNo.match).reduce((matchesAcc, [matchNoKey, matchNo]) => {
+                        if (matchNo[0]?.[id]) {
+                            matchNo[0] = { disbanded: matchNo[0][id] }
+                            delete matchNo[0][id]
+                        } else if (matchNo[1]?.[id]) {
+                            matchNo[1] = { disbanded: matchNo[1][id] }
+                            delete matchNo[1][id]
+                        }
                 
-                //         if (match[2].victor === id) {
-                //             match[2].victor = 'disbanded'
-                //         }
-                //     })
-                // })
+                        if (matchNo[2]?.victor === id) {
+                            matchNo[2].victor = 'disbanded'
+                        }
+                        return { ...matchesAcc, [matchNoKey]: matchNo }
+                    }, {})
+                    return { ...acc, [roundNoKey]: { match: updatedMatches, time: roundNo.time } }
+                }, {})
                 
                 const updatePromise = updateDoc(doc(db, 'matches', docMatch.id), {
-                    participants,
-                    rounds,
+                    participants: participants,
+                    round: updatedRounds,
                     statistics: updatedStatistics
                 })
                 matchUpdatePromises.push(updatePromise)

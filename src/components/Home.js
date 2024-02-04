@@ -19,20 +19,59 @@ export default function Home() {
     useEffect(() => { // Handle retrieving tournament and news article list on load
         const getTournaments = async () => {
             try {
-                const q = query(collection(db, 'tournaments'), limit(4))
+                const q = query(collection(db, 'tournaments'))
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && tournament.date.end.toDate() > new Date()) // Filter out tournaments that have already ended or are cancelled
-                setTournamentList(processTournamentDate(resList))
+
+                const sortedTournamentsList = sortTournaments(resList)
+
+                if (sortedTournamentsList.length === 0) { // If there are no live or upcoming tournaments, display the latest 3 ended tournaments
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0) // Filter out tournaments that are cancelled
+                    const sortedTournamentsList = sortTournaments(resList)
+
+                    setTournamentList(processTournamentDate(sortedTournamentsList))
+                    return
+                }
+
+                setTournamentList(processTournamentDate(sortedTournamentsList))
             } catch (err) {
                 console.error(err)
             }
         }
         const getNewsArticles = async () => {
             try {
-                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'), limit(4)) // Order list by date in descending order
+                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-                setNewsArticleList(processArticleDate(resList))
+                const articles = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+        
+                // Group articles by sport
+                const groupedArticles = articles.reduce((acc, article) => {
+                    const sport = article.sport
+                    if (!acc[sport]) {
+                        acc[sport] = []
+                    }
+                    acc[sport].push(article)
+                    return acc
+                }, {})
+        
+                // Get most diverse set of 4 articles
+                let diverseArticles = []
+                const remainingArticles = Object.values(groupedArticles).flat()
+                while (diverseArticles.length < 4 && remainingArticles.length > 0) {
+                    const nextArticle = remainingArticles.shift()
+                    if (!diverseArticles.some(article => article.sport === nextArticle.sport)) {
+                        diverseArticles.push(nextArticle)
+                    }
+                }
+
+                // If there are less than 4 sports, fill the rest with the latest articles
+                if (diverseArticles.length < 4) {
+                    const diverseArticleIds = new Set(diverseArticles.map(article => article.id))
+                    const remainingArticles = articles.filter(article => !diverseArticleIds.has(article.id))
+                    diverseArticles = [...diverseArticles, ...remainingArticles.slice(0, 4 - diverseArticles.length)]
+                }
+        
+                setNewsArticleList(processArticleDate(diverseArticles))
             } catch (err) {
                 console.error(err)
             }
@@ -40,6 +79,33 @@ export default function Home() {
         getTournaments()
         getNewsArticles()
     }, [])
+
+    const sortTournaments = (list) => {
+        return list.sort((a, b) => {
+            const now = new Date()
+            const aEndDate = new Date(a.date.end.toDate())
+            const bEndDate = new Date(b.date.end.toDate())
+            const aStartDate = new Date(a.date.start.toDate())
+            const bStartDate = new Date(b.date.start.toDate())
+
+            // Check if tournaments are currently live
+            const aIsLive = now >= aStartDate && now <= aEndDate
+            const bIsLive = now >= bStartDate && now <= bEndDate
+
+            // Sort by live status and end date
+            if (aIsLive && bIsLive) {
+                return aEndDate - bEndDate // Sort by end date if both are live
+            } else if (aIsLive) {
+                return -1 // a is live, should come first
+            } else if (bIsLive) {
+                return // b is live, should come first
+            } else if (aStartDate > now && bStartDate > now) {
+                return aStartDate - bStartDate // Sort by start date if both are not live
+            } else {
+                return bStartDate - aStartDate // Sort by start date in descending order
+            }
+        }).slice(0, 3) // Limit to 3 tournaments
+    }
 
     const processArticleDate = (list) => {
         const updatedNewsArticleList = list.map((newsArticle) => {
@@ -69,38 +135,30 @@ export default function Home() {
     }
 
     const viewTournament=(id)=>{
-        window.location.href = `/ViewTournament?id=${id}`;
+        window.location.href = `/ViewTournament?id=${id}`
     }
     const viewNewsArticle=(id)=>{
-        window.location.href = `/ViewNewsArticle?id=${id}`;
+        window.location.href = `/ViewNewsArticle?id=${id}`
     }
 
 
     return (
         <Stack height='100%' width='100%'>
-            <Box display='flex' justifyContent={adjust900 ? 'center' : 'flex-end'} height='100%' sx={{backgroundImage: `url('${lightningBG}')`, backgroundRepeat: "no-repeat", backgroundPosition: "right top", backgroundAttachment:'fixed'}}>
+            <Box display='flex' justifyContent={adjust900 ? 'center' : 'flex-end'} height='100%' minHeight='650px' sx={{backgroundImage: `url('${lightningBG}')`, backgroundRepeat: "no-repeat", backgroundPosition: "right top", backgroundAttachment:'fixed'}}>
                 {adjust900 ?
                     <Stack justifyContent='center' alignItems='center' paddingTop='120px' overflow='hidden'>
                         <img style={{height:'530px'}} src={require('../img/elements/team.png')}/>
                         
-                        <Stack alignItems='center' padding='50px 0' width='90%'>
+                        <Stack alignItems='center' padding='50px 0' width='90%' gap='10px'>
                             <Typography variant='h1' textAlign='center' fontSize={isMobile && '10vmin'}><span style={{color:'#CB3E3E'}}>One-stop</span> tournament hub</Typography>
-                            <Typography variant='body1' textAlign='center'>Simplify management, engage players, and elevate your sporting events effortlessly with us.</Typography>
-                            <Box display='flex' gap='25px' alignItems='center' marginTop='25px'>
-                                <Button variant='red'>Sign Up</Button>
-                                <a href='#'><Typography sx={{textDecoration:'underline'}} variant='action'>Learn More</Typography></a>
-                            </Box>
+                            <Typography variant='body1' textAlign='center'>Streamline event management, captivate players, and elevate your sports gatherings effortlessly with our comprehensive solutions.</Typography>
                         </Stack>
                     </Stack>
                     :
                     <Box display='flex' width={isMobile || isTablet ? '95%' : '90%'}>
-                        <Stack width='40%' padding='158px 0' justifyContent='center'>
+                        <Stack width='40%' padding='158px 0' justifyContent='center' gap='10px'>
                             <Typography variant='h1' fontSize={isMobile && '10vmin'}><span style={{color:'#CB3E3E'}}>One-stop</span> tournament hub</Typography>
-                            <Typography variant='body1'>Simplify management, engage players, and elevate your sporting events effortlessly with us.</Typography>
-                            <Box display='flex' gap='25px' alignItems='center' marginTop='25px'>
-                                <Button variant='red'>Sign Up</Button>
-                                <a href='#'><Typography sx={{textDecoration:'underline'}} variant='action'>Learn More</Typography></a>
-                            </Box>
+                            <Typography variant='body1'>Streamline event management, captivate players, and elevate your sports gatherings effortlessly with our comprehensive solutions.</Typography>
                         </Stack>
 
                         <Box width='60%' display='flex' alignItems='flex-end' overflow='hidden'>
@@ -120,7 +178,7 @@ export default function Home() {
 
                     {adjust750 ? 
                         <Stack justifyContent='center' alignItems='center' gap='100px'>
-                            <Box bgcolor='#CB3E3E' height='80%' width='10px' position='absolute' zIndex='1'></Box>
+                            <Box bgcolor='#CB3E3E' height='60%' width='10px' position='absolute' zIndex='1'></Box>
 
                             <Box width='80%' height='100%' display='flex' zIndex='2'>
                                 <Stack gap='15px' bgcolor='white' borderRadius='10px' padding='50px 35px 30px' alignItems='center'>
@@ -128,7 +186,7 @@ export default function Home() {
                                         <img height='40px' src={require('../img/icons/aboutAI.png')}/>
                                     </Box>
                                     <Typography variant='h4' textAlign='center'>Automated Processes</Typography>
-                                    <Typography variant='body1' textAlign='center'>Aenean porttitor ligula eu tellus eleifend fermentum. Nulla facilisi. Sed commodo egestas augue sed imperdiet. Quisque vel diam laoreet.</Typography>
+                                    <Typography variant='body1' textAlign='center'>Say goodbye to the headaches of managing tournament brackets. We've got you covered every step of the way. It is as easy as 1, 2, 3!</Typography>
                                 </Stack>
                             </Box>
 
@@ -138,7 +196,7 @@ export default function Home() {
                                         <img height='40px' src={require('../img/icons/aboutTrophy.png')}/>
                                     </Box>
                                     <Typography variant='h4' textAlign='center'>Leaderboards and Statistics</Typography>
-                                    <Typography variant='body1' textAlign='center'>In gravida imperdiet tellus. Etiam ornare ut ante quis pulvinar. Donec ut faucibus purus, eu dictum erat. Vivamus convallis at tellus a condimentum.</Typography>
+                                    <Typography variant='body1' textAlign='center'>Track participants' real-time progress with dynamic leaderboards during matches, making monitoring effortless and enhancing the overall experience.</Typography>
                                 </Stack>
                             </Box>
 
@@ -162,7 +220,7 @@ export default function Home() {
                                         <img height='40px' src={require('../img/icons/aboutAI.png')}/>
                                     </Box>
                                     <Typography variant='h4'>Automated Processes</Typography>
-                                    <Typography variant='body1'>Aenean porttitor ligula eu tellus eleifend fermentum. Nulla facilisi. Sed commodo egestas augue sed imperdiet. Quisque vel diam laoreet.</Typography>
+                                    <Typography variant='body1'>Say goodbye to the headaches of managing tournament brackets. We've got you covered every step of the way. It is as easy as 1, 2, 3!</Typography>
                                 </Stack>
                             </Box>
 
@@ -172,7 +230,7 @@ export default function Home() {
                                         <img height='40px' src={require('../img/icons/aboutTrophy.png')}/>
                                     </Box>
                                     <Typography variant='h4'>Leaderboards and Statistics</Typography>
-                                    <Typography variant='body1'>In gravida imperdiet tellus. Etiam ornare ut ante quis pulvinar. Donec ut faucibus purus, eu dictum erat. Vivamus convallis at tellus a condimentum.</Typography>
+                                    <Typography variant='body1'>Track participants' real-time progress with dynamic leaderboards during matches, making monitoring effortless and enhancing the overall experience.</Typography>
                                 </Stack>
                             </Box>
 
@@ -215,19 +273,28 @@ export default function Home() {
                                                     <img width='100%' height='100%' style={{objectFit:'cover'}} src={tournament.imgURL}/>
                                                 </Box>
                                                 <Stack height='100%' padding='15px 25px 30px' gap='15px'>
-                                                    <Box display='flex' justifyContent='space-between'>
-                                                        <Typography textTransform='uppercase' variant='subtitle4'>{tournament.sport}</Typography>
-                                                        {tournament.stringDate.start[2] === tournament.stringDate.end[2] ? 
-                                                            <Typography textTransform='uppercase' variant='subtitle4'>{tournament.stringDate.start[0]} {tournament.stringDate.start[1]} — {tournament.stringDate.end[1]}, {tournament.stringDate.end[2]}</Typography>
-                                                            :
-                                                            <Typography textTransform='uppercase' variant='subtitle4'>{tournament.stringDate.start[0]} {tournament.stringDate.start[1]}, {tournament.stringDate.start[2]} — {tournament.stringDate.end[0]} {tournament.stringDate.end[1]}, {tournament.stringDate.end[2]}</Typography>
-                                                        }
-                                                    </Box>
+                                                    <Stack>
+                                                        <Box display='flex' justifyContent='space-between'>
+                                                            <Typography textTransform='uppercase' variant='subtitle4'>{tournament.sport}</Typography>
+                                                            {tournament.stringDate.start[2] === tournament.stringDate.end[2] ? 
+                                                                <Typography textTransform='uppercase' variant='subtitle4'>{tournament.stringDate.start[0]} {tournament.stringDate.start[1]} — {tournament.stringDate.end[1]}, {tournament.stringDate.end[2]}</Typography>
+                                                                :
+                                                                <Typography textTransform='uppercase' variant='subtitle4'>{tournament.stringDate.start[0]} {tournament.stringDate.start[1]}, {tournament.stringDate.start[2]} — {tournament.stringDate.end[0]} {tournament.stringDate.end[1]}, {tournament.stringDate.end[2]}</Typography>
+                                                            }
+                                                        </Box>
+                                                        <Box display='flex' justifyContent='space-between'>
+                                                            <Typography textTransform='uppercase' variant='subtitle4'>Region: {tournament.region}</Typography>
+                                                            <Typography textTransform='uppercase' variant='subtitle4' maxWidth='150px' overflow='hidden' whiteSpace='nowrap' textOverflow='ellipsis'>Prize: {tournament.prizes.first !== '' ? tournament.prizes.first : "No Prize"}</Typography>
+                                                        </Box>
+                                                    </Stack>
+                                                    
                                                     <Box display='flex'>
                                                         <Typography className='doubleLineConcat' textAlign='left' variant='h4'>
-                                                            {tournament.date?.start.toDate() <= Date.now() && tournament.date?.end.toDate() >= Date.now() && 
+                                                            {tournament.date?.end.toDate() < Date.now() ? (
+                                                                <span style={{ color: '#888' }}>ENDED: </span>
+                                                            ) : tournament.date?.start.toDate() <= Date.now() && tournament.date?.end.toDate() >= Date.now() ? (
                                                                 <span style={{ color: '#CB3E3E' }}>LIVE NOW: </span>
-                                                            }
+                                                            ) : null}
                                                             {tournament.title}
                                                         </Typography>
                                                     </Box>
@@ -286,18 +353,12 @@ export default function Home() {
                 </Stack>
             </Box>
 
-            <Box display='flex' justifyContent='center' height='250px' sx={{backgroundImage: `url('${newsletterBG}')`, backgroundRepeat:"no-repeat", backgroundSize:'cover'}}>
+            <Box display='flex' justifyContent='center' height='150px' sx={{backgroundImage: `url('${newsletterBG}')`, backgroundRepeat:"no-repeat", backgroundSize:'cover'}}>
                 <Stack width={isMobile || isTablet ? '90%' : '80%'} alignItems='center' justifyContent='center'>
-                    <Typography color='white' variant='h3' textAlign='center'>Join our newsletter</Typography>
-                    <Typography color='white' marginBottom='20px' textAlign='center' variant='body1'>Be the first to be notified on the latest tournaments and articles.</Typography>
-
-                    <Box display='flex' justifyContent='center' gap='20px' width='100%'>
-                        <TextField className='newsletterTextField' placeholder='ENTER YOUR EMAIL'/>
-                        <Button variant='red'>Subscribe</Button>
-                    </Box>
+                    <Typography color='white' variant='h3' textAlign='center'>Join us today!</Typography>
+                    <Typography color='white' textAlign='center' variant='body1'>Embark on a seamless journey into tournament hosting, where simplicity meets boundless possibilities.</Typography>
                 </Stack>
             </Box>
-
         </Stack>
     )
 }

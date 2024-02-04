@@ -25,7 +25,8 @@ export default function Tournaments() {
             try {
                 const data = await getDocs(collection(db, 'tournaments'))
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0) // Filter out tournaments that are cancelled
-                setTournamentList(processDate(resList))
+                
+                setTournamentList(processDate(sortTournaments(resList)))
             } catch (err) {
                 console.error(err)
             }
@@ -51,11 +52,11 @@ export default function Tournaments() {
                     const filteredList = resList.filter((tournament) => {
                         const isMixed = tournament.gender === 'mixed' // Handle if tournament gender is 'mixed'
                         const isUserGenderMatch = tournament.gender === updatedUserGender
-                        return (isMixed || isUserGenderMatch) && tournament.region === moreUserInfo.region && moreUserInfo.sportInterests.includes(tournament.sport)
+                        return (isMixed || isUserGenderMatch) && tournament.region === moreUserInfo?.region && moreUserInfo.sportInterests.includes(tournament.sport)
                     })
 
-                    setTournamentList(processDate(filteredList))
-                    setPersonalizedTournamentList(processDate(filteredList))
+                    setTournamentList(processDate(sortTournaments(filteredList)))
+                    setPersonalizedTournamentList(processDate(sortTournaments(filteredList)))
                 } catch (err) {
                     console.error(err)
                 }
@@ -63,7 +64,8 @@ export default function Tournaments() {
                 try {
                     const data = await getDocs(collection(db, 'tournaments'))
                     const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0) // Filter out tournaments that are cancelled
-                    setTournamentList(processDate(resList))
+                    
+                    setTournamentList(processDate(sortTournaments(resList)))
                 } catch (err) {
                     console.error(err)
                 }
@@ -71,6 +73,33 @@ export default function Tournaments() {
         }
         getTournaments()
     }, [personalizedFilter, moreUserInfo])
+
+    const sortTournaments = (list) => {
+        return list.sort((a, b) => {
+            const now = new Date()
+            const aEndDate = new Date(a.date.end.toDate())
+            const bEndDate = new Date(b.date.end.toDate())
+            const aStartDate = new Date(a.date.start.toDate())
+            const bStartDate = new Date(b.date.start.toDate())
+
+            // Check if tournaments are currently live
+            const aIsLive = now >= aStartDate && now <= aEndDate
+            const bIsLive = now >= bStartDate && now <= bEndDate
+
+            // Sort by live status and end date
+            if (aIsLive && bIsLive) {
+                return aEndDate - bEndDate // Sort by end date if both are live
+            } else if (aIsLive) {
+                return -1 // a is live, should come first
+            } else if (bIsLive) {
+                return // b is live, should come first
+            } else if (aStartDate > now && bStartDate > now) {
+                return aStartDate - bStartDate // Sort by start date if both are not live
+            } else {
+                return bStartDate - aStartDate // Sort by start date in descending order
+            }
+        })
+    }
 
     const processDate = (list) => {
         const updatedTournamentList = list.map((tournament) => {
@@ -94,7 +123,7 @@ export default function Tournaments() {
             try {
                 const resList = personalizedTournamentList.filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport == searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
                 
-                setTournamentList(processDate(resList))
+                setTournamentList(processDate(sortTournaments(resList)))
             } catch (err) {
                 console.error(err)
             }
@@ -103,7 +132,7 @@ export default function Tournaments() {
                 const data = await getDocs(collection(db, 'tournaments'))
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport == searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
                 
-                setTournamentList(processDate(resList))
+                setTournamentList(processDate(sortTournaments(resList)))
             } catch (err) {
                 console.error(err)
             }
@@ -181,24 +210,30 @@ export default function Tournaments() {
                                                 <img width='100%' height='100%' style={{objectFit:'cover'}} src={tournament.imgURL}/>
                                             </Box>
                                             <Stack height='100%' padding='15px 25px 30px' gap='15px'>
-                                                <Box display='flex' justifyContent='space-between'>
-                                                    <Typography textTransform='uppercase' variant='subtitle4'>{tournament.sport}</Typography>
-                                                    <Typography textTransform='uppercase' variant='subtitle4'>
-                                                        {tournament.date.start.toDate().toDateString() === tournament.date.end.toDate().toDateString() ? (
-                                                            `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]}, ${tournament.stringDate.start[2]}`
-                                                        ) : (
-                                                            tournament.stringDate.start[2] === tournament.stringDate.end[2] ? (
-                                                                tournament.stringDate.start[0] === tournament.stringDate.end[0] ? (
-                                                                    `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]} — ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
-                                                                ): (
-                                                                    `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]} — ${tournament.stringDate.end[0]} ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
-                                                                )
+                                                <Stack>
+                                                    <Box display='flex' justifyContent='space-between'>
+                                                        <Typography textTransform='uppercase' variant='subtitle4'>{tournament.sport}</Typography>
+                                                        <Typography textTransform='uppercase' variant='subtitle4'>
+                                                            {tournament.date.start.toDate().toDateString() === tournament.date.end.toDate().toDateString() ? (
+                                                                `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]}, ${tournament.stringDate.start[2]}`
                                                             ) : (
-                                                                `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]}, ${tournament.stringDate.start[2]} — ${tournament.stringDate.end[0]} ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
-                                                            )
-                                                        )}
-                                                    </Typography>
-                                                </Box>
+                                                                tournament.stringDate.start[2] === tournament.stringDate.end[2] ? (
+                                                                    tournament.stringDate.start[0] === tournament.stringDate.end[0] ? (
+                                                                        `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]} — ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
+                                                                    ): (
+                                                                        `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]} — ${tournament.stringDate.end[0]} ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
+                                                                    )
+                                                                ) : (
+                                                                    `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]}, ${tournament.stringDate.start[2]} — ${tournament.stringDate.end[0]} ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
+                                                                )
+                                                            )}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Box display='flex' justifyContent='space-between'>
+                                                        <Typography textTransform='uppercase' variant='subtitle4'>Region: {tournament.region}</Typography>
+                                                        <Typography textTransform='uppercase' variant='subtitle4' maxWidth='150px' overflow='hidden' whiteSpace='nowrap' textOverflow='ellipsis'>Prize: {tournament.prizes.first !== '' ? tournament.prizes.first : "No Prize"}</Typography>
+                                                    </Box>
+                                                </Stack>
                                                 <Box display='flex'>
                                                     <Typography className='doubleLineConcat' variant='h4'>
                                                         {tournament.date?.end.toDate() < Date.now() ? (

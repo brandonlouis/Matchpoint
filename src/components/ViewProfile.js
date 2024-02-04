@@ -35,6 +35,8 @@ export default function ViewProfile() {
 
     const [tournamentDatePoints, setTournamentDatePoints] = useState({})
 
+    const [isLoading, setIsLoading] = useState(true)
+
 
     useEffect(() => {
         const getTournament = async () => {            
@@ -74,11 +76,18 @@ export default function ViewProfile() {
         
                 const accountDocSnapshot = await getDoc(accountDocRef)
                 const teamDocSnapshot = await getDoc(teamDocRef)
+
+                if (!accountDocSnapshot.exists() && !teamDocSnapshot.exists()) {
+                    setPlayerTeamDetails({})
+                    setIsLoading(false)
+                    return
+                }
         
                 if (accountDocSnapshot.exists()) {
                     getTeam()
                     const accountDetails = accountDocSnapshot.data()
                     setPlayerTeamDetails(accountDetails)
+                    setIsLoading(false)
                 } else if (teamDocSnapshot.exists()) {
                     const teamDetails = {id: teamDocSnapshot.id, ...teamDocSnapshot.data()}
                     if (teamDetails.privacy === 'private' && !teamDetails.members.includes(user.uid)) {
@@ -89,6 +98,7 @@ export default function ViewProfile() {
                         getAccounts(teamDetails)
                     }
                     setPlayerTeamDetails(teamDetails)
+                    setIsLoading(false)
                 }
             } catch (err) {
                 console.error(err)
@@ -272,117 +282,49 @@ export default function ViewProfile() {
         <>
         <Box height='100%' width='100%' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
             <Box width={isMobile || isTablet ? '90%' : '80%'} display='flex' gap='100px'>
-                {playerTeamDetails.username ?
-                    <Stack width='100%' gap='50px'>
-                        <Box display='flex' alignContent='center'>
-                            <Typography variant='h3'>Player Profile</Typography>
-                        </Box>
-                        {adjust740 ? 
-                            <Stack gap='50px'>
-                                <Stack alignItems='center' justifyContent='center' gap='10px' padding={!isTablet && '30px'}>
-                                    <Stack gap='5px'>
-                                        <Typography variant='h5'>@{playerTeamDetails?.username}</Typography>
-                                        <Typography textTransform='capitalize' textAlign='center' variant='subtitle4'>{playerTeamDetails?.fullName}</Typography>
+                {(Object.keys(playerTeamDetails).length === 0 || playerTeamDetails.handle === '<Team Disbanded>') && !isLoading ?
+                    <Stack height='500px' width='100%' justifyContent='center' alignItems='center'>
+                        <Typography variant='h3' textAlign='center'>Profile does not exist</Typography>
+                    </Stack>
+                    : !isLoading &&
+                    (playerTeamDetails.username ?
+                        <Stack width='100%' gap='50px'>
+                            <Box display='flex' alignContent='center'>
+                                <Typography variant='h3'>Player Profile</Typography>
+                            </Box>
+                            {adjust740 ? 
+                                <Stack gap='50px'>
+                                    <Stack alignItems='center' justifyContent='center' gap='10px' padding={!isTablet && '30px'}>
+                                        <Stack gap='5px'>
+                                            <Typography variant='h5'>@{playerTeamDetails?.username}</Typography>
+                                            <Typography textTransform='capitalize' textAlign='center' variant='subtitle4'>{playerTeamDetails?.fullName}</Typography>
+                                        </Stack>
+                                        <Typography color='#888' variant='subtitle2'>{playerTeamDetails?.region}</Typography>
                                     </Stack>
-                                    <Typography color='#888' variant='subtitle2'>{playerTeamDetails?.region}</Typography>
-                                </Stack>
-
-                                <Stack gap='50px' width='100%'>
-                                    <Stack gap='25px'>
-                                        <Stack gap='10px'>
-                                            <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
-                                            <hr/>
-                                        </Stack>
-                                        <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                            {teamInfo[0] ?
-                                                <>
-                                                    <Typography variant='body1'  color='#222'>@{teamInfo[0].handle}</Typography>
-                                                    <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href = `/ViewProfile?id=${teamInfo[0].id}`}>View Team</Button>
-                                                </>
-                                                : 
-                                                <Typography variant='body1'>Not in a team</Typography>
-                                            }
-                                        </Box>
-                                    </Stack>
-
-                                    <Stack gap='25px'>
-                                        <Stack gap='10px'>
-                                            <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
-                                            <hr/>
-                                        </Stack>
-                                        <Stack width='100%'>
-                                            <Typography fontWeight='bold' variant='body1'>Medals</Typography>
-                                            <Box display='flex' gap='25px'>
-                                                <Box display='flex' gap='5px'>
-                                                    <img width='25px' src={require('../img/icons/first.png')}/>
-                                                    <Typography variant='body1' color='#222'>{profileInfo?.first}</Typography>
-                                                </Box>
-                                                <Box display='flex' gap='5px'>
-                                                    <img width='25px' src={require('../img/icons/second.png')}/>
-                                                    <Typography variant='body1' color='#222'>{profileInfo?.second}</Typography>
-                                                </Box>
-                                                <Box display='flex' gap='5px'>
-                                                    <img width='25px' src={require('../img/icons/third.png')}/>
-                                                    <Typography variant='body1' color='#222'>{profileInfo?.third}</Typography>
-                                                </Box>
-                                            </Box>
-                                        </Stack>
-                                        <Stack width='100%'>
-                                            <Typography fontWeight='bold' variant='body1'>Tournaments Played</Typography>
-                                            <Box display='flex'>
-                                                <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
-                                            </Box>
-                                        </Stack>
-                                            
-                                        <Stack paddingTop='8px'>
-                                            <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
-                                            <Box position='relative' display='flex' justifyContent='center'>
-                                                <Line data={graphData} options={graphConfig.options} />
-                                                {(sortedDates.length === 0 || sortedScores.length === 0) &&
-                                                    <Box position='absolute' top='0' left='5%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
-                                                        <Typography color='#CB3E3E' fontWeight='bold' variant='body1' textAlign='center' width='fit-content'>Player has yet to participate in any tournaments</Typography>
-                                                    </Box>
+    
+                                    <Stack gap='50px' width='100%'>
+                                        <Stack gap='25px'>
+                                            <Stack gap='10px'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
+                                                <hr/>
+                                            </Stack>
+                                            <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                                {teamInfo[0] ?
+                                                    <>
+                                                        <Typography variant='body1'  color='#222'>@{teamInfo[0].handle}</Typography>
+                                                        <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href = `/ViewProfile?id=${teamInfo[0].id}`}>View Team</Button>
+                                                    </>
+                                                    : 
+                                                    <Typography variant='body1'>Not in a team</Typography>
                                                 }
                                             </Box>
-                                            <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly' flexDirection='column'><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
                                         </Stack>
-                                    </Stack>
-                                </Stack>
-                            </Stack>
-                            :
-                            <Box display='flex' gap='50px'>
-                                <Stack alignItems='center' justifyContent='center' gap='10px' padding={!isTablet && '30px'}>
-                                    <Stack gap='5px'>
-                                        <Typography variant='h5'>@{playerTeamDetails?.username}</Typography>
-                                        <Typography textTransform='capitalize' textAlign='center' variant='subtitle4'>{playerTeamDetails?.fullName}</Typography>
-                                    </Stack>
-                                    <Typography color='#888' variant='subtitle2'>{playerTeamDetails?.region}</Typography>
-                                </Stack>
-
-                                <Stack gap='50px' width='100%'>
-                                    <Stack gap='25px'>
-                                        <Stack gap='10px'>
-                                            <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
-                                            <hr/>
-                                        </Stack>
-                                        <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                            {teamInfo[0] ?
-                                                <>
-                                                    <Typography variant='body1'  color='#222'>@{teamInfo[0].handle}</Typography>
-                                                    <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href = `/ViewProfile?id=${teamInfo[0].id}`}>View Team</Button>
-                                                </>
-                                                : 
-                                                <Typography variant='body1'>Not in a team</Typography>
-                                            }
-                                        </Box>
-                                    </Stack>
-
-                                    <Stack gap='25px'>
-                                        <Stack gap='10px'>
-                                            <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
-                                            <hr/>
-                                        </Stack>
-                                        <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
+    
+                                        <Stack gap='25px'>
+                                            <Stack gap='10px'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
+                                                <hr/>
+                                            </Stack>
                                             <Stack width='100%'>
                                                 <Typography fontWeight='bold' variant='body1'>Medals</Typography>
                                                 <Box display='flex' gap='25px'>
@@ -406,68 +348,114 @@ export default function ViewProfile() {
                                                     <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
                                                 </Box>
                                             </Stack>
-                                        </Box>
-                                        <Stack paddingTop='8px'>
-                                            <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
-                                            <Box position='relative' display='flex' justifyContent='center'>
-                                                <Line data={graphData} options={graphConfig.options} />
-                                                {(sortedDates.length === 0 || sortedScores.length === 0) &&
-                                                    <Box position='absolute' top='0' left='5%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
-                                                        <Typography color='#CB3E3E' fontWeight='bold' variant='body1' textAlign='center' width='fit-content'>Player has yet to participate in any tournaments</Typography>
-                                                    </Box>
-                                                }
-                                            </Box>
-                                            <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly' flexDirection={isTablet && 'column'}><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
+                                                
+                                            <Stack paddingTop='8px'>
+                                                <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
+                                                <Box position='relative' display='flex' justifyContent='center'>
+                                                    <Line data={graphData} options={graphConfig.options} />
+                                                    {(sortedDates.length === 0 || sortedScores.length === 0) &&
+                                                        <Box position='absolute' top='0' left='5%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
+                                                            <Typography color='#CB3E3E' fontWeight='bold' variant='body1' textAlign='center' width='fit-content'>Player has yet to participate in any tournaments</Typography>
+                                                        </Box>
+                                                    }
+                                                </Box>
+                                                <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly' flexDirection='column'><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
+                                            </Stack>
                                         </Stack>
                                     </Stack>
                                 </Stack>
-                            </Box>
-                        }
-                    </Stack>
-                    :
-                    (user && playerTeamDetails?.members?.includes(user.uid) && playerTeamDetails?.leader !== user.uid ?
-                        <Stack width='100%' gap='50px'>
-                            <Box display='flex' alignContent='center'>
-                                <Typography variant='h3'>Team Profile</Typography>
-                            </Box>
-                            {adjust790 ?
-                                <Stack gap='50px'>
-                                    <Stack width='100%'>
-                                        {adjust400 ?
-                                            <>
-                                            <Stack>
-                                                <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
-                                                <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
+                                :
+                                <Box display='flex' gap='50px'>
+                                    <Stack alignItems='center' justifyContent='center' gap='10px' padding={!isTablet && '30px'}>
+                                        <Stack gap='5px'>
+                                            <Typography variant='h5'>@{playerTeamDetails?.username}</Typography>
+                                            <Typography textTransform='capitalize' textAlign='center' variant='subtitle4'>{playerTeamDetails?.fullName}</Typography>
+                                        </Stack>
+                                        <Typography color='#888' variant='subtitle2'>{playerTeamDetails?.region}</Typography>
+                                    </Stack>
+    
+                                    <Stack gap='50px' width='100%'>
+                                        <Stack gap='25px'>
+                                            <Stack gap='10px'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Team</Typography>
+                                                <hr/>
                                             </Stack>
-                                            <hr/>
-                                            <Stack marginTop='25px' gap='15px'>
-                                                <Stack>
-                                                    <Typography fontWeight='bold' variant='body1'>Region</Typography>
-                                                    <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
-                                                </Stack>
-                                                <Stack>
-                                                    <Typography fontWeight='bold' variant='body1'>Gender</Typography>
-                                                    <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
-                                                </Stack>
-                                                <Stack>
-                                                    <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
-                                                    <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
-                                                </Stack>
-                                                <Stack>
-                                                    <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
-                                                    <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
-                                                </Stack>
-                                            </Stack>
-                                            </>
-                                            :
-                                            <>
-                                            <Box display='flex' gap='25px' alignItems='center'>
-                                                <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
-                                                <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
+                                            <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                                {teamInfo[0] ?
+                                                    <>
+                                                        <Typography variant='body1'  color='#222'>@{teamInfo[0].handle}</Typography>
+                                                        <Button sx={{height:'30px'}} variant='blue' onClick={() => window.location.href = `/ViewProfile?id=${teamInfo[0].id}`}>View Team</Button>
+                                                    </>
+                                                    : 
+                                                    <Typography variant='body1'>Not in a team</Typography>
+                                                }
                                             </Box>
-                                            <hr/>
-                                            <Box display='flex' marginTop='25px'>
-                                                <Stack gap='25px' width='50%'>
+                                        </Stack>
+    
+                                        <Stack gap='25px'>
+                                            <Stack gap='10px'>
+                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
+                                                <hr/>
+                                            </Stack>
+                                            <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
+                                                <Stack width='100%'>
+                                                    <Typography fontWeight='bold' variant='body1'>Medals</Typography>
+                                                    <Box display='flex' gap='25px'>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../img/icons/first.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.first}</Typography>
+                                                        </Box>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../img/icons/second.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.second}</Typography>
+                                                        </Box>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../img/icons/third.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.third}</Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </Stack>
+                                                <Stack width='100%'>
+                                                    <Typography fontWeight='bold' variant='body1'>Tournaments Played</Typography>
+                                                    <Box display='flex'>
+                                                        <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
+                                                    </Box>
+                                                </Stack>
+                                            </Box>
+                                            <Stack paddingTop='8px'>
+                                                <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
+                                                <Box position='relative' display='flex' justifyContent='center'>
+                                                    <Line data={graphData} options={graphConfig.options} />
+                                                    {(sortedDates.length === 0 || sortedScores.length === 0) &&
+                                                        <Box position='absolute' top='0' left='5%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
+                                                            <Typography color='#CB3E3E' fontWeight='bold' variant='body1' textAlign='center' width='fit-content'>Player has yet to participate in any tournaments</Typography>
+                                                        </Box>
+                                                    }
+                                                </Box>
+                                                <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly' flexDirection={isTablet && 'column'}><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
+                                            </Stack>
+                                        </Stack>
+                                    </Stack>
+                                </Box>
+                            }
+                        </Stack>
+                        :
+                        (user && playerTeamDetails?.members?.includes(user.uid) && playerTeamDetails?.leader !== user.uid ?
+                            <Stack width='100%' gap='50px'>
+                                <Box display='flex' alignContent='center'>
+                                    <Typography variant='h3'>Team Profile</Typography>
+                                </Box>
+                                {adjust790 ?
+                                    <Stack gap='50px'>
+                                        <Stack width='100%'>
+                                            {adjust400 ?
+                                                <>
+                                                <Stack>
+                                                    <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
+                                                    <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
+                                                </Stack>
+                                                <hr/>
+                                                <Stack marginTop='25px' gap='15px'>
                                                     <Stack>
                                                         <Typography fontWeight='bold' variant='body1'>Region</Typography>
                                                         <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
@@ -476,8 +464,6 @@ export default function ViewProfile() {
                                                         <Typography fontWeight='bold' variant='body1'>Gender</Typography>
                                                         <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
                                                     </Stack>
-                                                </Stack>
-                                                <Stack gap='25px' width='50%'>
                                                     <Stack>
                                                         <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
                                                         <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
@@ -487,21 +473,131 @@ export default function ViewProfile() {
                                                         <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
                                                     </Stack>
                                                 </Stack>
-                                            </Box>
-                                            </>
-                                        }
-                                    </Stack>
-
-                                    <Stack width='100%'>
-                                        {adjust400 ?
-                                            <Stack gap='10px'>
+                                                </>
+                                                :
+                                                <>
                                                 <Box display='flex' gap='25px' alignItems='center'>
-                                                    <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
-                                                    <Typography color='#222'>{accountsList.length}/{playerTeamDetails?.maxCapacity}</Typography>
+                                                    <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
+                                                    <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
                                                 </Box>
-                                                <Button sx={{height:'30px'}} variant='red' onClick={() => setOpenConfirmation(true)}>Leave Team</Button>
-                                            </Stack>
-                                            :
+                                                <hr/>
+                                                <Box display='flex' marginTop='25px'>
+                                                    <Stack gap='25px' width='50%'>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Region</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Gender</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
+                                                        </Stack>
+                                                    </Stack>
+                                                    <Stack gap='25px' width='50%'>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
+                                                        </Stack>
+                                                    </Stack>
+                                                </Box>
+                                                </>
+                                            }
+                                        </Stack>
+    
+                                        <Stack width='100%'>
+                                            {adjust400 ?
+                                                <Stack gap='10px'>
+                                                    <Box display='flex' gap='25px' alignItems='center'>
+                                                        <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
+                                                        <Typography color='#222'>{accountsList.length}/{playerTeamDetails?.maxCapacity}</Typography>
+                                                    </Box>
+                                                    <Button sx={{height:'30px'}} variant='red' onClick={() => setOpenConfirmation(true)}>Leave Team</Button>
+                                                </Stack>
+                                                :
+                                                <Box display='flex' justifyContent='space-between'>
+                                                    <Box display='flex' gap='25px' alignItems='center'>
+                                                        <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
+                                                        <Typography color='#222'>{accountsList.length}/{playerTeamDetails?.maxCapacity}</Typography>
+                                                    </Box>
+                                                    <Button sx={{height:'30px'}} variant='red' onClick={() => setOpenConfirmation(true)}>Leave Team</Button>
+                                                </Box>
+                                            }
+                                            
+                                            <hr/>
+                                            <Grid container gap='20px' marginTop='25px' alignItems='center'>
+                                                {accountsList.map((account, index) => (
+                                                    <Grid key={account.id || index} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                                                        <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
+                                                            <CardActionArea onClick={() => viewAccount(account.id)}>
+                                                                <CardContent sx={{margin:'16px', overflow:'hidden'}}>
+                                                                    {playerTeamDetails.leader === account.id && <img src={require('../img/icons/crown.png')} height='20px'/>}
+                                                                    <Typography variant='h5'>@{account.username}</Typography>
+                                                                    <Typography textTransform='capitalize' variant='subtitle4'>{account.fullName}</Typography>
+                                                                </CardContent>
+                                                            </CardActionArea>
+                                                        </Card>
+                                                    </Grid>
+                                                ))}
+                                            </Grid>
+                                        </Stack>
+                                    </Stack>
+                                    :
+                                    <Box display='flex' gap='50px'>
+                                        <Stack width='100%'>
+                                            <Box display='flex' gap='25px' alignItems='center'>
+                                                <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
+                                                <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
+                                            </Box>
+                                            <hr/>
+                                            {adjust400 ?
+                                                <Stack marginTop='25px'>
+                                                    <Stack>
+                                                        <Typography fontWeight='bold' variant='body1'>Region</Typography>
+                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
+                                                    </Stack>
+                                                    <Stack>
+                                                        <Typography fontWeight='bold' variant='body1'>Gender</Typography>
+                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
+                                                    </Stack>
+                                                    <Stack>
+                                                        <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
+                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
+                                                    </Stack>
+                                                    <Stack>
+                                                        <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
+                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
+                                                    </Stack>
+                                                </Stack>
+                                                :
+                                                <Box display='flex' marginTop='25px'>
+                                                    <Stack gap='25px' width='50%'>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Region</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Gender</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
+                                                        </Stack>
+                                                    </Stack>
+                                                    <Stack gap='25px' width='50%'>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
+                                                        </Stack>
+                                                    </Stack>
+                                                </Box>
+                                            }
+                                        </Stack>
+    
+                                        <Stack width='100%'>
                                             <Box display='flex' justifyContent='space-between'>
                                                 <Box display='flex' gap='25px' alignItems='center'>
                                                     <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
@@ -509,281 +605,25 @@ export default function ViewProfile() {
                                                 </Box>
                                                 <Button sx={{height:'30px'}} variant='red' onClick={() => setOpenConfirmation(true)}>Leave Team</Button>
                                             </Box>
-                                        }
-                                        
-                                        <hr/>
-                                        <Grid container gap='20px' marginTop='25px' alignItems='center'>
-                                            {accountsList.map((account, index) => (
-                                                <Grid key={account.id || index} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                                                    <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
-                                                        <CardActionArea onClick={() => viewAccount(account.id)}>
-                                                            <CardContent sx={{margin:'16px', overflow:'hidden'}}>
-                                                                {playerTeamDetails.leader === account.id && <img src={require('../img/icons/crown.png')} height='20px'/>}
-                                                                <Typography variant='h5'>@{account.username}</Typography>
-                                                                <Typography textTransform='capitalize' variant='subtitle4'>{account.fullName}</Typography>
-                                                            </CardContent>
-                                                        </CardActionArea>
-                                                    </Card>
-                                                </Grid>
-                                            ))}
-                                        </Grid>
-                                    </Stack>
-                                </Stack>
-                                :
-                                <Box display='flex' gap='50px'>
-                                    <Stack width='100%'>
-                                        <Box display='flex' gap='25px' alignItems='center'>
-                                            <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
-                                            <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
-                                        </Box>
-                                        <hr/>
-                                        {adjust400 ?
-                                            <Stack marginTop='25px'>
-                                                <Stack>
-                                                    <Typography fontWeight='bold' variant='body1'>Region</Typography>
-                                                    <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
-                                                </Stack>
-                                                <Stack>
-                                                    <Typography fontWeight='bold' variant='body1'>Gender</Typography>
-                                                    <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
-                                                </Stack>
-                                                <Stack>
-                                                    <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
-                                                    <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
-                                                </Stack>
-                                                <Stack>
-                                                    <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
-                                                    <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
-                                                </Stack>
-                                            </Stack>
-                                            :
-                                            <Box display='flex' marginTop='25px'>
-                                                <Stack gap='25px' width='50%'>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Region</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
-                                                    </Stack>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Gender</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
-                                                    </Stack>
-                                                </Stack>
-                                                <Stack gap='25px' width='50%'>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
-                                                    </Stack>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
-                                                    </Stack>
-                                                </Stack>
-                                            </Box>
-                                        }
-                                    </Stack>
-
-                                    <Stack width='100%'>
-                                        <Box display='flex' justifyContent='space-between'>
-                                            <Box display='flex' gap='25px' alignItems='center'>
-                                                <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Members</Typography>
-                                                <Typography color='#222'>{accountsList.length}/{playerTeamDetails?.maxCapacity}</Typography>
-                                            </Box>
-                                            <Button sx={{height:'30px'}} variant='red' onClick={() => setOpenConfirmation(true)}>Leave Team</Button>
-                                        </Box>
-                                        <hr/>
-                                        <Grid container gap='20px' marginTop='25px' alignItems='center'>
-                                            {accountsList.map((account, index) => (
-                                                <Grid key={account.id || index} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                                                    <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
-                                                        <CardActionArea onClick={() => viewAccount(account.id)}>
-                                                            <CardContent sx={{margin:'16px', overflow:'hidden'}}>
-                                                                {playerTeamDetails.leader === account.id && <img src={require('../img/icons/crown.png')} height='20px'/>}
-                                                                <Typography variant='h5'>@{account.username}</Typography>
-                                                                <Typography textTransform='capitalize' variant='subtitle4'>{account.fullName}</Typography>
-                                                            </CardContent>
-                                                        </CardActionArea>
-                                                    </Card>
-                                                </Grid>
-                                            ))}
-                                        </Grid>
-                                    </Stack>
-                                </Box>
-                            }
-                            <Stack gap='25px'>
-                                <Stack gap='10px'>
-                                    <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
-                                    <hr/>
-                                </Stack>
-                                {isMobile ?
-                                    <>
-                                    <Stack width='100%'>
-                                        <Typography fontWeight='bold' variant='body1'>Medals</Typography>
-                                        <Box display='flex' gap='25px'>
-                                            <Box display='flex' gap='5px'>
-                                                <img width='25px' src={require('../img/icons/first.png')}/>
-                                                <Typography variant='body1' color='#222'>{profileInfo?.first}</Typography>
-                                            </Box>
-                                            <Box display='flex' gap='5px'>
-                                                <img width='25px' src={require('../img/icons/second.png')}/>
-                                                <Typography variant='body1' color='#222'>{profileInfo?.second}</Typography>
-                                            </Box>
-                                            <Box display='flex' gap='5px'>
-                                                <img width='25px' src={require('../img/icons/third.png')}/>
-                                                <Typography variant='body1' color='#222'>{profileInfo?.third}</Typography>
-                                            </Box>
-                                        </Box>
-                                    </Stack>
-                                    <Stack width='100%'>
-                                        <Typography fontWeight='bold' variant='body1'>Tournaments Played</Typography>
-                                        <Box display='flex'>
-                                            <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
-                                        </Box>
-                                    </Stack>
-                                    </>
-                                    :
-                                    <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
-                                        <Stack width='100%'>
-                                            <Typography fontWeight='bold' variant='body1'>Medals</Typography>
-                                            <Box display='flex' gap='25px'>
-                                                <Box display='flex' gap='5px'>
-                                                    <img width='25px' src={require('../img/icons/first.png')}/>
-                                                    <Typography variant='body1' color='#222'>{profileInfo?.first}</Typography>
-                                                </Box>
-                                                <Box display='flex' gap='5px'>
-                                                    <img width='25px' src={require('../img/icons/second.png')}/>
-                                                    <Typography variant='body1' color='#222'>{profileInfo?.second}</Typography>
-                                                </Box>
-                                                <Box display='flex' gap='5px'>
-                                                    <img width='25px' src={require('../img/icons/third.png')}/>
-                                                    <Typography variant='body1' color='#222'>{profileInfo?.third}</Typography>
-                                                </Box>
-                                            </Box>
-                                        </Stack>
-                                        <Stack width='100%'>
-                                            <Typography fontWeight='bold' variant='body1'>Tournaments Played</Typography>
-                                            <Box display='flex'>
-                                                <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
-                                            </Box>
+                                            <hr/>
+                                            <Grid container gap='20px' marginTop='25px' alignItems='center'>
+                                                {accountsList.map((account, index) => (
+                                                    <Grid key={account.id || index} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                                                        <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
+                                                            <CardActionArea onClick={() => viewAccount(account.id)}>
+                                                                <CardContent sx={{margin:'16px', overflow:'hidden'}}>
+                                                                    {playerTeamDetails.leader === account.id && <img src={require('../img/icons/crown.png')} height='20px'/>}
+                                                                    <Typography variant='h5'>@{account.username}</Typography>
+                                                                    <Typography textTransform='capitalize' variant='subtitle4'>{account.fullName}</Typography>
+                                                                </CardContent>
+                                                            </CardActionArea>
+                                                        </Card>
+                                                    </Grid>
+                                                ))}
+                                            </Grid>
                                         </Stack>
                                     </Box>
                                 }
-                                
-                                <Stack paddingTop='8px'>
-                                    <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
-                                    <Box position='relative' display='flex' justifyContent='center'>
-                                        <Line data={graphData} options={graphConfig.options} />
-                                        {(sortedDates.length === 0 || sortedScores.length === 0) &&
-                                            <Box position='absolute' top='0' left='5%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
-                                                <Typography color='#CB3E3E' fontWeight='bold' variant='body1' textAlign='center' width='fit-content'>Team has yet to participate in any tournaments</Typography>
-                                            </Box>
-                                        }
-                                    </Box>
-                                    <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly' flexDirection={isMobile && 'column'}><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
-                                </Stack>
-                            </Stack>
-                        </Stack>
-                        :
-                        <Box width='100%' display='flex' gap='100px'>
-                            <Stack width='100%' gap='50px'>
-                                <Box display='flex' alignContent='center'>
-                                    <Typography variant='h3'>Team Profile</Typography>
-                                </Box>
-
-                                <Box display='flex' gap='50px'>
-                                    <Stack width='100%'>
-                                        <Box display='flex' justifyContent='space-between' alignItems='center'>
-                                            {adjust400 ? 
-                                                <Stack>
-                                                    <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
-                                                    <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
-                                                </Stack>
-                                                :
-                                                <Box display='flex' gap='25px' alignItems='center'>
-                                                    <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
-                                                    <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
-                                                </Box>
-                                            }
-                                            
-                                            {
-                                                playerTeamDetails.leader !== user.uid ? 
-                                                    user && !user.emailVerified && userTeam.length === 0 && parseInt(playerTeamDetails?.members?.length) < playerTeamDetails?.maxCapacity && (playerTeamDetails?.genderReq === moreUserInfo.gender || playerTeamDetails?.genderReq === 'mixed') && moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
-                                                        <Button variant='blue' sx={{height:'30px'}} onClick={joinTeam}>Join Team</Button>
-                                                        :
-                                                        <Tooltip title={
-                                                            !user.emailVerified ?
-                                                            "Please verify your email before joining a team" :
-                                                            userTeam.length > 0 ?
-                                                            "You are already in another team" :
-                                                            playerTeamDetails?.members?.length >= playerTeamDetails?.maxCapacity ?
-                                                            "Team is full" :
-                                                            playerTeamDetails?.genderReq !== moreUserInfo?.gender && playerTeamDetails?.genderReq !== 'mixed' && !moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
-                                                            "Your gender and sport interests don't match the team's requirements" :
-                                                            playerTeamDetails?.genderReq !== moreUserInfo?.gender && playerTeamDetails?.genderReq !== 'mixed' ?
-                                                            "Your gender doesn't match the team's gender requirement" :
-                                                            !moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
-                                                            "You don't have any sport interests that match the team's sports" :
-                                                            ""
-                                                        }>
-                                                            <span>
-                                                                <Button variant='red' sx={{height:'30px'}} disabled>Join Team</Button>
-                                                            </span>
-                                                        </Tooltip>
-                                                :
-                                                user && playerTeamDetails?.leader === user.uid && <Button variant='blue' sx={{height:'30px'}} onClick={() => window.location.href='/ManageTeam'}>Manage Team</Button>
-                                            }
-                                        </Box>
-                                        <hr/>
-                                        <Box display='flex' marginTop='25px'>
-                                            {adjust740 ?
-                                                <Stack gap='15px'>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Region</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
-                                                    </Stack>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
-                                                    </Stack>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Gender</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
-                                                    </Stack>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
-                                                    </Stack>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Capacity</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.members?.length}/{playerTeamDetails?.maxCapacity}</Typography>
-                                                    </Stack>
-                                                </Stack>
-                                                :
-                                                <Box display='flex' justifyContent='space-between' width='100%'>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Region</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
-                                                    </Stack>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
-                                                    </Stack>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Gender</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
-                                                    </Stack>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
-                                                    </Stack>
-                                                    <Stack>
-                                                        <Typography fontWeight='bold' variant='body1'>Capacity</Typography>
-                                                        <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.members?.length}/{playerTeamDetails?.maxCapacity}</Typography>
-                                                    </Stack>
-                                                </Box>
-                                            }
-                                        </Box>
-                                    </Stack>
-                                </Box>
                                 <Stack gap='25px'>
                                     <Stack gap='10px'>
                                         <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
@@ -857,7 +697,183 @@ export default function ViewProfile() {
                                     </Stack>
                                 </Stack>
                             </Stack>
-                        </Box>
+                            :
+                            <Box width='100%' display='flex' gap='100px'>
+                                <Stack width='100%' gap='50px'>
+                                    <Box display='flex' alignContent='center'>
+                                        <Typography variant='h3'>Team Profile</Typography>
+                                    </Box>
+    
+                                    <Box display='flex' gap='50px'>
+                                        <Stack width='100%'>
+                                            <Box display='flex' justifyContent='space-between' alignItems='center'>
+                                                {adjust400 ? 
+                                                    <Stack>
+                                                        <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
+                                                        <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
+                                                    </Stack>
+                                                    :
+                                                    <Box display='flex' gap='25px' alignItems='center'>
+                                                        <Typography variant='h5'>{playerTeamDetails?.name}</Typography>
+                                                        <Typography color='#222'>@{playerTeamDetails?.handle}</Typography>
+                                                    </Box>
+                                                }
+                                                
+                                                {
+                                                    playerTeamDetails.leader !== user.uid ? 
+                                                        user && !user.emailVerified && userTeam.length === 0 && parseInt(playerTeamDetails?.members?.length) < playerTeamDetails?.maxCapacity && (playerTeamDetails?.genderReq === moreUserInfo.gender || playerTeamDetails?.genderReq === 'mixed') && moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
+                                                            <Button variant='blue' sx={{height:'30px'}} onClick={joinTeam}>Join Team</Button>
+                                                            :
+                                                            <Tooltip title={
+                                                                !user.emailVerified ?
+                                                                "Please verify your email before joining a team" :
+                                                                userTeam.length > 0 ?
+                                                                "You are already in another team" :
+                                                                playerTeamDetails?.members?.length >= playerTeamDetails?.maxCapacity ?
+                                                                "Team is full" :
+                                                                playerTeamDetails?.genderReq !== moreUserInfo?.gender && playerTeamDetails?.genderReq !== 'mixed' && !moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
+                                                                "Your gender and sport interests don't match the team's requirements" :
+                                                                playerTeamDetails?.genderReq !== moreUserInfo?.gender && playerTeamDetails?.genderReq !== 'mixed' ?
+                                                                "Your gender doesn't match the team's gender requirement" :
+                                                                !moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
+                                                                "You don't have any sport interests that match the team's sports" :
+                                                                ""
+                                                            }>
+                                                                <span>
+                                                                    <Button variant='red' sx={{height:'30px'}} disabled>Join Team</Button>
+                                                                </span>
+                                                            </Tooltip>
+                                                    :
+                                                    user && playerTeamDetails?.leader === user.uid && <Button variant='blue' sx={{height:'30px'}} onClick={() => window.location.href='/ManageTeam'}>Manage Team</Button>
+                                                }
+                                            </Box>
+                                            <hr/>
+                                            <Box display='flex' marginTop='25px'>
+                                                {adjust740 ?
+                                                    <Stack gap='15px'>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Region</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Gender</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Capacity</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.members?.length}/{playerTeamDetails?.maxCapacity}</Typography>
+                                                        </Stack>
+                                                    </Stack>
+                                                    :
+                                                    <Box display='flex' justifyContent='space-between' width='100%'>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Region</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.region}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Sport(s)</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.sports?.join(', ')}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Gender</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.genderReq}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Group Privacy</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.privacy}</Typography>
+                                                        </Stack>
+                                                        <Stack>
+                                                            <Typography fontWeight='bold' variant='body1'>Capacity</Typography>
+                                                            <Typography variant='body1' color='#222' textTransform='capitalize'>{playerTeamDetails?.members?.length}/{playerTeamDetails?.maxCapacity}</Typography>
+                                                        </Stack>
+                                                    </Box>
+                                                }
+                                            </Box>
+                                        </Stack>
+                                    </Box>
+                                    <Stack gap='25px'>
+                                        <Stack gap='10px'>
+                                            <Typography textTransform='uppercase' letterSpacing='5px' variant='h5' fontWeight='600'>Statistics</Typography>
+                                            <hr/>
+                                        </Stack>
+                                        {isMobile ?
+                                            <>
+                                            <Stack width='100%'>
+                                                <Typography fontWeight='bold' variant='body1'>Medals</Typography>
+                                                <Box display='flex' gap='25px'>
+                                                    <Box display='flex' gap='5px'>
+                                                        <img width='25px' src={require('../img/icons/first.png')}/>
+                                                        <Typography variant='body1' color='#222'>{profileInfo?.first}</Typography>
+                                                    </Box>
+                                                    <Box display='flex' gap='5px'>
+                                                        <img width='25px' src={require('../img/icons/second.png')}/>
+                                                        <Typography variant='body1' color='#222'>{profileInfo?.second}</Typography>
+                                                    </Box>
+                                                    <Box display='flex' gap='5px'>
+                                                        <img width='25px' src={require('../img/icons/third.png')}/>
+                                                        <Typography variant='body1' color='#222'>{profileInfo?.third}</Typography>
+                                                    </Box>
+                                                </Box>
+                                            </Stack>
+                                            <Stack width='100%'>
+                                                <Typography fontWeight='bold' variant='body1'>Tournaments Played</Typography>
+                                                <Box display='flex'>
+                                                    <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
+                                                </Box>
+                                            </Stack>
+                                            </>
+                                            :
+                                            <Box display='flex' justifyContent='space-between' alignItems='center' gap='50px'>
+                                                <Stack width='100%'>
+                                                    <Typography fontWeight='bold' variant='body1'>Medals</Typography>
+                                                    <Box display='flex' gap='25px'>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../img/icons/first.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.first}</Typography>
+                                                        </Box>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../img/icons/second.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.second}</Typography>
+                                                        </Box>
+                                                        <Box display='flex' gap='5px'>
+                                                            <img width='25px' src={require('../img/icons/third.png')}/>
+                                                            <Typography variant='body1' color='#222'>{profileInfo?.third}</Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </Stack>
+                                                <Stack width='100%'>
+                                                    <Typography fontWeight='bold' variant='body1'>Tournaments Played</Typography>
+                                                    <Box display='flex'>
+                                                        <Typography variant='body1' color='#222'>{profileInfo?.tournamentsParticipated}</Typography>
+                                                    </Box>
+                                                </Stack>
+                                            </Box>
+                                        }
+                                        
+                                        <Stack paddingTop='8px'>
+                                            <Typography fontWeight='bold' variant='body1'>Performance Chart</Typography>
+                                            <Box position='relative' display='flex' justifyContent='center'>
+                                                <Line data={graphData} options={graphConfig.options} />
+                                                {(sortedDates.length === 0 || sortedScores.length === 0) &&
+                                                    <Box position='absolute' top='0' left='5%' right='0' bottom='0' display='flex' justifyContent='center' alignItems='center'>
+                                                        <Typography color='#CB3E3E' fontWeight='bold' variant='body1' textAlign='center' width='fit-content'>Team has yet to participate in any tournaments</Typography>
+                                                    </Box>
+                                                }
+                                            </Box>
+                                            <Typography variant='body2' textAlign='center' fontWeight='bold' display='flex' justifyContent='space-evenly' flexDirection={isMobile && 'column'}><span style={{color:'#D0AF00'}}>Gold = 4 points</span><span style={{color:'#888'}}>Silver = 3 points</span><span style={{color:'#AA6600'}}>Bronze = 2 points</span><span>Consolation = 1 point</span></Typography>
+                                        </Stack>
+                                    </Stack>
+                                </Stack>
+                            </Box>
+                        )
                     )
                 }
             </Box>

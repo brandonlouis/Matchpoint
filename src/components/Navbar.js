@@ -12,6 +12,7 @@ import { useMediaQuery } from 'react-responsive'
 export default function Navbar() {
     const adjust1115 = useMediaQuery({ query: '(max-width: 1115px)' })
     const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
+    const adjust900 = useMediaQuery({ query: '(max-width: 900px)' })
     const isMobile = useMediaQuery({ query: '(max-width: 600px)' })
 
     const [openResponsiveNav, setOpenResponsiveNav] = React.useState(false)
@@ -258,13 +259,15 @@ export default function Navbar() {
             </Box>
         )}
 
-        <Modal open={openModal} onClose={() => setOpenModal(false)} disableScrollLock>
-            <Box className='ModalLoginSignUp' display='flex' borderRadius='15px' width='100%' maxWidth='700px' height='700px' margin='120px auto'>
-                <Stack width='50%' justifyContent='center' alignItems='center' gap='100px' borderRadius='15px 0 0 15px' sx={{backgroundImage: `url('${loginSignUpBG}')`, backgroundRepeat:"no-repeat", backgroundSize:'cover'}}>
-                </Stack>
+        <Modal open={openModal} sx={{display:'flex', alignItems:'center', justifyContent:'center'}} onClose={() => setOpenModal(false)} disableScrollLock>
+            <Box className='ModalLoginSignUp' display='flex' borderRadius='15px' width='80%' maxWidth='700px' height={isMobile ? '620px' : '700px'}>
+                {!isMobile &&
+                    <Stack width='50%' justifyContent='center' alignItems='center' gap='100px' borderRadius='15px 0 0 15px' sx={{backgroundImage: `url('${loginSignUpBG}')`, backgroundRepeat:"no-repeat", backgroundSize:'cover'}}>
+                    </Stack>
+                }
 
                 {loginSignUp === 'login' ?
-                    <Stack width='50%' justifyContent='center' bgcolor='#EEE' borderRadius='0 15px 15px 0' padding='0 35px'>
+                    <Stack width={isMobile ? '100%' : '50%'} justifyContent='center' bgcolor='#EEE' borderRadius={isMobile ? '15px' : '0 15px 15px 0'} padding='0 35px'>
                         <Stack width='100%' height='95%' gap='50px' alignItems='center' justifyContent='center'>
                             <Typography variant='h3Caps'>Welcome Back!</Typography>
                             <form style={{width:'100%'}} onSubmit={handleLogin}>
@@ -281,8 +284,8 @@ export default function Navbar() {
                         </Box>
                     </Stack>
                     :
-                    <Stack width='50%' justifyContent='center' bgcolor='#EEE' borderRadius='0 15px 15px 0' padding='0 35px'>
-                        <Stack width='100%' height='95%' gap='30px' alignItems='center' justifyContent='center'>
+                    <Stack width={isMobile ? '100%' : '50%'} justifyContent='center' bgcolor='#EEE' borderRadius={isMobile ? '15px' : '0 15px 15px 0'} padding='0 35px'>
+                        <Stack width='100%' height='95%' gap={!isMobile && '30px'} alignItems='center' justifyContent='center'>
                             <Typography variant='h3Caps'>Let's Get Started!</Typography>
                             <form style={{width:'100%'}} onSubmit={createAccount}>
                                 <Stack gap='10px' marginBottom='50px'>

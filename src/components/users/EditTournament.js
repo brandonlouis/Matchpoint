@@ -93,7 +93,7 @@ export default function EditTournament() {
                     let matchesPerRound = []
 
                     setOriginalNoRounds(Object.keys(resList.round).length)
-                    setNoRounds(Object.keys(resList.round).length+1)
+                    setNoRounds(Object.keys(resList.round).length)
 
                     for (let i = 0; i < Object.keys(resList.round).length; i++) {
                         matchesPerRound.push(Object.keys(resList.round[parseInt(i+1)].match).length)
@@ -369,14 +369,26 @@ export default function EditTournament() {
         }
 
         try {
+            // Set start date to 00:00:00
+            const formattedStartDate = new Date(startDate)
+            formattedStartDate.setHours(0)
+            formattedStartDate.setMinutes(0)
+            formattedStartDate.setSeconds(0)
+
+            // Set end date to 23:59:59
+            const formattedEndDate = new Date(endDate)
+            formattedEndDate.setHours(23)
+            formattedEndDate.setMinutes(59)
+            formattedEndDate.setSeconds(59)
+
             await updateDoc(doc(db, 'tournaments', location.state.id), {
                 format: format,
                 sport: sport,
                 title: title,
                 description: description,
                 date: {
-                    start: new Date(startDate),
-                    end: new Date(endDate)
+                    start: formattedStartDate,
+                    end: formattedEndDate
                 },
                 venue: venue,
                 region: region,

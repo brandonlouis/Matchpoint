@@ -304,6 +304,7 @@ export default function CreateTournament() {
 
     const createTournament = async (e) => {
         e.preventDefault()
+        
         let roundDict = {}
         for (let i = 1; i <= noRounds; i++) {
             const matchesDict = {}
@@ -319,14 +320,26 @@ export default function CreateTournament() {
         }
 
         try {
+            // Set start date to 00:00:00
+            const formattedStartDate = new Date(startDate)
+            formattedStartDate.setHours(0)
+            formattedStartDate.setMinutes(0)
+            formattedStartDate.setSeconds(0)
+
+            // Set end date to 23:59:59
+            const formattedEndDate = new Date(endDate)
+            formattedEndDate.setHours(23)
+            formattedEndDate.setMinutes(59)
+            formattedEndDate.setSeconds(59)
+
             const docRef = await addDoc(collection(db, 'tournaments'), {
                 format: format,
                 sport: sport,
                 title: title,
                 description: description,
                 date: {
-                    start: new Date(startDate),
-                    end: new Date(endDate)
+                    start: formattedStartDate,
+                    end: formattedEndDate
                 },
                 venue: venue,
                 region: region,
