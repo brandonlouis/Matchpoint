@@ -33,7 +33,7 @@ export default function PlayersTeams() {
         }
         getTeams()
 
-        user && moreUserInfo?.type !== 'admin' && setPersonalizedFilter(true)
+        user && !user.email.includes('@matchpoint.com') && setPersonalizedFilter(true)
     }, [])
 
     useEffect(() => { // Handle filtering players & teams based on filter criteria

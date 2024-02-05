@@ -48,7 +48,7 @@ export default function Tournaments() {
         getTournaments()
         getSports()
 
-        user && moreUserInfo?.type !== 'admin' && setPersonalizedFilter(true)
+        user && !user.email.includes('@matchpoint.com') && setPersonalizedFilter(true)
     }, [])
 
     useEffect(() => { // Handle filtering tournaments based on filter criteria

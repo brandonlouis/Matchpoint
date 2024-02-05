@@ -48,7 +48,7 @@ export default function NewsArticles() {
         getNewsArticles()
         getSports()
 
-        user && moreUserInfo?.type !== 'admin' && setPersonalizedFilter(true)
+        user && !user.email.includes('@matchpoint.com') && setPersonalizedFilter(true)
     }, [])
 
     useEffect(() => { // Handle filtering articles based on filter criteria
