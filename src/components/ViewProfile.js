@@ -720,7 +720,7 @@ export default function ViewProfile() {
                                                 }
                                                 
                                                 {user && playerTeamDetails.leader !== user.uid ? 
-                                                    user && !user.emailVerified && userTeam.length === 0 && parseInt(playerTeamDetails?.members?.length) < playerTeamDetails?.maxCapacity && (playerTeamDetails?.genderReq === moreUserInfo.gender || playerTeamDetails?.genderReq === 'mixed') && moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
+                                                    user && user.emailVerified && userTeam.length === 0 && parseInt(playerTeamDetails?.members?.length) < playerTeamDetails?.maxCapacity && (playerTeamDetails?.genderReq === moreUserInfo.gender || playerTeamDetails?.genderReq === 'mixed') && moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
                                                         <Button variant='blue' sx={{height:'30px'}} onClick={joinTeam}>Join Team</Button>
                                                         :
                                                         <Tooltip title={

@@ -96,21 +96,26 @@ export default function ManageAccounts() {
                         </Box>
                     </Box>
                 }
-                
-                <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
-                    {accountsList.map((account) => (
-                        <Grid key={account.id} item width='150px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                            <Card sx={{bgcolor:'#EEE', textAlign:'center', height:'150px', borderRadius:'15px'}} >
-                                <CardActionArea sx={{height:'150px'}} onClick={() => viewAccount(account.id)}>
-                                    <CardContent sx={{margin:'16px', overflow:'hidden'}}>
-                                        <Typography variant='h5'>@{account.username}</Typography>
-                                        <Typography textTransform='capitalize' variant='subtitle4'>{account.fullName}</Typography>
-                                    </CardContent>
-                                </CardActionArea>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
+                {accountsList.length === 0 ?
+                    <Stack height='150px' marginTop='50px' alignItems='center' justifyContent='center'>
+                        <Typography variant='h5'>No results found</Typography>
+                    </Stack>
+                    :
+                    <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
+                        {accountsList.map((account) => (
+                            <Grid key={account.id} item width='150px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                                <Card sx={{bgcolor:'#EEE', textAlign:'center', height:'150px', borderRadius:'15px'}} >
+                                    <CardActionArea sx={{height:'150px'}} onClick={() => viewAccount(account.id)}>
+                                        <CardContent sx={{margin:'16px', overflow:'hidden'}}>
+                                            <Typography variant='h5'>@{account.username}</Typography>
+                                            <Typography textTransform='capitalize' variant='subtitle4'>{account.fullName}</Typography>
+                                        </CardContent>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                }
             </Stack>
         </Box>
 

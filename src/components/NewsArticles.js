@@ -128,14 +128,7 @@ export default function NewsArticles() {
         setFilterSearch(searchCriteria)
         
         if (personalizedFilter) {
-            try {
-                const resList = personalizedArticleList.filter(article => article.title.toLowerCase().includes(searchCriteria.toLowerCase()))
-                
-                setSearchResults(processDate(resList))
-                setNewsArticleList(processDate(resList))
-            } catch (err) {
-                console.error(err)
-            }
+            searchCriteria === '' ? setNewsArticleList(personalizedArticleList) : setNewsArticleList(personalizedArticleList.filter(article => article.title.toLowerCase().includes(searchCriteria.toLowerCase())))
         } else {
             try {
                 const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
@@ -249,32 +242,38 @@ export default function NewsArticles() {
                         </>
                     }
                 </Box>
-                <Grid container spacing={4} alignItems='stretch' marginTop='25px'>
-                    {newsArticleList.map((newsArticle) => (
-                        <Grid key={newsArticle.id} xs={12} sm={6} md={4} item borderRadius='15px'>
-                            <Card sx={{borderRadius:'15px', height:'100%', boxShadow:'0 5px 15px rgba(0, 0, 0, 0.2)'}} >
-                                <CardActionArea onClick={() => window.location.href = `/ViewNewsArticle?id=${newsArticle.id}`} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
-                                    <CardContent sx={{padding:'0', width:'100%'}}>
-                                        <Stack>
-                                            <Box height='200px'>
-                                                <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.bannerURL}/>
-                                            </Box>
-                                            <Stack bgcolor='white' height='100%' padding='15px 25px 30px' gap='15px'>
-                                                <Box display='flex' justifyContent='space-between'>
-                                                    <Typography sx={{textTransform:'uppercase'}} variant='subtitle4'>{newsArticle.sport}</Typography>
-                                                    <Typography sx={{textTransform:'uppercase'}}  variant='subtitle4'>{newsArticle.date[0]} {newsArticle.date[1]}, {newsArticle.date[2]}</Typography>
+                {newsArticleList.length === 0 ?
+                    <Stack height='150px' marginTop='50px' alignItems='center' justifyContent='center'>
+                        <Typography variant='h5'>No results found</Typography>
+                    </Stack>
+                    :
+                    <Grid container spacing={4} alignItems='stretch' marginTop='25px'>
+                        {newsArticleList.map((newsArticle) => (
+                            <Grid key={newsArticle.id} xs={12} sm={6} md={4} item borderRadius='15px'>
+                                <Card sx={{borderRadius:'15px', height:'100%', boxShadow:'0 5px 15px rgba(0, 0, 0, 0.2)'}} >
+                                    <CardActionArea onClick={() => window.location.href = `/ViewNewsArticle?id=${newsArticle.id}`} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
+                                        <CardContent sx={{padding:'0', width:'100%'}}>
+                                            <Stack>
+                                                <Box height='200px'>
+                                                    <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.bannerURL}/>
                                                 </Box>
-                                                <Box display='flex'>
-                                                    <Typography className='tripleLineConcat' variant='h4'>{newsArticle.title}</Typography>
-                                                </Box>
+                                                <Stack bgcolor='white' height='100%' padding='15px 25px 30px' gap='15px'>
+                                                    <Box display='flex' justifyContent='space-between'>
+                                                        <Typography sx={{textTransform:'uppercase'}} variant='subtitle4'>{newsArticle.sport}</Typography>
+                                                        <Typography sx={{textTransform:'uppercase'}}  variant='subtitle4'>{newsArticle.date[0]} {newsArticle.date[1]}, {newsArticle.date[2]}</Typography>
+                                                    </Box>
+                                                    <Box display='flex'>
+                                                        <Typography className='tripleLineConcat' variant='h4'>{newsArticle.title}</Typography>
+                                                    </Box>
+                                                </Stack>
                                             </Stack>
-                                        </Stack>
-                                    </CardContent>
-                                </CardActionArea>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
+                                        </CardContent>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                }
             </Stack>
         </Box>
     )

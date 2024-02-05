@@ -153,20 +153,25 @@ export default function ManageSports() {
                         </Box>
                     </Box>
                 }
-                
-                <Grid container gap='20px' alignItems='stretch' marginTop='50px'>
-                    {sportsList.map((sport) => (
-                        <Grid key={sport.id} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                            <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
-                                <CardActionArea onClick={() => viewSport(sport.id)}>
-                                    <CardContent sx={{padding:'10px 20px'}}>
-                                        <Typography textTransform='uppercase' variant='subtitle1'>{sport.name}</Typography>
-                                    </CardContent>
-                                </CardActionArea>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
+                {sportsList.length === 0 ?
+                    <Stack height='150px' marginTop='50px' alignItems='center' justifyContent='center'>
+                        <Typography variant='h5'>No results found</Typography>
+                    </Stack>
+                    :
+                    <Grid container gap='20px' alignItems='stretch' marginTop='50px'>
+                        {sportsList.map((sport) => (
+                            <Grid key={sport.id} item borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                                <Card sx={{bgcolor:'#EEE', textAlign:'center', borderRadius:'15px'}} >
+                                    <CardActionArea onClick={() => viewSport(sport.id)}>
+                                        <CardContent sx={{padding:'10px 20px'}}>
+                                            <Typography textTransform='uppercase' variant='subtitle1'>{sport.name}</Typography>
+                                        </CardContent>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                }
             </Stack>
         </Box>
 

@@ -121,55 +121,60 @@ export default function ManageTournaments() {
                         </Box>
                     </Box>
                 }
-
-                <Grid container spacing={4} alignItems='stretch' marginTop='25px'>
-                    {tournamentList.map((tournament) => (
-                        <Grid key={tournament.id} xs={12} sm={6} md={4} item borderRadius='15px' sx={{opacity: (tournament.status === 0 || tournament.date?.end.toDate() < new Date()) && '0.5'}}>
-                            <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%', boxShadow:'0 5px 15px rgba(0, 0, 0, 0.2)'}} >
-                                <CardActionArea onClick={() => viewTournament(tournament.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
-                                    <CardContent sx={{padding:'0', width:'100%'}}>
-                                        <Stack>
-                                            <Box height='180px'>
-                                                <img width='100%' height='100%' style={{objectFit:'cover'}} src={tournament.imgURL}/>
-                                            </Box>
-                                            <Stack height='100%' padding='15px 25px 30px' gap='15px'>
-                                                <Box display='flex' justifyContent='space-between'>
-                                                    <Typography textTransform='uppercase' variant='subtitle4'>{tournament.sport}</Typography>
-                                                    <Typography textTransform='uppercase' variant='subtitle4'>
-                                                        {tournament.date.start.toDate().toDateString() === tournament.date.end.toDate().toDateString() ? (
-                                                            `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]}, ${tournament.stringDate.start[2]}`
-                                                        ) : (
-                                                            tournament.stringDate.start[2] === tournament.stringDate.end[2] ? (
-                                                                tournament.stringDate.start[0] === tournament.stringDate.end[0] ? (
-                                                                    `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]} — ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
-                                                                ): (
-                                                                    `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]} — ${tournament.stringDate.end[0]} ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
-                                                                )
+                {tournamentList.length === 0 ?
+                    <Stack height='150px' marginTop='50px' alignItems='center' justifyContent='center'>
+                        <Typography variant='h5'>No results found</Typography>
+                    </Stack>
+                    :
+                    <Grid container spacing={4} alignItems='stretch' marginTop='25px'>
+                        {tournamentList.map((tournament) => (
+                            <Grid key={tournament.id} xs={12} sm={6} md={4} item borderRadius='15px' sx={{opacity: (tournament.status === 0 || tournament.date?.end.toDate() < new Date()) && '0.5'}}>
+                                <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%', boxShadow:'0 5px 15px rgba(0, 0, 0, 0.2)'}} >
+                                    <CardActionArea onClick={() => viewTournament(tournament.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
+                                        <CardContent sx={{padding:'0', width:'100%'}}>
+                                            <Stack>
+                                                <Box height='180px'>
+                                                    <img width='100%' height='100%' style={{objectFit:'cover'}} src={tournament.imgURL}/>
+                                                </Box>
+                                                <Stack height='100%' padding='15px 25px 30px' gap='15px'>
+                                                    <Box display='flex' justifyContent='space-between'>
+                                                        <Typography textTransform='uppercase' variant='subtitle4'>{tournament.sport}</Typography>
+                                                        <Typography textTransform='uppercase' variant='subtitle4'>
+                                                            {tournament.date.start.toDate().toDateString() === tournament.date.end.toDate().toDateString() ? (
+                                                                `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]}, ${tournament.stringDate.start[2]}`
                                                             ) : (
-                                                                `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]}, ${tournament.stringDate.start[2]} — ${tournament.stringDate.end[0]} ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
-                                                            )
-                                                        )}
-                                                    </Typography>
-                                                </Box>
-                                                <Box display='flex'>
-                                                    <Typography className='doubleLineConcat' variant='h4'>
-                                                        {tournament.status === 0 && 
-                                                            <span style={{color:'#CB3E3E'}}>SUSPENDED: </span>
-                                                        }
-                                                        {tournament.date?.end.toDate() < new Date() &&
-                                                            <span style={{color:'#888'}}>ENDED: </span>
-                                                        }
-                                                        {tournament.title}
-                                                    </Typography>
-                                                </Box>
+                                                                tournament.stringDate.start[2] === tournament.stringDate.end[2] ? (
+                                                                    tournament.stringDate.start[0] === tournament.stringDate.end[0] ? (
+                                                                        `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]} — ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
+                                                                    ): (
+                                                                        `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]} — ${tournament.stringDate.end[0]} ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
+                                                                    )
+                                                                ) : (
+                                                                    `${tournament.stringDate.start[0]} ${tournament.stringDate.start[1]}, ${tournament.stringDate.start[2]} — ${tournament.stringDate.end[0]} ${tournament.stringDate.end[1]}, ${tournament.stringDate.end[2]}`
+                                                                )
+                                                            )}
+                                                        </Typography>
+                                                    </Box>
+                                                    <Box display='flex'>
+                                                        <Typography className='doubleLineConcat' variant='h4'>
+                                                            {tournament.status === 0 && 
+                                                                <span style={{color:'#CB3E3E'}}>SUSPENDED: </span>
+                                                            }
+                                                            {tournament.date?.end.toDate() < new Date() &&
+                                                                <span style={{color:'#888'}}>ENDED: </span>
+                                                            }
+                                                            {tournament.title}
+                                                        </Typography>
+                                                    </Box>
+                                                </Stack>
                                             </Stack>
-                                        </Stack>
-                                    </CardContent>
-                                </CardActionArea>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
+                                        </CardContent>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                }
             </Stack>
         </Box>
         <Modal open={openModal} onClose={() => setOpenModal(false)} disableScrollLock>

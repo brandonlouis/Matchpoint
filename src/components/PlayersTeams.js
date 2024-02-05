@@ -40,17 +40,13 @@ export default function PlayersTeams() {
         const getTeams = async () => {
             if (personalizedFilter) {
                 try {
-                    const accQ = query(collection(db, 'accounts'), orderBy('username'))
-                    const accData = await getDocs(accQ)
-                    const teamQ = query(collection(db, 'teams'), orderBy('handle'))
-                    const teamData = await getDocs(teamQ)
+                    const q = query(collection(db, 'teams'), orderBy('handle'))
+                    const data = await getDocs(q)
     
-                    const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.type !== 'admin' && moreUserInfo?.sportInterests.some((interest) => item.sportInterests.includes(interest)) && moreUserInfo?.region === item.region)
-                    const teamList = teamData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.privacy === 'public' && (moreUserInfo?.gender === item.genderReq || item.genderReq === 'mixed') && moreUserInfo?.sportInterests.some((interest) => item.sports.includes(interest)) && moreUserInfo?.region === item.region)
+                    const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.privacy === 'public' && (moreUserInfo?.gender === item.genderReq || item.genderReq === 'mixed') && moreUserInfo?.sportInterests.some((interest) => item.sports.includes(interest)) && moreUserInfo?.region === item.region)
 
-                    const combinedList = [...accList, ...teamList]
-                    setResultList(combinedList)
-                    setPersonalizedPlayersTeamsList(combinedList)
+                    setResultList(resList)
+                    setPersonalizedPlayersTeamsList(resList)
                 } catch (err) {
                     console.error(err)
                 }
@@ -73,16 +69,11 @@ export default function PlayersTeams() {
 
         if (personalizedFilter) {
             try {
-                if (searchCriteria === '') { // If search criteria is empty, retrieve all team records
-                    setResultList(personalizedPlayersTeamsList)
-                } else {    
-                    const resList = personalizedPlayersTeamsList.filter((item) => {
-                        return (
-                            item?.username?.includes(searchCriteria.toLowerCase()) || item?.fullName?.toLowerCase().includes(searchCriteria.toLowerCase()) || item?.handle?.includes(searchCriteria.toLowerCase()) || item?.name?.toLowerCase().includes(searchCriteria.toLowerCase())
-                        )
-                    })
-                    setResultList(resList)
-                }
+                searchCriteria === '' ? setResultList(personalizedPlayersTeamsList) : setResultList(personalizedPlayersTeamsList.filter((item) => {
+                    return (
+                        item?.username?.includes(searchCriteria.toLowerCase()) || item?.fullName?.toLowerCase().includes(searchCriteria.toLowerCase()) || item?.handle?.includes(searchCriteria.toLowerCase()) || item?.name?.toLowerCase().includes(searchCriteria.toLowerCase())
+                    )
+                }))
             } catch (err) {
                 console.error(err)
             }
@@ -178,38 +169,44 @@ export default function PlayersTeams() {
                     }
                     
                 </Box>
-                <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
-                    {resultList.map((result) => (
-                        result.username ? (
-                            <Grid key={result.id} item width='150px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                                <Card sx={{ bgcolor: '#EEE', textAlign: 'center', height: '150px', borderRadius: '15px' }}>
-                                    <CardActionArea sx={{ height: '150px' }} onClick={() => window.location.href = `/ViewProfile?id=${result.id}`}>
-                                        <CardContent sx={{ margin: '16px', overflow: 'hidden' }}>
-                                            <Typography variant='h5'>@{result.username}</Typography>
-                                            <Typography textTransform='capitalize' variant='subtitle4'>{result.fullName}</Typography>
-                                        </CardContent>
-                                    </CardActionArea>
-                                </Card>
-                            </Grid>
-                        ) : (
-                            <Grid key={result.id} item width='200px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                                <Card sx={{ bgcolor: '#EEE', textAlign: 'center', height: '150px', borderRadius: '15px' }}>
-                                    <CardActionArea sx={{ height: '150px' }} onClick={() => window.location.href = `/ViewProfile?id=${result.id}`}>
-                                        <CardContent sx={{ margin: '16px', overflow: 'hidden' }}>
-                                            <Box display='flex' justifyContent='center' alignItems='center' gap='7px'>
-                                                <img src={require('../img/icons/account.png')} height='20px' alt="Account Icon" />
-                                                <Typography variant='subtitle2'>{result?.members?.length}/{result.maxCapacity}</Typography>
-                                            </Box>
-                                            <Typography variant='h5' marginTop='5px'>@{result.handle}</Typography>
-                                            <Typography textTransform='capitalize' variant='subtitle4'>{result.name}</Typography>
-                                            <Typography color='#888' variant='subtitle2' marginTop='5px'>{result.region}</Typography>
-                                        </CardContent>
-                                    </CardActionArea>
-                                </Card>
-                            </Grid>
-                        )
-                    ))}
-                </Grid>
+                {resultList.length === 0 ?
+                    <Stack height='150px' marginTop='50px' alignItems='center' justifyContent='center'>
+                        <Typography variant='h5'>No results found</Typography>
+                    </Stack>
+                    :
+                    <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
+                        {resultList.map((result) => (
+                            result.username ? (
+                                <Grid key={result.id} item width='150px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                                    <Card sx={{ bgcolor: '#EEE', textAlign: 'center', height: '150px', borderRadius: '15px' }}>
+                                        <CardActionArea sx={{ height: '150px' }} onClick={() => window.location.href = `/ViewProfile?id=${result.id}`}>
+                                            <CardContent sx={{ margin: '16px', overflow: 'hidden' }}>
+                                                <Typography variant='h5'>@{result.username}</Typography>
+                                                <Typography textTransform='capitalize' variant='subtitle4'>{result.fullName}</Typography>
+                                            </CardContent>
+                                        </CardActionArea>
+                                    </Card>
+                                </Grid>
+                            ) : (
+                                <Grid key={result.id} item width='200px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
+                                    <Card sx={{ bgcolor: '#EEE', textAlign: 'center', height: '150px', borderRadius: '15px' }}>
+                                        <CardActionArea sx={{ height: '150px' }} onClick={() => window.location.href = `/ViewProfile?id=${result.id}`}>
+                                            <CardContent sx={{ margin: '16px', overflow: 'hidden' }}>
+                                                <Box display='flex' justifyContent='center' alignItems='center' gap='7px'>
+                                                    <img src={require('../img/icons/account.png')} height='20px' alt="Account Icon" />
+                                                    <Typography variant='subtitle2'>{result?.members?.length}/{result.maxCapacity}</Typography>
+                                                </Box>
+                                                <Typography variant='h5' marginTop='5px'>@{result.handle}</Typography>
+                                                <Typography textTransform='capitalize' variant='subtitle4'>{result.name}</Typography>
+                                                <Typography color='#888' variant='subtitle2' marginTop='5px'>{result.region}</Typography>
+                                            </CardContent>
+                                        </CardActionArea>
+                                    </Card>
+                                </Grid>
+                            )
+                        ))}
+                    </Grid>
+                }
             </Stack>
         </Box>
     )
