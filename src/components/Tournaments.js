@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Button, Card, CardActionArea, CardContent, Grid, Stack, TextField, Typography, Checkbox, FormGroup, FormControlLabel, Tooltip, Zoom } from '@mui/material'
+import { Box, Button, Card, CardActionArea, CardContent, Grid, Stack, TextField, Typography, Checkbox, FormGroup, FormControlLabel, Tooltip, Zoom, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../config/firebase';
 import { UserAuth } from '../config/authContext';
-import { getDocs, collection } from 'firebase/firestore';
+import { getDocs, collection, orderBy, query } from 'firebase/firestore';
 import { useMediaQuery } from 'react-responsive';
 
 export default function Tournaments() {
@@ -14,8 +14,12 @@ export default function Tournaments() {
 
     const [tournamentList, setTournamentList] = useState([])
     const [personalizedTournamentList, setPersonalizedTournamentList] = useState([])
+    const [sports, setSports] = useState([])
+    const [sportsList, setSportsList] = useState([])
 
     const [searchCriteria, setSearchCriteria] = useState('')
+    const [searchResults, setSearchResults] = useState([])
+    const [filterSearch, setFilterSearch] = useState('')
     
     const [personalizedFilter, setPersonalizedFilter] = useState(false)
 
@@ -31,7 +35,19 @@ export default function Tournaments() {
                 console.error(err)
             }
         }
+        const getSports = async () => {
+            try {
+                const q = query(collection(db, 'sports'), orderBy('name'))
+                const data = await getDocs(q)
+                const resList = data.docs.map((doc) => ({...doc.data()}))
+                setSportsList(resList)
+            } catch (err) {
+                console.error(err)
+            }
+        }
         getTournaments()
+        getSports()
+
         user && moreUserInfo?.type !== 'admin' && setPersonalizedFilter(true)
     }, [])
 
@@ -117,12 +133,47 @@ export default function Tournaments() {
         return updatedTournamentList
     }
 
+    const concatSports = async (e) => {
+        const {target: {value}} = e;
+        setSports(
+            typeof value === 'string' ? value.split(',') : value,
+        )
+
+        if (value.length > 0) {
+            try {
+                const data = await getDocs(collection(db, 'tournaments'))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && value.includes(tournament.sport) && tournament.title.toLowerCase().includes(filterSearch?.toLowerCase())) // Filter out tournaments that are cancelled and search criteria if not empty string
+
+                setTournamentList(processDate(sortTournaments(resList)))
+            } catch (err) {
+                console.error(err)
+            }
+        } else {
+            try {
+                if (filterSearch === '') {
+                    const data = await getDocs(collection(db, 'tournaments'))
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0) // Filter out tournaments that are cancelled
+                    
+                    setTournamentList(processDate(sortTournaments(resList)))
+                } else {
+                    setTournamentList(searchResults)
+                }
+            } catch (err) {
+                console.error(err)
+            }
+        }
+    }
+
     const searchTournament = async (e) => {
         e.preventDefault()
+        setSports([])
+        setFilterSearch(searchCriteria)
+
         if (personalizedFilter) {
             try {
-                const resList = personalizedTournamentList.filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport == searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
+                const resList = personalizedTournamentList.filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()))) // Filter out tournaments that are cancelled
                 
+                setSearchResults(processDate(sortTournaments(resList)))
                 setTournamentList(processDate(sortTournaments(resList)))
             } catch (err) {
                 console.error(err)
@@ -130,8 +181,9 @@ export default function Tournaments() {
         } else {
             try {
                 const data = await getDocs(collection(db, 'tournaments'))
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport == searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()))) // Filter out tournaments that are cancelled
                 
+                setSearchResults(processDate(sortTournaments(resList)))
                 setTournamentList(processDate(sortTournaments(resList)))
             } catch (err) {
                 console.error(err)
@@ -143,10 +195,9 @@ export default function Tournaments() {
     return (
         <Box height='100%' width='100%' minHeight='411px' padding={isMobile ? '120px 0 150px' : isTablet ? '150px 0 150px' : '185px 0 150px'} display='flex' justifyContent='center'>
             <Stack width={isMobile || isTablet ? '90%' : '80%'}>
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                <Box display='flex' justifyContent='space-between' alignItems={!isTablet && 'center'}>
                     {isMobile ?
-                        <>
-                        <Stack width='100%'>
+                        <Stack width='100%' gap={!user && '15px'}>
                             <Typography variant='h3'>Tournaments</Typography>
                             <form style={{display:'flex', width:'100%', paddingTop:'25px'}} onSubmit={searchTournament}>
                                 <TextField className='searchTextField' sx={{width:'100% !important'}} placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
@@ -159,8 +210,20 @@ export default function Tournaments() {
                                     </Tooltip>
                                 </FormGroup>
                             }
+                            {!user &&
+                                <FormControl className='dropdownList' fullWidth>
+                                    <InputLabel>Filter by Sport</InputLabel>
+                                    <Select label='Filter by Sport' sx={{textTransform:'uppercase', fontWeight:'bold'}} value={sports} onChange={concatSports} renderValue={(selected) => selected.join(', ')} multiple required>
+                                        {sportsList?.map((sport) => {
+                                            return <MenuItem value={sport.name} key={sport.name}>
+                                                <Checkbox checked={sports.indexOf(sport.name) > -1} />
+                                                <Typography variant='action'>{sport.name}</Typography>
+                                            </MenuItem>
+                                        })}
+                                    </Select>
+                                </FormControl>
+                            }
                         </Stack>
-                        </>
                     : isTablet ?
                         <>
                         <Stack>
@@ -173,10 +236,25 @@ export default function Tournaments() {
                                 </FormGroup>
                             }
                         </Stack>
-                        <form style={{display:'flex'}} onSubmit={searchTournament}>
-                            <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
-                            <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
-                        </form>
+                        <Stack gap='15px'>
+                            <form style={{display:'flex'}} onSubmit={searchTournament}>
+                                <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                            </form>
+                            {!user &&
+                                <FormControl className='dropdownList' fullWidth>
+                                    <InputLabel>Filter by Sport</InputLabel>
+                                    <Select label='Filter by Sport' sx={{textTransform:'uppercase', fontWeight:'bold'}} value={sports} onChange={concatSports} renderValue={(selected) => selected.join(', ')} multiple required>
+                                        {sportsList?.map((sport) => {
+                                            return <MenuItem value={sport.name} key={sport.name}>
+                                                <Checkbox checked={sports.indexOf(sport.name) > -1} />
+                                                <Typography variant='action'>{sport.name}</Typography>
+                                            </MenuItem>
+                                        })}
+                                    </Select>
+                                </FormControl>
+                            }
+                        </Stack>
                         </>
                         :
                         <>
@@ -189,7 +267,19 @@ export default function Tournaments() {
                                     </Tooltip>
                                 </FormGroup>
                             }
-
+                            {!user &&
+                                <FormControl className='dropdownList' sx={{width:'175px'}}>
+                                    <InputLabel>Filter by Sport</InputLabel>
+                                    <Select label='Filter by Sport' sx={{textTransform:'uppercase', fontWeight:'bold'}} value={sports} onChange={concatSports} renderValue={(selected) => selected.join(', ')} multiple required>
+                                        {sportsList?.map((sport) => {
+                                            return <MenuItem value={sport.name} key={sport.name}>
+                                                <Checkbox checked={sports.indexOf(sport.name) > -1} />
+                                                <Typography variant='action'>{sport.name}</Typography>
+                                            </MenuItem>
+                                        })}
+                                    </Select>
+                                </FormControl>
+                            }
                             <form style={{display:'flex'}} onSubmit={searchTournament}>
                                 <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
                                 <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>

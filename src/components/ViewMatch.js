@@ -51,7 +51,7 @@ export default function ViewMatch() {
                 }
 
                 setTournamentDetails(resList)
-                if (user.uid === resList.host || resList.collaborators?.includes(user.uid)) {
+                if (user && (user.uid === resList.host || resList.collaborators?.includes(user.uid))) {
                     setViewerType('host&collab')
                 }
             } catch (err) {

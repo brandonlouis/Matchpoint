@@ -719,33 +719,32 @@ export default function ViewProfile() {
                                                     </Box>
                                                 }
                                                 
-                                                {
-                                                    playerTeamDetails.leader !== user.uid ? 
-                                                        user && !user.emailVerified && userTeam.length === 0 && parseInt(playerTeamDetails?.members?.length) < playerTeamDetails?.maxCapacity && (playerTeamDetails?.genderReq === moreUserInfo.gender || playerTeamDetails?.genderReq === 'mixed') && moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
-                                                            <Button variant='blue' sx={{height:'30px'}} onClick={joinTeam}>Join Team</Button>
-                                                            :
-                                                            <Tooltip title={
-                                                                !user.emailVerified ?
-                                                                "Please verify your email before joining a team" :
-                                                                userTeam.length > 0 ?
-                                                                "You are already in another team" :
-                                                                playerTeamDetails?.members?.length >= playerTeamDetails?.maxCapacity ?
-                                                                "Team is full" :
-                                                                playerTeamDetails?.genderReq !== moreUserInfo?.gender && playerTeamDetails?.genderReq !== 'mixed' && !moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
-                                                                "Your gender and sport interests don't match the team's requirements" :
-                                                                playerTeamDetails?.genderReq !== moreUserInfo?.gender && playerTeamDetails?.genderReq !== 'mixed' ?
-                                                                "Your gender doesn't match the team's gender requirement" :
-                                                                !moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
-                                                                "You don't have any sport interests that match the team's sports" :
-                                                                ""
-                                                            }>
-                                                                <span>
-                                                                    <Button variant='red' sx={{height:'30px'}} disabled>Join Team</Button>
-                                                                </span>
-                                                            </Tooltip>
-                                                    :
-                                                    user && playerTeamDetails?.leader === user.uid && <Button variant='blue' sx={{height:'30px'}} onClick={() => window.location.href='/ManageTeam'}>Manage Team</Button>
-                                                }
+                                                {user && playerTeamDetails.leader !== user.uid ? 
+                                                    user && !user.emailVerified && userTeam.length === 0 && parseInt(playerTeamDetails?.members?.length) < playerTeamDetails?.maxCapacity && (playerTeamDetails?.genderReq === moreUserInfo.gender || playerTeamDetails?.genderReq === 'mixed') && moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
+                                                        <Button variant='blue' sx={{height:'30px'}} onClick={joinTeam}>Join Team</Button>
+                                                        :
+                                                        <Tooltip title={
+                                                            !user.emailVerified ?
+                                                            "Please verify your email before joining a team" :
+                                                            userTeam.length > 0 ?
+                                                            "You are already in another team" :
+                                                            playerTeamDetails?.members?.length >= playerTeamDetails?.maxCapacity ?
+                                                            "Team is full" :
+                                                            playerTeamDetails?.genderReq !== moreUserInfo?.gender && playerTeamDetails?.genderReq !== 'mixed' && !moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
+                                                            "Your gender and sport interests don't match the team's requirements" :
+                                                            playerTeamDetails?.genderReq !== moreUserInfo?.gender && playerTeamDetails?.genderReq !== 'mixed' ?
+                                                            "Your gender doesn't match the team's gender requirement" :
+                                                            !moreUserInfo?.sportInterests.some(r => playerTeamDetails?.sports?.includes(r)) ?
+                                                            "You don't have any sport interests that match the team's sports" :
+                                                            ""
+                                                        }>
+                                                            <span>
+                                                                <Button variant='red' sx={{height:'30px'}} disabled>Join Team</Button>
+                                                            </span>
+                                                        </Tooltip>
+                                                :
+                                                user && playerTeamDetails?.leader === user.uid && <Button variant='blue' sx={{height:'30px'}} onClick={() => window.location.href='/ManageTeam'}>Manage Team</Button>
+                                            }
                                             </Box>
                                             <hr/>
                                             <Box display='flex' marginTop='25px'>

@@ -53,10 +53,12 @@ export default function ViewTournament() {
                 }
 
                 setTournamentDetails(processDate(resList))
-                getHost(resList)
-                getParticipants(resList)
-                getCollaborators(resList)
-                user.uid === resList.host && setViewerType('host')
+                if (user) {
+                    getHost(resList)
+                    getParticipants(resList)
+                    getCollaborators(resList)
+                }
+                user?.uid === resList.host && setViewerType('host')
 
                 setIsLoading(false)
             } catch (err) {
@@ -80,7 +82,7 @@ export default function ViewTournament() {
                     const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => tDetails.participants.includes(item.id))
                     
                     setParticipantList(resList)
-                    user.uid === (resList.find((item) => item.id === user.uid))?.id && setViewerType('participant')
+                    user?.uid === (resList.find((item) => item.id === user.uid))?.id && setViewerType('participant')
                 } catch (err) {
                     console.error(err)
                 }
@@ -104,14 +106,14 @@ export default function ViewTournament() {
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => tDetails.collaborators.includes(item.id))
 
                 setCollaboratorList(resList)
-                user.uid === (resList.find((item) => item.id === user.uid))?.id && setViewerType('collaborator')
+                user?.uid === (resList.find((item) => item.id === user.uid))?.id && setViewerType('collaborator')
             } catch (err) {
                 console.error(err)
             }
         }
         const getUserTeam = async () => {
             try {
-                const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
+                const q = query(collection(db, 'teams'), where('members', 'array-contains', user?.uid))
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
 
@@ -121,7 +123,9 @@ export default function ViewTournament() {
             }
         }
         getTournament()
-        getUserTeam()
+        if (user) {
+            getUserTeam()
+        }
     }, [])
 
     const processDate = (tournament) => {

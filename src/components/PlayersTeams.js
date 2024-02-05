@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Button, Card, CardActionArea, CardContent, Grid, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardActionArea, CardContent, Checkbox, FormControlLabel, FormGroup, Grid, Stack, TextField, Tooltip, Typography, Zoom } from '@mui/material'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { db } from '../config/firebase';
+import { UserAuth } from '../config/authContext';
 import { getDocs, collection, query, orderBy } from 'firebase/firestore';
 import { useMediaQuery } from 'react-responsive';
 
@@ -9,9 +10,14 @@ export default function PlayersTeams() {
     const isTablet = useMediaQuery({ query: '(max-width: 1020px)' })
     const isMobile = useMediaQuery({ query: '(max-width: 620px)' })
 
-    const [resultList, setResultList] = React.useState([])
+    const { user, moreUserInfo } = UserAuth()
+
+    const [resultList, setResultList] = useState([])
+    const [personalizedPlayersTeamsList, setPersonalizedPlayersTeamsList] = useState([])
 
     const [searchCriteria, setSearchCriteria] = useState('')
+
+    const [personalizedFilter, setPersonalizedFilter] = useState(false)
 
     
     useEffect(() => { // Handle retrieving tournament list on initial load
@@ -26,34 +32,86 @@ export default function PlayersTeams() {
             }
         }
         getTeams()
+
+        user && moreUserInfo?.type !== 'admin' && setPersonalizedFilter(true)
     }, [])
+
+    useEffect(() => { // Handle filtering players & teams based on filter criteria
+        const getTeams = async () => {
+            if (personalizedFilter) {
+                try {
+                    const accQ = query(collection(db, 'accounts'), orderBy('username'))
+                    const accData = await getDocs(accQ)
+                    const teamQ = query(collection(db, 'teams'), orderBy('handle'))
+                    const teamData = await getDocs(teamQ)
+    
+                    const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.type !== 'admin' && moreUserInfo?.sportInterests.some((interest) => item.sportInterests.includes(interest)) && moreUserInfo?.region === item.region)
+                    const teamList = teamData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.privacy === 'public' && (moreUserInfo?.gender === item.genderReq || item.genderReq === 'mixed') && moreUserInfo?.sportInterests.some((interest) => item.sports.includes(interest)) && moreUserInfo?.region === item.region)
+
+                    const combinedList = [...accList, ...teamList]
+                    setResultList(combinedList)
+                    setPersonalizedPlayersTeamsList(combinedList)
+                } catch (err) {
+                    console.error(err)
+                }
+            } else { // If personalized filter is off, retrieve all players & teams
+                try {
+                    const q = query(collection(db, 'teams'), orderBy('handle'))
+                    const data = await getDocs(q)
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => item.privacy === 'public') // Filter out private teams
+                    setResultList(resList)
+                } catch (err) {
+                    console.error(err)
+                }
+            }
+        }
+        getTeams()
+    }, [personalizedFilter, moreUserInfo])
 
     const searchPlayerTeam = async (e) => { // Handle search functionality
         e.preventDefault()
-        try {
-            if (searchCriteria === '') { // If search criteria is empty, retrieve all team records
-                const q = query(collection(db, 'teams'), orderBy('handle'))
-                const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => item.privacy === 'public') // Filter out private teams
-                setResultList(resList)
-            } else {
-                const accQ = query(collection(db, 'accounts'), orderBy('username'))
-                const accData = await getDocs(accQ)
-                const teamQ = query(collection(db, 'teams'), orderBy('handle'))
-                const teamData = await getDocs(teamQ)
 
-                const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.type !== 'admin')
-                const teamList = teamData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.privacy === 'public') // Filter out private teams
-
-                const filteredList = [...accList, ...teamList].filter((item) => {
-                    return (
-                        item?.username?.includes(searchCriteria.toLowerCase()) || item?.fullName?.toLowerCase().includes(searchCriteria.toLowerCase()) || item?.handle?.includes(searchCriteria.toLowerCase()) || item?.name?.toLowerCase().includes(searchCriteria.toLowerCase())
-                    )
-                })
-                setResultList(filteredList)
+        if (personalizedFilter) {
+            try {
+                if (searchCriteria === '') { // If search criteria is empty, retrieve all team records
+                    setResultList(personalizedPlayersTeamsList)
+                } else {    
+                    const resList = personalizedPlayersTeamsList.filter((item) => {
+                        return (
+                            item?.username?.includes(searchCriteria.toLowerCase()) || item?.fullName?.toLowerCase().includes(searchCriteria.toLowerCase()) || item?.handle?.includes(searchCriteria.toLowerCase()) || item?.name?.toLowerCase().includes(searchCriteria.toLowerCase())
+                        )
+                    })
+                    setResultList(resList)
+                }
+            } catch (err) {
+                console.error(err)
             }
-        } catch (err) {
-            console.error(err)
+        } else {
+            try {
+                if (searchCriteria === '') { // If search criteria is empty, retrieve all team records
+                    const q = query(collection(db, 'teams'), orderBy('handle'))
+                    const data = await getDocs(q)
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => item.privacy === 'public') // Filter out private teams
+                    setResultList(resList)
+                } else {
+                    const accQ = query(collection(db, 'accounts'), orderBy('username'))
+                    const accData = await getDocs(accQ)
+                    const teamQ = query(collection(db, 'teams'), orderBy('handle'))
+                    const teamData = await getDocs(teamQ)
+    
+                    const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.type !== 'admin')
+                    const teamList = teamData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.privacy === 'public') // Filter out private teams
+    
+                    const filteredList = [...accList, ...teamList].filter((item) => {
+                        return (
+                            item?.username?.includes(searchCriteria.toLowerCase()) || item?.fullName?.toLowerCase().includes(searchCriteria.toLowerCase()) || item?.handle?.includes(searchCriteria.toLowerCase()) || item?.name?.toLowerCase().includes(searchCriteria.toLowerCase())
+                        )
+                    })
+                    setResultList(filteredList)
+                }
+            } catch (err) {
+                console.error(err)
+            }
         }
     }
 
@@ -63,23 +121,58 @@ export default function PlayersTeams() {
             <Stack width={isMobile || isTablet ? '90%' : '80%'}>
                 <Box display='flex' justifyContent='space-between' alignItems='center'>
                     {isMobile ? 
-                        <Stack width='100%' gap='25px'>
-                        <Typography variant='h3'>Players & Teams</Typography>
+                        <Stack width='100%'>
+                            <Typography variant='h3'>Players & Teams</Typography>
                             <Box display='flex'>
-                                <form style={{display:'flex', width:'100%'}} onSubmit={searchPlayerTeam}>
+                                <form style={{display:'flex', width:'100%', paddingTop:'25px'}} onSubmit={searchPlayerTeam}>
                                     <TextField className='searchTextField' sx={{width:'100% !important'}} placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
                                     <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
                                 </form>
                             </Box>
+                            {user && moreUserInfo?.type !== 'admin' &&
+                                <FormGroup>
+                                    <Tooltip TransitionComponent={Zoom} title="Filter players and teams that match your profile (Gender, Region, Sport Interests)" arrow>
+                                        <FormControlLabel className='personalizedFilterLabel' control={<Checkbox checked={personalizedFilter} onChange={() => setPersonalizedFilter(!personalizedFilter)} />} label="Personalized Filter" />
+                                    </Tooltip>
+                                </FormGroup>
+                            }
                         </Stack>
+                        : isTablet ?
+                            <>
+                            <Stack>
+                                <Typography variant='h3'>Players & Teams</Typography>
+                                {user && moreUserInfo?.type !== 'admin' &&
+                                    <FormGroup>
+                                        <Tooltip TransitionComponent={Zoom} title="Filter players and teams that match your profile (Gender, Region, Sport Interests)" arrow>
+                                            <FormControlLabel className='personalizedFilterLabel' control={<Checkbox checked={personalizedFilter} onChange={() => setPersonalizedFilter(!personalizedFilter)} />} label="Personalized Filter" />
+                                        </Tooltip>
+                                    </FormGroup>
+                                }
+                            </Stack>
+                            <Box display='flex'>
+                                <form style={{display:'flex'}} onSubmit={searchPlayerTeam}>
+                                    <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                    <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                                </form>
+                            </Box>
+                            </>
                         :
                         <>
                         <Typography variant='h3'>Players & Teams</Typography>
-                        <Box display='flex'>
-                            <form style={{display:'flex'}} onSubmit={searchPlayerTeam}>
-                                <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
-                                <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
-                            </form>
+                        <Box display='flex' alignItems='center' gap='25px'>
+                            {user && moreUserInfo?.type !== 'admin' &&
+                                <FormGroup>
+                                    <Tooltip TransitionComponent={Zoom} title="Filter players and teams that match your profile (Gender, Region, Sport Interests)" arrow>
+                                        <FormControlLabel className='personalizedFilterLabel' control={<Checkbox checked={personalizedFilter} onChange={() => setPersonalizedFilter(!personalizedFilter)} />} label="Personalized Filter" />
+                                    </Tooltip>
+                                </FormGroup>
+                            }
+                            <Box display='flex'>
+                                <form style={{display:'flex'}} onSubmit={searchPlayerTeam}>
+                                    <TextField className='searchTextField' placeholder='SEARCH' onChange={(e) => setSearchCriteria(e.target.value)}/>
+                                    <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
+                                </form>
+                            </Box>
                         </Box>
                         </>
                     }
