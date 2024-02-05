@@ -142,7 +142,7 @@ export default function ViewNewsArticle() {
                                         <Grid key={newsArticle.id} xs={12} sm={6} md={4} item borderRadius='15px'>
                                             <Card sx={{borderRadius:'15px', height:'100%', boxShadow:'0 5px 15px rgba(0, 0, 0, 0.2)'}} >
                                                 <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
-                                                    <CardContent sx={{padding:'0'}}>
+                                                    <CardContent sx={{padding:'0', width:'100%'}}>
                                                         <Stack>
                                                             <Box height='200px'>
                                                                 <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.bannerURL}/>
