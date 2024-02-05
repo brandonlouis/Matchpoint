@@ -32,6 +32,17 @@ hr {
     width: 100%;
 }
 
+.disableSelect {
+    user-select: none; /* Standard */
+    -webkit-user-select: none; /* WebKit (e.g., Chrome, Safari) */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE/Edge */
+}
+
+.disablePointerEvents {
+    pointer-events: none; /* Disable pointer events */
+}
+
 .ModalLoginSignUp {
     animation: animatePopDown 0.3s ease-out;
 }

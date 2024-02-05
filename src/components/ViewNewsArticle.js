@@ -42,9 +42,9 @@ export default function ViewNewsArticle() {
         }
         const getNewsArticles = async () => {
             try {
-                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'), limit(3)) // Order list by date in descending order
+                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(doc => doc.id !== articleID) // Filter out the current news article
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(doc => doc.id !== articleID).slice(0, 3) // Filter out the current news article
                 setNewsArticleList(processListDate(resList))
             } catch (err) {
                 console.error(err)
@@ -137,14 +137,14 @@ export default function ViewNewsArticle() {
                                 <hr/>
                                 <Typography variant='h3'>More Articles</Typography>
 
-                                <Grid container gap='35px' alignItems='stretch'>
+                                <Grid container spacing={4} alignItems='stretch'>
                                     {newsArticleList.map((newsArticle) => (
-                                        <Grid key={newsArticle.id} item width='350px' height='100%' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                                            <Card sx={{textAlign:'center', borderRadius:'15px', height:'100%'}} >
-                                                <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)}>
+                                        <Grid key={newsArticle.id} xs={12} sm={6} md={4} item borderRadius='15px'>
+                                            <Card sx={{borderRadius:'15px', height:'100%', boxShadow:'0 5px 15px rgba(0, 0, 0, 0.2)'}} >
+                                                <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                                     <CardContent sx={{padding:'0'}}>
                                                         <Stack>
-                                                            <Box height='200px' width='350px'>
+                                                            <Box height='200px'>
                                                                 <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.bannerURL}/>
                                                             </Box>
                                                             <Stack bgcolor='white' height='100%' padding='15px 25px 30px' gap='15px'>

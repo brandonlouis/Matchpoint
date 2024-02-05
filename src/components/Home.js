@@ -144,7 +144,7 @@ export default function Home() {
 
     return (
         <Stack height='100%' width='100%'>
-            <Box display='flex' justifyContent={adjust900 ? 'center' : 'flex-end'} height='100%' minHeight='650px' sx={{backgroundImage: `url('${lightningBG}')`, backgroundRepeat: "no-repeat", backgroundPosition: "right top", backgroundAttachment:'fixed'}}>
+            <Box className='disableSelect disablePointerEvents' display='flex' justifyContent={adjust900 ? 'center' : 'flex-end'} height='100%' minHeight='650px' sx={{backgroundImage: `url('${lightningBG}')`, backgroundRepeat: "no-repeat", backgroundPosition: "right top", backgroundAttachment:'fixed'}}>
                 {adjust900 ?
                     <Stack justifyContent='center' alignItems='center' paddingTop='120px' overflow='hidden'>
                         <img style={{height:'530px'}} src={require('../img/elements/team.png')}/>
@@ -169,7 +169,7 @@ export default function Home() {
             </Box>
             
 
-            <Box display='flex' justifyContent='center' padding='100px 0' bgcolor='#EEE'>
+            <Box className='disableSelect disablePointerEvents' display='flex' justifyContent='center' padding='100px 0' bgcolor='#EEE'>
                 <Stack width={isMobile || isTablet ? '90%' : '80%'} alignItems='center' justifyContent='center' gap='100px'>
                     <Stack textAlign='center' width='100%' maxWidth='470px' gap='10px'>
                         <Typography variant='h3'>Why choose us?</Typography>
@@ -262,14 +262,14 @@ export default function Home() {
                             <a href='/Tournaments'><Typography color='#006DEE' fontSize='14px' letterSpacing='2px' variant='action'>See More Tournaments</Typography></a>
                         </Box>
                     }
-                    <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
+                    <Grid container spacing={4} alignItems='stretch' marginTop='25px'>
                         {tournamentList.map((tournament) => (
-                            <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                                <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%'}} >
+                            <Grid key={tournament.id} xs={12} sm={6} md={4} item borderRadius='15px'>
+                                <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%', boxShadow:'0 5px 15px rgba(0, 0, 0, 0.2)'}} >
                                     <CardActionArea onClick={() => viewTournament(tournament.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
-                                        <CardContent sx={{padding:'0'}}>
+                                        <CardContent sx={{padding:'0', width:'100%'}}>
                                             <Stack>
-                                                <Box height='180px' width='350px'>
+                                                <Box height='180px'>
                                                     <img width='100%' height='100%' style={{objectFit:'cover'}} src={tournament.imgURL}/>
                                                 </Box>
                                                 <Stack height='100%' padding='15px 25px 30px' gap='15px'>
@@ -324,14 +324,14 @@ export default function Home() {
                     }
                     
 
-                    <Grid container gap='20px' marginTop='50px'>
+                    <Grid container spacing={4} marginTop='25px'>
                         {newsArticleList.map((newsArticle) => (
-                            <Grid key={newsArticle.id} item width='265px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)'>
-                                <Card sx={{borderRadius:'15px', height:'100%'}} >
+                            <Grid key={newsArticle.id} xs={12} sm={6} md={3} item borderRadius='15px'>
+                                <Card sx={{borderRadius:'15px', height:'100%', boxShadow:'0 5px 15px rgba(0, 0, 0, 0.2)'}} >
                                     <CardActionArea onClick={() => viewNewsArticle(newsArticle.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
                                         <CardContent sx={{padding:'0', width:'100%'}}>
                                             <Stack>
-                                                <Box height='200px' width='265px'>
+                                                <Box height='200px'>
                                                     <img width='100%' height='100%' style={{objectFit:'cover'}} src={newsArticle.bannerURL}/>
                                                 </Box>
                                                 <Stack bgcolor='white' height='100%' padding='15px 25px 30px' gap='15px'>
@@ -353,7 +353,7 @@ export default function Home() {
                 </Stack>
             </Box>
 
-            <Box display='flex' justifyContent='center' height='150px' sx={{backgroundImage: `url('${newsletterBG}')`, backgroundRepeat:"no-repeat", backgroundSize:'cover'}}>
+            <Box className='disableSelect disablePointerEvents' display='flex' justifyContent='center' height='150px' sx={{backgroundImage: `url('${newsletterBG}')`, backgroundRepeat:"no-repeat", backgroundSize:'cover'}}>
                 <Stack width={isMobile || isTablet ? '90%' : '80%'} alignItems='center' justifyContent='center'>
                     <Typography color='white' variant='h3' textAlign='center'>Join us today!</Typography>
                     <Typography color='white' textAlign='center' variant='body1'>Embark on a seamless journey into tournament hosting, where simplicity meets boundless possibilities.</Typography>

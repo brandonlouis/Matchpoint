@@ -122,14 +122,14 @@ export default function ManageTournaments() {
                     </Box>
                 }
 
-                <Grid container gap='35px' alignItems='stretch' marginTop='50px'>
+                <Grid container spacing={4} alignItems='stretch' marginTop='25px'>
                     {tournamentList.map((tournament) => (
-                        <Grid key={tournament.id} item width='350px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.2)' sx={{opacity: (tournament.status === 0 || tournament.date?.end.toDate() < new Date()) && '0.5'}}>
-                            <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%'}} >
+                        <Grid key={tournament.id} xs={12} sm={6} md={4} item borderRadius='15px' sx={{opacity: (tournament.status === 0 || tournament.date?.end.toDate() < new Date()) && '0.5'}}>
+                            <Card sx={{bgcolor:'#EEE', borderRadius:'15px', height:'100%', boxShadow:'0 5px 15px rgba(0, 0, 0, 0.2)'}} >
                                 <CardActionArea onClick={() => viewTournament(tournament.id)} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
-                                    <CardContent sx={{padding:'0'}}>
+                                    <CardContent sx={{padding:'0', width:'100%'}}>
                                         <Stack>
-                                            <Box height='180px' width='350px'>
+                                            <Box height='180px'>
                                                 <img width='100%' height='100%' style={{objectFit:'cover'}} src={tournament.imgURL}/>
                                             </Box>
                                             <Stack height='100%' padding='15px 25px 30px' gap='15px'>
