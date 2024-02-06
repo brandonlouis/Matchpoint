@@ -126,7 +126,7 @@ export default function WriteNewsArticle() {
         </Box>
         
         <Modal open={openViewModal} onClose={() => {setOpenViewModal(false)}} disableScrollLock>
-            <Box className='ModalView' display='flex' borderRadius='20px' maxWidth='815px' maxHeight='600px' padding={isMobile ? '20px' : '50px'} margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
+            <Box className='ModalView' display='flex' borderRadius='20px' width='80%' maxWidth='815px' maxHeight='600px' padding={isMobile ? '20px' : '50px'} margin='120px auto' bgcolor='#EEE' justifyContent='center' alignItems='center'>
                 <Stack width='100%' gap='30px'>
                     <Box display='flex' width='100%' justifyContent='center'>
                         <form style={{display:'flex', width:'100%', maxWidth:'450px'}} onSubmit={searchTournament}>
@@ -134,20 +134,20 @@ export default function WriteNewsArticle() {
                             <Button variant='search' type='submit'><SearchRoundedIcon sx={{fontSize:'30px'}}/></Button>
                         </form>
                     </Box>
-                    <Grid container gap='15px' padding='10px' alignItems='stretch' maxHeight='500px' sx={{overflowY:'auto'}}>
+                    <Grid container spacing={4} padding='10px' alignItems='stretch' maxHeight='500px' sx={{overflowY:'auto'}}>
                         {tournamentList.length === 0 &&
-                            <Stack justifyContent='center' width='100%'>
+                            <Stack justifyContent='center' width='100%' paddingTop='25px'>
                                 <Typography variant='subtitle2' textAlign='center'>No results found</Typography>
                                 <Typography variant='subtitle4' fontSize='15px' textAlign='center'>Note: You must be a collaborator of the Tournament</Typography>
                             </Stack>
                         }
                         {tournamentList.map((tournament) => (
-                            <Grid key={tournament.id} item width='250px' borderRadius='15px' boxShadow='0 5px 15px rgba(0, 0, 0, 0.15)'>
-                                <Card sx={{bgcolor:'white', borderRadius:'15px', height:'100%'}} >
+                            <Grid key={tournament.id} xs={12} sm={6} md={4} item borderRadius='15px'>
+                                <Card sx={{bgcolor:'white', borderRadius:'15px', height:'100%', boxShadow:'0 5px 15px rgba(0, 0, 0, 0.15)'}} >
                                     <CardActionArea onClick={() => {setSelectedTournamentID(tournament.id); setSelectedTournamentTitle(tournament.title); setSelectedTournamentSport(tournament.sport); setOpenViewModal(false)}} sx={{height:'100%', display:'flex', flexDirection:'column', justifyContent:'flex-start'}}>
-                                        <CardContent sx={{padding:'0'}}>
+                                        <CardContent sx={{padding:'0', width:'100%'}}>
                                             <Stack>
-                                                <Box height='180px' width='250px'>
+                                                <Box height='180px'>
                                                     <img width='100%' height='100%' style={{objectFit:'cover'}} src={tournament?.imgURL}/>
                                                 </Box>
                                                 <Stack height='100%' padding='15px 25px 30px' gap='15px'>
