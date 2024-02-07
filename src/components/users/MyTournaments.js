@@ -92,7 +92,11 @@ export default function MyTournaments() {
             const bIsLive = now >= bStartDate && now <= bEndDate
 
             // Sort by live status and end date
-            if (aIsLive && bIsLive) {
+            if (a.status === 0 && b.status !== 0) {
+                return 1 // a is suspended, should come after b
+            } else if (a.status !== 0 && b.status === 0) {
+                return -1 // b is suspended, should come after a
+            } else if (aIsLive && bIsLive) {
                 return aEndDate - bEndDate // Sort by end date if both are live
             } else if (aIsLive) {
                 return -1 // a is live, should come first

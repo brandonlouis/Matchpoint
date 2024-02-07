@@ -23,13 +23,44 @@ export default function ManageTournaments() {
             try {
                 const data = await getDocs(collection(db, 'tournaments'))
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-                setTournamentList(processDateListDate(resList))
+                setTournamentList(processDateListDate(sortTournaments(resList)))
             } catch (err) {
                 console.error(err)
             }
         }
         getTournaments()
     }, [])
+
+    const sortTournaments = (list) => {
+        return list.sort((a, b) => {
+            const now = new Date()
+            const aEndDate = new Date(a.date.end.toDate())
+            const bEndDate = new Date(b.date.end.toDate())
+            const aStartDate = new Date(a.date.start.toDate())
+            const bStartDate = new Date(b.date.start.toDate())
+
+            // Check if tournaments are currently live
+            const aIsLive = now >= aStartDate && now <= aEndDate
+            const bIsLive = now >= bStartDate && now <= bEndDate
+
+            // Sort by live status and end date
+            if (a.status === 0 && b.status !== 0) {
+                return 1 // a is suspended, should come after b
+            } else if (a.status !== 0 && b.status === 0) {
+                return -1 // b is suspended, should come after a
+            } else if (aIsLive && bIsLive) {
+                return aEndDate - bEndDate // Sort by end date if both are live
+            } else if (aIsLive) {
+                return -1 // a is live, should come first
+            } else if (bIsLive) {
+                return // b is live, should come first
+            } else if (aStartDate > now && bStartDate > now) {
+                return aStartDate - bStartDate // Sort by start date if both are not live
+            } else {
+                return bStartDate - aStartDate // Sort by start date in descending order
+            }
+        })
+    }
 
     const processDateListDate = (list) => {
         const updatedTournamentList = list.map((tournament) => {
@@ -89,7 +120,7 @@ export default function ManageTournaments() {
             const data = await getDocs(collection(db, 'tournaments'))
             const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((tournament) => tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport === searchCriteria.toLowerCase())
             
-            setTournamentList(processDateListDate(resList))
+            setTournamentList(processDateListDate(sortTournaments(resList)))
         } catch (err) {
             console.error(err)
         }
@@ -157,11 +188,12 @@ export default function ManageTournaments() {
                                                     </Box>
                                                     <Box display='flex'>
                                                         <Typography className='doubleLineConcat' variant='h4'>
-                                                            {tournament.status === 0 && 
-                                                                <span style={{color:'#CB3E3E'}}>SUSPENDED: </span>
-                                                            }
-                                                            {tournament.date?.end.toDate() < new Date() &&
-                                                                <span style={{color:'#888'}}>ENDED: </span>
+                                                            {tournament.status === 0 ? <span style={{ color: '#888' }}>SUSPENDED: </span>
+                                                                : tournament.date?.end.toDate() < Date.now() ? (
+                                                                    <span style={{ color: '#888' }}>ENDED: </span>
+                                                                ) : tournament.date?.start.toDate() <= Date.now() && tournament.date?.end.toDate() >= Date.now() ? (
+                                                                    <span style={{ color: '#CB3E3E' }}>LIVE NOW: </span>
+                                                                ) : null
                                                             }
                                                             {tournament.title}
                                                         </Typography>
