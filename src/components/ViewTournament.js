@@ -53,8 +53,8 @@ export default function ViewTournament() {
                 }
 
                 setTournamentDetails(processDate(resList))
+                getHost(resList)
                 if (user) {
-                    getHost(resList)
                     getParticipants(resList)
                     getCollaborators(resList)
                 }
