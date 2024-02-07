@@ -824,14 +824,16 @@ export default function ViewMatch() {
 
                     <Stack marginTop='50px' gap='20px'>
                         <Typography variant='h3'>Match Highlights</Typography>   
-                        {editMode && (                 
+                        {editMode && (
                             <TextField value={youtubeURL ? youtubeURL.join('\n') : ''} onChange={updateMatchHighlights} type='text' className='inputTextField' variant='outlined' label='Enter Youtube URL, separated by new line' multiline rows={10} required />                     
                         )}
                         {(youtubeURL?.length > 0 && youtubeURL?.filter(url => url.includes("www.youtube.com"))) ? 
                             (
-                                <Grid container gap='35px' alignItems='stretch'>
+                                <Grid container spacing={4} alignItems='stretch'>
                                     {youtubeURL?.filter(url => url.trim() !== '' && url.includes("www.youtube.com")).map((url, index) => (
-                                        <iframe key={index} title={`YouTube Video ${index + 1}`} width="550" height="310" src={getYoutubeEmbedUrl(url)} allow="autoplay; encrypted-media" allowFullScreen />
+                                        <Grid key={index} xs={12} md={6} item>
+                                            <iframe title={`YouTube Video ${index + 1}`} width="100%" height="320" src={getYoutubeEmbedUrl(url)} allow="autoplay; encrypted-media" allowFullScreen />
+                                        </Grid>
                                     ))}
                                 </Grid>
                             ) : (
@@ -847,7 +849,7 @@ export default function ViewMatch() {
                             (!editMode ?
                                 <Button sx={{width:'350px'}} variant='blue' onClick={() => setEditMode(true)}>Edit Score, Matchup and Highlights</Button>
                                 :
-                                <Stack width='100%'>
+                                <Stack>
                                     <Typography color='red' variant='errorMsg'>{errorMessage}</Typography>
                                     <Box display='flex' gap={isTablet ? '20px' : '50px'} width='100%' justifyContent='center'>
                                         <Button sx={{width:(isMobile ? '100%' : '300px')}} variant='blue' onClick={() => saveChanges()}>Save Changes</Button>
