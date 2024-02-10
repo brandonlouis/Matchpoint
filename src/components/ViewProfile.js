@@ -104,15 +104,6 @@ export default function ViewProfile() {
                 console.error(err)
             }
         }
-        const getProfile = async () => {
-            try {
-                const res = await getDoc(doc(db, 'profiles', profileID))
-                const resList = res.data()
-                setProfileInfo(resList)
-            } catch (err) {
-                console.error(err)
-            }
-        }
         const getTeam = async () => { // Retrieve team info
             try {
                 const q = query(collection(db, 'teams'), where('members', 'array-contains', profileID))
@@ -136,7 +127,6 @@ export default function ViewProfile() {
             }
         }
         getPlayerTeam()
-        getProfile()
         getUserTeam()
         getTournament()
         getMatch()
@@ -176,6 +166,17 @@ export default function ViewProfile() {
         if (Object.keys(datePointsDict).length > 0) {
             updateStatistics(placementDict)
         }
+
+        const getProfile = async () => {
+            try {
+                const res = await getDoc(doc(db, 'profiles', profileID))
+                const resList = res.data()
+                setProfileInfo(resList)
+            } catch (err) {
+                console.error(err)
+            }
+        }
+        getProfile()
     }, [tournamentList, matchInfo])
 
     const updateStatistics = async (placementParam) => {
