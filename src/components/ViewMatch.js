@@ -570,10 +570,12 @@ export default function ViewMatch() {
 
                                     const [key, value] = participant
                                     let name = ''
+                                    let id = ''
                                     const participantType = participantDetails.find((item) => item.id === value)
                                     
                                     if (participantType) {
                                         name = participantType.handle || participantType.username
+                                        id = participantType.id
                                     }
 
                                     const calcAvg = (value) => {
@@ -603,7 +605,7 @@ export default function ViewMatch() {
                                         <TableCell component="th" scope="row">
                                         {index + 1}
                                         </TableCell>
-                                        <TableCell style={{maxWidth:'150px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{name}</TableCell>
+                                        <TableCell style={{maxWidth:'150px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', fontWeight:'600'}}><a href={`/ViewProfile?id=${id}`}>{name}</a></TableCell>
                                         <TableCell>{matchList.statistics[value].wins}/{matchList.statistics[value].losses}</TableCell>
                                         <TableCell>{calcAvg(value)}</TableCell>
                                         <TableCell>{matchList.statistics[value].points}</TableCell>
