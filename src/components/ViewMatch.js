@@ -178,8 +178,10 @@ export default function ViewMatch() {
     }
 
     const saveChanges = async () => { // Save changes when the user confirms
-        if (!youtubeURL?.filter(str => str.trim() !== "").every(url => url.includes("www.youtube.com"))) { // Check for invalid youtube URL amidst empty strings
+        let errorOccured = false
+        if (youtubeURL != '' && !youtubeURL?.filter(str => str.trim() !== "").every(url => url.includes("www.youtube.com"))) { // Check for invalid youtube URL amidst empty strings
             setErrorMessage('Invalid YouTube URL')
+            errorOccured = true
             return
         }
         
@@ -192,6 +194,13 @@ export default function ViewMatch() {
 
             Object.entries(matchList.round).map(([keyRound, valueRound]) => { // To calculate wins, losses, and points for statistic table
                 Object.entries(valueRound.match).map(([keyMatch, valueMatch]) => {
+
+                    if ((Object.keys(valueMatch[0]).length !== 0 && Object.keys(valueMatch[1]).length !== 0) && Object.keys(valueMatch[0])[0] === Object.keys(valueMatch[1])[0]) { // If the match-up is against itself if not empty dict
+                        setErrorMessage('Invalid match-up. A participant cannot play against themselves')
+                        errorOccured = true
+                        return
+                    }
+
                     if (valueMatch.some(dict => dict.hasOwnProperty(key))) { // If the participant is in the match
                         if (valueMatch[2].victor === key) { // If the participant is the victor
                             wins += 1
@@ -212,17 +221,19 @@ export default function ViewMatch() {
             newMatchList.statistics[key].points = points
         })
 
-        try {
-            await updateDoc(doc(db, 'matches', matchID), { // Update match details by ID
-                round: newMatchList.round,
-                statistics: newMatchList.statistics,                
-                highlights: youtubeURL.map(str => str.trim()).filter(str => str !== ""), // Remove empty strings and whitespace
-            })
-
-            alert('Score, Matchup and Highlights updated successfully')
-            window.location.reload()
-        } catch (err) {
-            console.error(err)
+        if (!errorOccured) {
+            try {
+                await updateDoc(doc(db, 'matches', matchID), { // Update match details by ID
+                    round: newMatchList.round,
+                    statistics: newMatchList.statistics,                
+                    highlights: youtubeURL.map(str => str.trim()).filter(str => str !== ""), // Remove empty strings and whitespace
+                })
+    
+                alert('Score, Matchup and Highlights updated successfully')
+                window.location.reload()
+            } catch (err) {
+                console.error(err)
+            }
         }
     }
     

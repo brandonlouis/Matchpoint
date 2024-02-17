@@ -49,7 +49,7 @@ export default function ViewProfile() {
             const updatedTournamentList = list.map((tournament) => {
                 const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
                 const endDate = tournament.date.end.toDate().toDateString().split(' ').slice(1) 
-                return {
+                return { // Append the processed date to the list
                     ...tournament,
                     stringDate: {                        
                         start: startDate,
@@ -114,7 +114,7 @@ export default function ViewProfile() {
                 console.error(err)
             }
         }
-        const getUserTeam = async () => { // Retrieve user's team to check if user belongs in a team
+        const getUserTeam = async () => { // Retrieve user's team to check if user belongs in a team to prevent joining multiple teams
             if (user) { // Only retrieve accounts when user is logged in
                 try {
                     const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid)) // Retrieve teams where user is a member
