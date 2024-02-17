@@ -76,7 +76,7 @@ export default function EditTournament() {
                 setSport(resList.sport)
                 setTitle(resList.title)
                 setDescription(resList.description)
-                setStartDate(resList.date.start.toDate().toISOString().split('T')[0])
+                setStartDate(new Date(new Date(resList.date.start.toDate()).getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]) // +1 to start date to avoid timezone issues
                 setEndDate(resList.date.end.toDate().toISOString().split('T')[0])
                 setVenue(resList.venue)
                 setRegion(resList.region)
@@ -357,20 +357,6 @@ export default function EditTournament() {
 
         const formatChanged = (originalNoRounds !== noRounds || originalMatchesPerRound !== matchesPerRound) // Check if format is changed
 
-        let roundDict = {} // Create a new round dictionary to clear existing data
-        for (let i = 1; i <= noRounds; i++) {
-            const matchesDict = {}
-            const matchInfo = [{},{},{victor: ''}]
-
-            for (let j = 1; j <= matchesPerRound[i - 1]; j++) {
-                matchesDict[j] = matchInfo
-            }
-            roundDict[i] = {
-                match: matchesDict,
-                time: new Date(startDate),
-            }
-        }
-
         try {
             // Set start date to 00:00:00 as default is 08:00:00
             const formattedStartDate = new Date(startDate)
@@ -383,6 +369,32 @@ export default function EditTournament() {
             formattedEndDate.setHours(23)
             formattedEndDate.setMinutes(59)
             formattedEndDate.setSeconds(59)
+
+
+            if (startDate !== originalDetails.date.start.toDate().toISOString().split('T')[0]) { // If start date, end date or format is changed
+                // Update the 'time' property in each round with new start date
+                const docRef = doc(db, 'matches', location.state.id) // Fetch the existing document
+                const docSnapshot = await getDoc(docRef)
+
+                if (docSnapshot.exists()) {
+                    const existingRoundDict = docSnapshot.data().round // Extract the existing roundDict from the document
+
+                    for (let i = 1; i <= noRounds; i++) { // Update only the 'time' property in each round
+                        if (existingRoundDict[i]) {
+                            existingRoundDict[i].time = new Date(startDate)
+                        } else {
+                            existingRoundDict[i] = {
+                                time: new Date(startDate)
+                            }
+                        }
+                    }
+
+                    await updateDoc(docRef, { // Update the matches with the modified time
+                        round: existingRoundDict,
+                    })
+                }
+            }
+
 
             await updateDoc(doc(db, 'tournaments', location.state.id), { // Update tournament details in the database by passed id
                 format: format,
@@ -417,6 +429,20 @@ export default function EditTournament() {
                         wins: 0,
                         losses: 0,
                         points: 0,
+                    }
+                }
+
+                let roundDict = {} // Create a new round dictionary to clear existing data
+                for (let i = 1; i <= noRounds; i++) {
+                    const matchesDict = {}
+                    const matchInfo = [{},{},{victor: ''}]
+        
+                    for (let j = 1; j <= matchesPerRound[i - 1]; j++) {
+                        matchesDict[j] = matchInfo
+                    }
+                    roundDict[i] = {
+                        match: matchesDict,
+                        time: new Date(startDate),
                     }
                 }
 
