@@ -19,28 +19,28 @@ export default function ViewNewsArticle() {
     const [authorName, setAuthorName] = useState('')
     const [tournamentID, setTournamentID] = useState('')
     
-    useEffect(() => {
-        const getNewsArticle = async () => {
+    useEffect(() => { // On page load
+        const getNewsArticle = async () => { // Get news article details
             try {
-                const res = await getDoc(doc(db, 'newsArticles', articleID))
+                const res = await getDoc(doc(db, 'newsArticles', articleID)) // Get news article details by ID
                 const resList = res.data()
 
-                if (resList === undefined) {
-                    setNewsArticleDetails({})
+                if (resList === undefined) { // If news article does not exist
+                    setNewsArticleDetails({}) // Set news article details to empty object
                     setIsLoading(false)
                     return
                 }
 
                 setNewsArticleDetails(processDate(resList))
                 setTournamentID(resList.tournamentID)
-                getAuthorName(resList.author)
+                getAuthorName(resList.author) // Get author name
 
                 setIsLoading(false)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getNewsArticles = async () => {
+        const getNewsArticles = async () => { // Get list of news articles
             try {
                 const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
                 const data = await getDocs(q)
@@ -50,9 +50,9 @@ export default function ViewNewsArticle() {
                 console.error(err)
             }
         }
-        const getAuthorName = async (author) => {
+        const getAuthorName = async (author) => { // Get author name
             try {
-                const res = await getDoc(doc(db, 'accounts', author))
+                const res = await getDoc(doc(db, 'accounts', author)) // Get author details by ID
                 const resList = res.data()
                 setAuthorName(resList.fullName)
             } catch (err) {
@@ -63,19 +63,19 @@ export default function ViewNewsArticle() {
         getNewsArticles()
     }, [])
     
-    const processDate = (article) => {
+    const processDate = (article) => { // Process date to be displayed in a more readable format
         const date = article.date.toDate().toDateString().split(' ').slice(1)
 
-        return {
+        return { // Append date to article object
             ...article,
             date
         }
     }
-    const processListDate = (list) => {
+    const processListDate = (list) => { // Process date to be displayed in a more readable format for list
         const updatedNewsArticleList = list.map((newsArticle) => {
             const date = newsArticle.date.toDate().toDateString().split(' ').slice(1)
 
-            return {
+            return { // Append date to article object
                 ...newsArticle,
                 date
             }
@@ -83,8 +83,8 @@ export default function ViewNewsArticle() {
         return updatedNewsArticleList
     }
 
-    const viewNewsArticle=(id)=>{
-        window.location.href = `/ViewNewsArticle?id=${id}`
+    const viewNewsArticle=(id)=>{ // Redirect to news article page
+        window.location.href = `/ViewNewsArticle?id=${id}` // Append news article ID to URL
     }
 
 

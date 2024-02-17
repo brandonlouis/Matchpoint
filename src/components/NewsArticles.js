@@ -12,6 +12,8 @@ export default function NewsArticles() {
 
     const { user, moreUserInfo } = UserAuth()
 
+    const [isLoading, setIsLoading] = useState(true)
+
     const [newsArticleList, setNewsArticleList] = useState([])
     const [personalizedArticleList, setPersonalizedArticleList] = useState([])
     const [sports, setSports] = useState([])
@@ -25,19 +27,20 @@ export default function NewsArticles() {
 
     
     useEffect(() => { // Handle retrieving tournament list on initial load
-        const getNewsArticles = async () => {
+        const getNewsArticles = async () => { // Handle retrieving news articles
             try {
                 const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each object
                 setNewsArticleList(processDate(resList))
+                setIsLoading(false)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getSports = async () => {
+        const getSports = async () => { // Handle retrieving sports
             try {
-                const q = query(collection(db, 'sports'), orderBy('name'))
+                const q = query(collection(db, 'sports'), orderBy('name')) // Retrieve sports data in alphabetical order
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data()}))
                 setSportsList(resList)
@@ -48,16 +51,16 @@ export default function NewsArticles() {
         getNewsArticles()
         getSports()
 
-        user && !user.email.includes('@matchpoint.com') && setPersonalizedFilter(true)
+        user && !user.email.includes('@matchpoint.com') && setPersonalizedFilter(true) // If user logged in and not admin, set personalized filter to true
     }, [])
 
     useEffect(() => { // Handle filtering articles based on filter criteria
-        const getNewsArticles = async () => {
+        const getNewsArticles = async () => { // Handle retrieving news articles
             if (personalizedFilter) {
                 try {
                     const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
                     const data = await getDocs(q)
-                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(article => moreUserInfo?.sportInterests.includes(article.sport))
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(article => moreUserInfo?.sportInterests.includes(article.sport)) // Filter articles based on user's sport interests
 
                     setNewsArticleList(processDate(resList))
                     setPersonalizedArticleList(processDate(resList))
@@ -68,7 +71,7 @@ export default function NewsArticles() {
                 try {
                     const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
                     const data = await getDocs(q)
-                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each object
                     setNewsArticleList(processDate(resList))
                 } catch (err) {
                     console.error(err)
@@ -78,11 +81,11 @@ export default function NewsArticles() {
         getNewsArticles()
     }, [personalizedFilter, moreUserInfo])
 
-    const processDate = (list) => {
+    const processDate = (list) => { // Process date to be displayed in a more readable format
         const updatedNewsArticleList = list.map((newsArticle) => {
             const date = newsArticle.date.toDate().toDateString().split(' ').slice(1)
 
-            return {
+            return { // Append date to each object
                 ...newsArticle,
                 date
             }
@@ -90,17 +93,17 @@ export default function NewsArticles() {
         return updatedNewsArticleList
     }
 
-    const concatSports = async (e) => {
+    const concatSports = async (e) => { // Concatenate sports selected in dropdown list
         const {target: {value}} = e;
         setSports(
             typeof value === 'string' ? value.split(',') : value,
         )
 
-        if (value.length > 0) {
+        if (value.length > 0) { // If sports are selected, immediately filter articles based on selected sports
             try {
                 const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(article => value.includes(article.sport) && article.title.toLowerCase().includes(filterSearch?.toLowerCase()))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(article => value.includes(article.sport) && article.title.toLowerCase().includes(filterSearch?.toLowerCase())) // Filter articles based on selected sports and search criteria
 
                 setNewsArticleList(processDate(resList))
             } catch (err) {
@@ -111,7 +114,7 @@ export default function NewsArticles() {
                 if (filterSearch === '') {
                     const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
                     const data = await getDocs(q)
-                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each object
                     setNewsArticleList(processDate(resList))
                 } else {
                     setNewsArticleList(searchResults)
@@ -123,17 +126,17 @@ export default function NewsArticles() {
     }
 
     const searchNewsArticle = async (e) => { // Handle search functionality
-        e.preventDefault()
-        setSports([])
-        setFilterSearch(searchCriteria)
+        e.preventDefault() // Prevent page from refreshing
+        setSports([]) // Reset sports list to prevent filtering based on sports
+        setFilterSearch(searchCriteria) // Set search criteria to be used for filtering articles based on sports
         
-        if (personalizedFilter) {
-            searchCriteria === '' ? setNewsArticleList(personalizedArticleList) : setNewsArticleList(personalizedArticleList.filter(article => article.title.toLowerCase().includes(searchCriteria.toLowerCase())))
+        if (personalizedFilter) { // If personalized filter is on, filter articles based on search criteria
+            searchCriteria === '' ? setNewsArticleList(personalizedArticleList) : setNewsArticleList(personalizedArticleList.filter(article => article.title.toLowerCase().includes(searchCriteria.toLowerCase()))) // Filter articles based on search criteria
         } else {
             try {
-                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
+                const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Retrieve all articles and in chronologically descending order
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((article) => article.title.toLowerCase().includes(searchCriteria.toLowerCase()))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((article) => article.title.toLowerCase().includes(searchCriteria.toLowerCase())) // Filter articles based on search criteria
 
                 setSearchResults(processDate(resList))
                 setNewsArticleList(processDate(resList))
@@ -242,7 +245,7 @@ export default function NewsArticles() {
                         </>
                     }
                 </Box>
-                {newsArticleList.length === 0 ?
+                {newsArticleList.length === 0 && !isLoading ?
                     <Stack height='150px' marginTop='50px' alignItems='center' justifyContent='center'>
                         <Typography variant='h5'>No results found</Typography>
                     </Stack>

@@ -19,12 +19,12 @@ export default function EditNewsArticle() {
     const [selectedTournamentTitle, setSelectedTournamentTitle] = useState('')
     
 
-    useEffect(() => {
-        const getNewsArticle = async () => {
+    useEffect(() => { // Retrieve news article details from the database on page load
+        const getNewsArticle = async () => { // Retrieve news article details from the database
             try {
-                const res = await getDoc(doc(db, 'newsArticles', location.state.id))
+                const res = await getDoc(doc(db, 'newsArticles', location.state.id)) // Retrieve news article details from the database using the id from the URL
                 const resList = res.data()
-                getTournament(resList.tournamentID)
+                getTournament(resList.tournamentID) // Retrieve tournament details from the database using the tournamentID from the news article details
 
                 setTitle(resList.title)
                 setContent(resList.content)
@@ -32,9 +32,9 @@ export default function EditNewsArticle() {
                 window.location.href = '/'
             }
         }
-        const getTournament = async (tID) => {
+        const getTournament = async (tID) => { // Retrieve tournament details from the database
             try {
-                const res = await getDoc(doc(db, 'tournaments', tID))
+                const res = await getDoc(doc(db, 'tournaments', tID)) // Retrieve tournament details from the database using the tournamentID from the news article details
                 const resList = res.data()
                 setSelectedTournamentTitle(resList.title)
             } catch (err) {
@@ -44,18 +44,18 @@ export default function EditNewsArticle() {
         getNewsArticle()
     }, [])
 
-    const saveChanges = async (e) => {
-        e.preventDefault()
+    const saveChanges = async (e) => { // Save changes to the news article
+        e.preventDefault() // Prevent page from refreshing
         try {
-            await updateDoc(doc(db, 'newsArticles', location.state.id), {
+            await updateDoc(doc(db, 'newsArticles', location.state.id), { // Update news article details in the database using the id from the URL
                 title: title,
                 content: content
             })
 
             if (bannerImg) { // If new banner image is uploaded
-                await uploadBytes(ref(getStorage(), `newsArticles/${location.state.id}-banner`), bannerImg).then((snapshot) => {
-                    getDownloadURL(snapshot.ref).then(function(downloadURL) {
-                        updateDoc(doc(db, 'newsArticles', location.state.id), {
+                await uploadBytes(ref(getStorage(), `newsArticles/${location.state.id}-banner`), bannerImg).then((snapshot) => { // Upload new banner image to the database
+                    getDownloadURL(snapshot.ref).then(function(downloadURL) { // Retrieve the URL of the new banner image
+                        updateDoc(doc(db, 'newsArticles', location.state.id), { // Update the banner image URL in the database
                             bannerURL: downloadURL
                         })
                         alert('News Article updated successfully')

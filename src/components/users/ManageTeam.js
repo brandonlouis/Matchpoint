@@ -55,10 +55,10 @@ export default function ManageTeam() {
     const [tournamentDatePoints, setTournamentDatePoints] = useState({})
 
     
-    useEffect(() => {
-        const getSports = async () => {
+    useEffect(() => { // Retrieve relevant data on page load
+        const getSports = async () => { // Retrieve sports list
             try {
-                const q = query(collection(db, 'sports'), orderBy('name'))
+                const q = query(collection(db, 'sports'), orderBy('name')) // Rertieve sports list in alphabetical order
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data()}))
                 setSportsList(resList)
@@ -66,11 +66,11 @@ export default function ManageTeam() {
                 console.error(err)
             }
         }
-        const getTeam = async () => {
+        const getTeam = async () => { // Retrieve team details
             try {
-                const q = query(collection(db, 'teams'), where('leader', '==', user.uid))
+                const q = query(collection(db, 'teams'), where('leader', '==', user.uid)) // Retrieve team details where current user is leader
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append team id to list
                 setOriginalDetails(resList)
 
                 setId(resList[0]?.id)
@@ -89,26 +89,27 @@ export default function ManageTeam() {
                 console.error(err)
             }
         }
-        const getProfile = async (teamID) => {
+        const getProfile = async (teamID) => { // Retrieve profile details
             try {
-                const res = await getDoc(doc(db, 'profiles', teamID))
+                const res = await getDoc(doc(db, 'profiles', teamID)) // Retrieve team profile details using the team's id
                 const resList = res.data()
                 setProfileInfo(resList)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getTournament = async (teamID) => {            
-            const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', teamID))
+        const getTournament = async (teamID) => { // Retrieve tournament details            
+            const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', teamID)) // Retrieve tournaments where the team is a participant
             const data = await getDocs(q)
-            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append tournament id to list
             setTournamentList(processDate([...resList]))
         }
-        const processDate = (list) => {
+        const processDate = (list) => { // Process date to be displayed in a more readable format
             const updatedTournamentList = list.map((tournament) => {
                 const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
                 const endDate = tournament.date.end.toDate().toDateString().split(' ').slice(1) 
-                return {
+
+                return { // Append date in string format to list
                     ...tournament,
                     stringDate: {                        
                         start: startDate,
@@ -118,11 +119,11 @@ export default function ManageTeam() {
             })
             return updatedTournamentList
         }
-        const getMatch = async (teamID) => {
+        const getMatch = async (teamID) => { // Retrieve match details
             try {
-                const q = query(collection(db, 'matches'), where('participants', 'array-contains', teamID))
+                const q = query(collection(db, 'matches'), where('participants', 'array-contains', teamID)) // Retrieve matches where the team is a participant
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append match id to list
                 setmatchInfo(resList)
             } catch (err) {
                 console.error(err)
@@ -132,45 +133,45 @@ export default function ManageTeam() {
         getTeam()
     }, [])
 
-    useEffect(() => {
+    useEffect(() => { // Update profile statistics based on tournament results
         const datePointsDict = {}
         const placementDict = {first: 0, second: 0, third: 0, tournamentsParticipated: 0}
 
         tournamentList.forEach((tournament) => {
             matchInfo.forEach((match) => {
-                if (match.id === tournament.id) {
-                    if (tournament.date?.end.toDate() < Date.now()) {
-                        const sortedUsers = Object.entries(match.statistics).sort((a, b) => b[1].points - a[1].points)
-                        const userIndex = sortedUsers.findIndex(([id, _]) => id === id)
+                if (match.id === tournament.id) { // If match id matches tournament id
+                    if (tournament.date?.end.toDate() < Date.now()) { // // And the tournament has ended
+                        const sortedUsers = Object.entries(match.statistics).sort((a, b) => b[1].points - a[1].points) // Sort users by points
+                        const userIndex = sortedUsers.findIndex(([id, _]) => id === id) // Find user's index in the sorted list
                         
-                        placementDict.tournamentsParticipated += 1
+                        placementDict.tournamentsParticipated += 1 // Increment tournaments participated
 
-                        const dateKey = tournament.stringDate?.end.join(' ')
-                        if (userIndex === 0) {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 4
-                            placementDict.first += 1
-                        } else if (userIndex === 1) {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 3
-                            placementDict.second += 1
-                        } else if (userIndex === 2) {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 2
-                            placementDict.third += 1
-                        } else {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 1
+                        const dateKey = tournament.stringDate?.end.join(' ') // Create date key
+                        if (userIndex === 0) { // If user is first
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 4 // Increment the user's points by 4 for the date
+                            placementDict.first += 1 // Increment the number of first place finishes
+                        } else if (userIndex === 1) { // If user is second
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 3 // Increment the user's points by 3 for the date
+                            placementDict.second += 1 // Increment the number of second place finishes
+                        } else if (userIndex === 2) { // If user is third
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 2 // Increment the user's points by 2 for the date
+                            placementDict.third += 1 // Increment the number of third place finishes
+                        } else { // If user is not in the top 3
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 1 // Increment the user's points by 1 for the date
                         }
                     }
                 }
             })
             setTournamentDatePoints(datePointsDict)
         })
-        if (Object.keys(datePointsDict).length > 0) {
+        if (Object.keys(datePointsDict).length > 0) { // Only if the user has participated in any tournaments
             updateStatistics(placementDict)
         }
     }, [tournamentList, matchInfo])
 
-    const updateStatistics = async (placementParam) => {
+    const updateStatistics = async (placementParam) => { // Update profile statistics
         try {
-            await updateDoc(doc(db, 'profiles', id), {
+            await updateDoc(doc(db, 'profiles', id), { // Update profile statistics using the team's id
                 first: placementParam.first,
                 second: placementParam.second,
                 third: placementParam.third,
@@ -184,7 +185,7 @@ export default function ManageTeam() {
     const viewAccount = async (id) => { // Handle view record by populating data to modal
         setOpenViewModal(true)
         try {
-            const resList = await getDoc(doc(db, 'accounts', id))
+            const resList = await getDoc(doc(db, 'accounts', id)) // Retrieve account details using the account's id
             const appendID = resList.data()
             appendID.id = id // Append id to list
             setAccountDetails(appendID)
@@ -193,19 +194,19 @@ export default function ManageTeam() {
         }
     }
 
-    const concatSports = (e) => {
+    const concatSports = (e) => { // Concatenate sports selected by the user
         const {target: {value}} = e
         setSports(
             typeof value === 'string' ? value.split(',') : value,
         )
     }
 
-    const updateTeam = async (e) => {
-        e.preventDefault()
-        if (handle.toLowerCase() !== originalDetails[0]?.handle) {
+    const updateTeam = async (e) => { // Handle update record
+        e.preventDefault() // Prevent page from refreshing
+        if (handle.toLowerCase() !== originalDetails[0]?.handle) { // If handle has been changed
             try {
                 const checkHandle = await getDocs(query(collection(db, 'teams'), where('handle', '==', handle.toLowerCase()))) // Check if handle is already in use
-                if (checkHandle.empty === false) {
+                if (checkHandle.empty === false) { // If handle is already in use
                     setErrorMessage('Team handle already in use')
                     return
                 }
@@ -215,7 +216,7 @@ export default function ManageTeam() {
         }
         
         try {
-            await updateDoc(doc(db, 'teams', id), {
+            await updateDoc(doc(db, 'teams', id), { // Update team details using the team's id
                 handle: handle.toLowerCase(),
                 name: name,
                 region: region,
@@ -232,25 +233,25 @@ export default function ManageTeam() {
     }
 
     const searchAccount = async (e) => { // Handle search record of accounts not belonging to any teams
-        e.preventDefault()
+        e.preventDefault() // Prevent page from refreshing
         if (searchCriteria === '') { // If search criteria is empty, return empty results
             setSearchAccountsList([])
         } else { // If search criteria is not empty, retrieve accounts that match the search criteria
             try {
-                const allAccountsQuery = query(collection(db, 'accounts'), orderBy('username'))
+                const allAccountsQuery = query(collection(db, 'accounts'), orderBy('username')) // Retrieve all accounts in alphabetical order
                 const allAccountsDocs = await getDocs(allAccountsQuery)
-                const allAccounts = allAccountsDocs.docs.map(doc => doc.id)
+                const allAccounts = allAccountsDocs.docs.map(doc => doc.id) // Append account id to list
     
-                const allTeamsQuery = query(collection(db, 'teams'), orderBy('handle'))
+                const allTeamsQuery = query(collection(db, 'teams'), orderBy('handle')) // Retrieve all teams in alphabetical order
                 const allTeamsDocs = await getDocs(allTeamsQuery)
-                const teamIds = allTeamsDocs.docs.map(doc => doc.data().members)
+                const teamMembers = allTeamsDocs.docs.map(doc => doc.data().members) // Append all IDs of users who belong to a team
     
-                const allTeamMembers = teamIds.flat()
-                const accountsNotInTeam = allAccounts.filter(accountId => !allTeamMembers.includes(accountId))
+                const allTeamMembers = teamMembers.flat() // Flatten team members list
+                const accountsNotInTeam = allAccounts.filter(accountId => !allTeamMembers.includes(accountId)) // Retrieve accounts not in any team
     
-                const q = query(collection(db, 'accounts'), where(documentId(), 'in', accountsNotInTeam))
+                const q = query(collection(db, 'accounts'), where(documentId(), 'in', accountsNotInTeam)) // Retrieve accounts not in any team
                 const data = await getDocs(q)
-                const resList = data.docs.map(doc => ({ ...doc.data(), id: doc.id })).filter(account => account.type !== 'admin' && (account.username.includes(searchCriteria.toLowerCase()) || account.fullName.includes(searchCriteria.toLowerCase())) && account.sportInterests.some(sport => originalDetails[0].sports?.includes(sport)) && (account.gender === originalDetails[0]?.genderReq || originalDetails[0]?.genderReq === 'mixed'))
+                const resList = data.docs.map(doc => ({ ...doc.data(), id: doc.id })).filter(account => account.type !== 'admin' && (account.username.includes(searchCriteria.toLowerCase()) || account.fullName.includes(searchCriteria.toLowerCase())) && account.sportInterests.some(sport => originalDetails[0].sports?.includes(sport)) && (account.gender === originalDetails[0]?.genderReq || originalDetails[0]?.genderReq === 'mixed')) // Search for accounts not in any team based on search criteria and matching profile details
     
                 setSearchAccountsList(resList)
             } catch (err) {
@@ -259,12 +260,12 @@ export default function ManageTeam() {
         }
     }
 
-    const addMember = async (id) => {
+    const addMember = async (id) => { // Handle add member to team
         try {
-            await updateDoc(doc(db, 'teams', originalDetails[0]?.id), {
+            await updateDoc(doc(db, 'teams', originalDetails[0]?.id), { // Update team details using the team's id
                 members: [...originalDetails[0]?.members, id]
             })
-            setOriginalDetails(prevDetails => {
+            setOriginalDetails(prevDetails => { // Append member to list
                 return [{ ...prevDetails[0], members: [...originalDetails[0]?.members, id] }, ...prevDetails.slice(1)]
             })
             alert('Member added successfully')
@@ -276,12 +277,12 @@ export default function ManageTeam() {
         }
     }
 
-    const kickMember = async (id) => {
+    const kickMember = async (id) => { // Handle kick member from team
         try {
-            await updateDoc(doc(db, 'teams', originalDetails[0]?.id), {
+            await updateDoc(doc(db, 'teams', originalDetails[0]?.id), { // Update team details using the team's id
                 members: originalDetails[0]?.members.filter(member => member !== id)
             })
-            setOriginalDetails(prevDetails => {
+            setOriginalDetails(prevDetails => { // Remove member from list
                 const updatedMembers = prevDetails[0]?.members.filter(member => member !== id)
                 return [{ ...prevDetails[0], members: updatedMembers }, ...prevDetails.slice(1)]
             })
@@ -294,16 +295,16 @@ export default function ManageTeam() {
     }
 
     useEffect(() => { // Live update on members list on kick/add member
-        const getTeam = async () => {
+        const getTeam = async () => { // Retrieve team details
             try {
-                const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
+                const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid)) // Retrieve team details where current user is a member
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
 
                 try {
-                    const q = query(collection(db, 'accounts'), orderBy('username'))
+                    const q = query(collection(db, 'accounts'), orderBy('username')) // Retrieve all accounts in alphabetical order
                     const data = await getDocs(q)
-                    const accResList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => resList[0]?.members?.includes(item.id))
+                    const accResList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => resList[0]?.members?.includes(item.id)) // Append account id to list where the user is a member
                     setAccountsList(accResList)
                 } catch (err) {
                     console.error(err)
@@ -315,23 +316,23 @@ export default function ManageTeam() {
         getTeam()
     }, [originalDetails[0]?.members])
     
-    const disbandTeam = async (id) => {
+    const disbandTeam = async (id) => { // Handle disband team
         try {
-            await deleteDoc(doc(db, 'teams', id))
-            await deleteDoc(doc(db, 'profiles', id))
+            await deleteDoc(doc(db, 'teams', id)) // Delete team details using the team's id
+            await deleteDoc(doc(db, 'profiles', id)) // Delete profile details using the team's id
     
             // Update tournaments
-            const tournamentsRef = collection(db, 'tournaments')
-            const tournamentQuery = query(tournamentsRef, where('participants', 'array-contains', id))
+            const tournamentsRef = collection(db, 'tournaments') // Retrieve tournaments collection
+            const tournamentQuery = query(tournamentsRef, where('participants', 'array-contains', id)) // Retrieve tournaments where the team is a participant
             const tournamentQuerySnapshot = await getDocs(tournamentQuery)
     
             const tournamentUpdatePromises = []
-            tournamentQuerySnapshot.forEach((docTournament) => {
-                const participants = docTournament.data().participants
+            tournamentQuerySnapshot.forEach((docTournament) => { // Update tournaments where the team is a participant
+                const participants = docTournament.data().participants // Retrieve participants list
                 const index = participants.indexOf(id)
     
                 if (index !== -1) {
-                    participants.splice(index, 1)
+                    participants.splice(index, 1) // Remove team from participants list
     
                     const updatePromise = updateDoc(doc(db, 'tournaments', docTournament.id), { participants })
                     tournamentUpdatePromises.push(updatePromise)
@@ -341,11 +342,11 @@ export default function ManageTeam() {
     
             // Update matches
             const matchesRef = collection(db, 'matches')
-            const matchQuery = query(matchesRef, where('participants', 'array-contains', id))
+            const matchQuery = query(matchesRef, where('participants', 'array-contains', id)) // Retrieve matches where the team is a participant
             const matchQuerySnapshot = await getDocs(matchQuery)
     
             const matchUpdatePromises = []
-            matchQuerySnapshot.forEach((docMatch) => {
+            matchQuerySnapshot.forEach((docMatch) => { // Update matches where the team is a participant
                 const data = docMatch.data()
                 const participants = data.participants
                 const rounds = data.round
@@ -358,31 +359,31 @@ export default function ManageTeam() {
                 if (data.statistics.hasOwnProperty(id)) {
                     updatedStatistics = {
                         ...updatedStatistics,
-                        disbanded: data.statistics[id]
+                        disbanded: data.statistics[id] // Add 'disbanded' to statistics
                     }
-                    delete updatedStatistics[id]
+                    delete updatedStatistics[id] // Remove original id from statistics
                 }
 
                 // Update rounds
                 const updatedRounds = Object.entries(rounds).reduce((acc, [roundNoKey, roundNo]) => {
                     const updatedMatches = Object.entries(roundNo.match).reduce((matchesAcc, [matchNoKey, matchNo]) => {
                         if (matchNo[0]?.[id]) {
-                            matchNo[0] = { disbanded: matchNo[0][id] }
-                            delete matchNo[0][id]
+                            matchNo[0] = { disbanded: matchNo[0][id] } // Add 'disbanded' to match
+                            delete matchNo[0][id] // Remove original id from match
                         } else if (matchNo[1]?.[id]) {
-                            matchNo[1] = { disbanded: matchNo[1][id] }
-                            delete matchNo[1][id]
+                            matchNo[1] = { disbanded: matchNo[1][id] } // Add 'disbanded' to match
+                            delete matchNo[1][id] // Remove original id from match
                         }
                 
-                        if (matchNo[2]?.victor === id) {
-                            matchNo[2].victor = 'disbanded'
+                        if (matchNo[2]?.victor === id) { // If the team is victor
+                            matchNo[2].victor = 'disbanded' // Replace it with 'disbanded'
                         }
                         return { ...matchesAcc, [matchNoKey]: matchNo }
                     }, {})
                     return { ...acc, [roundNoKey]: { match: updatedMatches, time: roundNo.time } }
                 }, {})
                 
-                const updatePromise = updateDoc(doc(db, 'matches', docMatch.id), {
+                const updatePromise = updateDoc(doc(db, 'matches', docMatch.id), { // Update matches using the match's id
                     participants: participants,
                     round: updatedRounds,
                     statistics: updatedStatistics
@@ -398,7 +399,7 @@ export default function ManageTeam() {
         }
     }
     
-    const revertChanges = () => {
+    const revertChanges = () => { // Revert changes made to team details when edit mode is toggled off
         setHandle(originalDetails[0]?.handle)
         setName(originalDetails[0]?.name)
         setRegion(originalDetails[0]?.region)
@@ -408,15 +409,17 @@ export default function ManageTeam() {
         setPrivacy(originalDetails[0]?.privacy)
     }
 
-    const toggleEditMode = (val) => {
+    const toggleEditMode = (val) => { // Toggle edit mode
         setErrorMessage('')
         setEditMode(val)
     }
 
+    // Sort tournament dates and scores for the performance chart
     const datePointsArray = Object.entries(tournamentDatePoints).sort((a, b) => new Date(a[0]) - new Date(b[0]))
     const sortedDates = (datePointsArray.map(([date]) => date))
     const sortedScores = (datePointsArray.map(([, score]) => score))
-
+    
+    // Data for the performance chart
     const graphData = ({
         labels: sortedDates,
         datasets: [{
@@ -428,22 +431,23 @@ export default function ManageTeam() {
             borderWidth: 2,
         }]
     })
+    // Configuration for the performance chart
     const graphConfig = ({
         type: 'line',
         graphData,
         options: {
             scales: {
-                x: {
+                x: { // X-axis configuration
                     title: {
                         display: true,
                         text: 'Date',
                     },
                     autoSkip: false,
                 },
-                y: {
+                y: { // Y-axis configuration
                     beginAtZero: true,
                     stepSize: 1,
-                    max: sortedScores.length > 0 ? Math.max(...sortedScores)+1 : 1,
+                    max: sortedScores.length > 0 ? Math.max(...sortedScores)+1 : 1, // Set the maximum value of the Y-axis to the highest score + 1 for clearer visualization
                     title: {
                         display: true,
                         text: 'Total points',

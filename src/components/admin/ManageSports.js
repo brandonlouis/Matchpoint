@@ -29,9 +29,9 @@ export default function ManageSports() {
     useEffect(() => { // Handle retrieving account list on initial load
         const getSports = async () => {
             try {
-                const q = query(collection(db, 'sports'), orderBy('name'))
+                const q = query(collection(db, 'sports'), orderBy('name')) // Retrieve all sports from the database and order them by name
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Map the data to include the document ID
                 setSportsList(resList)
             } catch (err) {
                 console.error(err)
@@ -41,9 +41,9 @@ export default function ManageSports() {
     },[])
 
     const viewSport = async (id) => { // Handle view record by populating data to modal
-        setOpenViewModal(true)
+        setOpenViewModal(true) // Open the modal
         try {
-            const res = await getDoc(doc(db, 'sports', id))
+            const res = await getDoc(doc(db, 'sports', id)) // Retrieve the sport data from the database by id
             const resList = res.data()
             setOriginalName(resList)
 
@@ -54,19 +54,19 @@ export default function ManageSports() {
         }
     }
 
-    const toggleEditMode = () => {
+    const toggleEditMode = () => { // Handle toggle edit mode
         setEditMode(!editMode)
     }
 
-    const createSport = async (e) => {
-        e.preventDefault()
+    const createSport = async (e) => { // Handle create record
+        e.preventDefault() // Prevent page from refreshing
         try {
             const checkSportName = await getDocs(query(collection(db, 'sports'), where('name', '==', newSportName.trim().toLowerCase()))) // Check if sport name already exists
-            if (checkSportName.empty === false) {
+            if (checkSportName.empty === false) { // If list is not empty
                 setErrorMessage('Sport name already exists')
             } else {
-                await addDoc(collection(db, "sports"), {
-                    name: newSportName.trim().toLowerCase()
+                await addDoc(collection(db, "sports"), { // Add new sport to the database
+                    name: newSportName.trim().toLowerCase() // Convert sport name to lowercase
                 })
                 alert('Sport created successfully')
                 window.location.reload()
@@ -76,16 +76,16 @@ export default function ManageSports() {
         }
     }
 
-    const updateSport = async (e) => {
-        e.preventDefault()
+    const updateSport = async (e) => { // Handle update record
+        e.preventDefault() // Prevent page from refreshing
         try {
             if (sportName.trim().toLowerCase() !== originalName.name) { // If sport name is unchanged
                 const checkSportName = await getDocs(query(collection(db, 'sports'), where('name', '==', sportName.trim().toLowerCase()))) // Check if sport name already exists
-                if (checkSportName.empty === false) {
+                if (checkSportName.empty === false) { // If list is not empty
                     setErrorMessage('Sport name already exists')
                 } else {
-                    await updateDoc(doc(db, 'sports', sportID), {
-                        name: sportName.trim().toLowerCase()
+                    await updateDoc(doc(db, 'sports', sportID), { // Update sport in the database by id
+                        name: sportName.trim().toLowerCase() // Convert sport name to lowercase
                     })
                     alert('Sport updated successfully')
                     window.location.reload()
@@ -100,9 +100,9 @@ export default function ManageSports() {
         }
     }
 
-    const deleteSport = async (id) => {
+    const deleteSport = async (id) => { // Handle delete record
         try {
-            await deleteDoc(doc(db, 'sports', id))
+            await deleteDoc(doc(db, 'sports', id)) // Delete sport from the database by id
             alert('Sport deleted successfully')
             window.location.reload()
         } catch (err) {
@@ -110,12 +110,12 @@ export default function ManageSports() {
         }
     }
 
-    const searchSport = async (e) => {
-        e.preventDefault()
+    const searchSport = async (e) => { // Handle search record
+        e.preventDefault() // Prevent page from refreshing
         try {
-            const q = query(collection(db, 'sports'), orderBy('name'))
+            const q = query(collection(db, 'sports'), orderBy('name')) // Retrieve all sports from the database and order them by name
             const data = await getDocs(q)
-            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(sport => sport.name.includes(searchCriteria.toLowerCase()))
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(sport => sport.name.includes(searchCriteria.toLowerCase())) // Map the data to include the document ID and filter by search criteria
             
             setSportsList(resList)
         } catch (err) {

@@ -37,21 +37,21 @@ export const AuthContextProvider = ({ children }) => {
         return sendEmailVerification(user)
     }
 
-    useEffect(() => {
+    useEffect(() => { // onAuthStateChanged is a listener that is triggered only when the user logs in or out
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 setUser(currentUser)
                 getDoc(doc(db, "accounts", currentUser.uid)).then((doc) => {
                     setMoreUserInfo(doc.data())
-                    localStorage.setItem('fullName', doc.data().fullName)
+                    localStorage.setItem('fullName', doc.data().fullName) // Store the user's full name in local storage to prevent flashing navbar
                 })
             } else {
                 setMoreUserInfo(null)
-                localStorage.removeItem('fullName')            
+                localStorage.removeItem('fullName') // Remove the user's full name from local storage on logout
             }
 
             setLoading(false)
-        });
+        })
         return () => unsubscribe()
     }, [])
 

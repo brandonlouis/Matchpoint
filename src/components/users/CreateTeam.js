@@ -28,10 +28,10 @@ export default function CreateTeam() {
     const [errorMessage, setErrorMessage] = useState('')
 
     
-    useEffect(() => {
+    useEffect(() => { // Retrieve all sports from the database on page load
         const getSports = async () => {
             try {
-                const q = query(collection(db, 'sports'), orderBy('name'))
+                const q = query(collection(db, 'sports'), orderBy('name')) // Retrieve all sports from the database and order them by name
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data()}))
                 setSportsList(resList)
@@ -42,22 +42,22 @@ export default function CreateTeam() {
         getSports()
     }, [])
 
-    const concatSports = (e) => {
+    const concatSports = (e) => { // Concatenate sports into an array when selected
         const {target: {value}} = e;
         setSports(
             typeof value === 'string' ? value.split(',') : value,
         )
     }
     
-    const addTeam = async (e) => {
-        e.preventDefault()
+    const addTeam = async (e) => { // Add team to the database
+        e.preventDefault() // Prevent page from refreshing
         try {          
             const checkUsername = await getDocs(query(collection(db, 'teams'), where('handle', '==', handle.toLowerCase()))) // Check if username is already in use
 
-            if (checkUsername.empty === false) {
+            if (checkUsername.empty === false) { // If list is not empty, username is already in use
                 setErrorMessage('Team handle already in use')
             } else {
-                await addDoc(collection(db, 'teams'), {
+                await addDoc(collection(db, 'teams'), { // Add team to the database
                     handle: handle.toLowerCase(),
                     name: name.trim().toLowerCase(),
                     region: region,
@@ -68,8 +68,8 @@ export default function CreateTeam() {
                     leader: user.uid,
                     members: [user.uid]
 
-                }).then((docRef) => {
-                    setDoc(doc(db, "profiles", docRef.id), {
+                }).then((docRef) => { // Create team profile after team is added to the database
+                    setDoc(doc(db, "profiles", docRef.id), { // Add profile by id
                         first: 0,
                         second: 0,
                         third: 0,
@@ -82,7 +82,7 @@ export default function CreateTeam() {
         } catch (err) {
             console.error(err)
         }
-    };
+    }
 
     
     return (

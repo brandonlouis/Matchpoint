@@ -21,8 +21,8 @@ export default function ManageTournaments() {
     useEffect(() => { // Handle retrieving tournament list on initial load
         const getTournaments = async () => {
             try {
-                const data = await getDocs(collection(db, 'tournaments'))
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const data = await getDocs(collection(db, 'tournaments')) // Retrieve all documents from collection
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Map documents to list
                 setTournamentList(processDateListDate(sortTournaments(resList)))
             } catch (err) {
                 console.error(err)
@@ -31,7 +31,7 @@ export default function ManageTournaments() {
         getTournaments()
     }, [])
 
-    const sortTournaments = (list) => {
+    const sortTournaments = (list) => { // Handle sorting tournaments
         return list.sort((a, b) => {
             const now = new Date()
             const aEndDate = new Date(a.date.end.toDate())
@@ -62,12 +62,12 @@ export default function ManageTournaments() {
         })
     }
 
-    const processDateListDate = (list) => {
+    const processDateListDate = (list) => { // Process date to be displayed in a more readable format for list
         const updatedTournamentList = list.map((tournament) => {
             const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
             const endDate = tournament.date.end.toDate().toDateString().split(' ').slice(1)
 
-            return {
+            return { // Append string date to list
                 ...tournament,
                 stringDate: {
                   start: startDate,
@@ -77,11 +77,11 @@ export default function ManageTournaments() {
         })
         return updatedTournamentList
     }
-    const processDate = (tournament) => {
+    const processDate = (tournament) => { // Process date to be displayed in a more readable format
         const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
         const endDate = tournament.date.end.toDate().toDateString().split(' ').slice(1)
 
-        return {
+        return { // Append string date to object
             ...tournament,
             stringDate: {
                 start: startDate,
@@ -93,7 +93,7 @@ export default function ManageTournaments() {
     const viewTournament = async (id) => { // Handle view record by populating data to modal
         setOpenModal(true)
         try {
-            const resList = await getDoc(doc(db, 'tournaments', id))
+            const resList = await getDoc(doc(db, 'tournaments', id)) // Retrieve tournament by id
             const appendID = resList.data()
             appendID.id = id // Append id to list
             setTournamentDetails(processDate(appendID))
@@ -104,7 +104,7 @@ export default function ManageTournaments() {
 
     const suspendTournament = async (id) => { // Handle suspend record
         try {
-            await updateDoc(doc(db, 'tournaments', id), {
+            await updateDoc(doc(db, 'tournaments', id), { // Update status to 0 by id
                 status: 0
             })
             alert('Tournament suspended successfully')
@@ -114,11 +114,11 @@ export default function ManageTournaments() {
         }
     }
 
-    const searchTournament = async (e) => {
-        e.preventDefault()
+    const searchTournament = async (e) => { // Handle search record
+        e.preventDefault() // Prevent page from refreshing
         try {
-            const data = await getDocs(collection(db, 'tournaments'))
-            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((tournament) => tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport === searchCriteria.toLowerCase())
+            const data = await getDocs(collection(db, 'tournaments')) // Retrieve all documents from collection
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((tournament) => tournament.title.toLowerCase().includes(searchCriteria.toLowerCase())) // Map documents to list and filter by search criteria
             
             setTournamentList(processDateListDate(sortTournaments(resList)))
         } catch (err) {

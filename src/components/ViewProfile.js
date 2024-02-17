@@ -38,14 +38,14 @@ export default function ViewProfile() {
     const [isLoading, setIsLoading] = useState(true)
 
 
-    useEffect(() => {
-        const getTournament = async () => {            
-            const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', profileID))
+    useEffect(() => { // On page load
+        const getTournament = async () => { // Retrieve tournaments info
+            const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', profileID)) // Retrieve tournaments where user is a participant
             const data = await getDocs(q)
-            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+            const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to list
             setTournamentList(processDate([...resList]))
         }
-        const processDate = (list) => {
+        const processDate = (list) => { // Process date to be displayed in a more readable format
             const updatedTournamentList = list.map((tournament) => {
                 const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
                 const endDate = tournament.date.end.toDate().toDateString().split(' ').slice(1) 
@@ -59,43 +59,43 @@ export default function ViewProfile() {
             })
             return updatedTournamentList
         }
-        const getMatch = async () => {
+        const getMatch = async () => { // Retrieve match info
             try {
-                const q = query(collection(db, 'matches'), where('participants', 'array-contains', profileID))
+                const q = query(collection(db, 'matches'), where('participants', 'array-contains', profileID)) // Retrieve matches where user is a participant
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to list
                 setmatchInfo(resList)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getPlayerTeam = async () => {
+        const getPlayerTeam = async () => { // Retrieve player's team info
             try {
-                const accountDocRef = doc(db, 'accounts', profileID)
-                const teamDocRef = doc(db, 'teams', profileID)
+                const accountDocRef = doc(db, 'accounts', profileID) // Retrieve account info with the profile id
+                const teamDocRef = doc(db, 'teams', profileID) // Retrieve team info with the profile id
         
                 const accountDocSnapshot = await getDoc(accountDocRef)
                 const teamDocSnapshot = await getDoc(teamDocRef)
 
-                if (!accountDocSnapshot.exists() && !teamDocSnapshot.exists()) {
+                if (!accountDocSnapshot.exists() && !teamDocSnapshot.exists()) { // If profile does not exist
                     setPlayerTeamDetails({})
                     setIsLoading(false)
                     return
                 }
         
-                if (accountDocSnapshot.exists()) {
-                    getTeam()
+                if (accountDocSnapshot.exists()) { // If account found, it means the profile being viewed is an account
+                    getTeam() // Retrieve account's team info
                     const accountDetails = accountDocSnapshot.data()
                     setPlayerTeamDetails(accountDetails)
                     setIsLoading(false)
-                } else if (teamDocSnapshot.exists()) {
-                    const teamDetails = {id: teamDocSnapshot.id, ...teamDocSnapshot.data()}
+                } else if (teamDocSnapshot.exists()) { // If team found, it means the profile being viewed is a team
+                    const teamDetails = {id: teamDocSnapshot.id, ...teamDocSnapshot.data()} // Append id to list
                     if (teamDetails.privacy === 'private' && !teamDetails.members.includes(user.uid)) {
                         window.location.href = '/PlayersTeams' // Redirects to PlayersTeams page if team is private and user is not a member
                         return
                     }
                     if (user) { // Only retrieve accounts when user is logged in
-                        getAccounts(teamDetails)
+                        getAccounts(teamDetails) // Retrieve team members' accounts
                     }
                     setPlayerTeamDetails(teamDetails)
                     setIsLoading(false)
@@ -106,9 +106,9 @@ export default function ViewProfile() {
         }
         const getTeam = async () => { // Retrieve team info
             try {
-                const q = query(collection(db, 'teams'), where('members', 'array-contains', profileID))
+                const q = query(collection(db, 'teams'), where('members', 'array-contains', profileID)) // Retrieve teams where user is a member
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to list
                 setTeamInfo(resList)
             } catch (err) {
                 console.error(err)
@@ -117,9 +117,9 @@ export default function ViewProfile() {
         const getUserTeam = async () => { // Retrieve user's team to check if user belongs in a team
             if (user) { // Only retrieve accounts when user is logged in
                 try {
-                    const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
+                    const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid)) // Retrieve teams where user is a member
                     const data = await getDocs(q)
-                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to list
                     setUserTeam(resList)
                 } catch (err) {
                     console.error(err)
@@ -132,44 +132,44 @@ export default function ViewProfile() {
         getMatch()
     }, [])
 
-    useEffect(() => {
+    useEffect(() => { // Update profile statistics based on tournament results
         const datePointsDict = {}
         const placementDict = {first: 0, second: 0, third: 0, tournamentsParticipated: 0}
 
         tournamentList.forEach((tournament) => {
             matchInfo.forEach((match) => {
-                if (match.id === tournament.id) {
-                    if (tournament.date?.end.toDate() < Date.now()) {
-                        const sortedUsers = Object.entries(match.statistics).sort((a, b) => b[1].points - a[1].points)
-                        const userIndex = sortedUsers.findIndex(([id, _]) => id === profileID)
+                if (match.id === tournament.id) { // If the player/team participated in the tournament
+                    if (tournament.date?.end.toDate() < Date.now()) { // And the tournament has ended
+                        const sortedUsers = Object.entries(match.statistics).sort((a, b) => b[1].points - a[1].points) // Sort player/team by points
+                        const userIndex = sortedUsers.findIndex(([id, _]) => id === profileID) // Find player/team's index in the sorted list
                         
-                        placementDict.tournamentsParticipated += 1
+                        placementDict.tournamentsParticipated += 1 // Increment tournaments participated
 
-                        const dateKey = tournament.stringDate?.end.join(' ')
-                        if (userIndex === 0) {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 4
-                            placementDict.first += 1
-                        } else if (userIndex === 1) {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 3
-                            placementDict.second += 1
-                        } else if (userIndex === 2) {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 2
-                            placementDict.third += 1
-                        } else {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 1
+                        const dateKey = tournament.stringDate?.end.join(' ') // Create a key for the date of the tournament
+                        if (userIndex === 0) { // If player/team is first place
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 4 // Increment the player/team's points by 4 for the date
+                            placementDict.first += 1 // Increment the number of first place finishes
+                        } else if (userIndex === 1) { // If player/team is second place
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 3 // Increment the player/team's points by 3 for the date
+                            placementDict.second += 1 // Increment the number of second place finishes
+                        } else if (userIndex === 2) { // If player/team is third place
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 2 // Increment the player/team's points by 2 for the date
+                            placementDict.third += 1 // Increment the number of third place finishes
+                        } else { // If player/team is not in top 3
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 1 // Increment the player/team's points by 1 for the date
                         }
                     }
                 }
             })
             setTournamentDatePoints(datePointsDict)
         })
-        if (Object.keys(datePointsDict).length > 0) {
+        if (Object.keys(datePointsDict).length > 0) { // Only if player/team has participated in any tournaments
             updateStatistics(placementDict)
         }
 
-        const getProfile = async () => {
+        const getProfile = async () => { // Retrieve profile info after updating statistics
             try {
-                const res = await getDoc(doc(db, 'profiles', profileID))
+                const res = await getDoc(doc(db, 'profiles', profileID)) // Retrieve profile info with the profile id
                 const resList = res.data()
                 setProfileInfo(resList)
             } catch (err) {
@@ -179,9 +179,9 @@ export default function ViewProfile() {
         getProfile()
     }, [tournamentList, matchInfo])
 
-    const updateStatistics = async (placementParam) => {
+    const updateStatistics = async (placementParam) => { // Update profile statistics
         try {
-            await updateDoc(doc(db, 'profiles', profileID), {
+            await updateDoc(doc(db, 'profiles', profileID), { // Update profile statistics with the profile id
                 first: placementParam.first,
                 second: placementParam.second,
                 third: placementParam.third,
@@ -192,9 +192,9 @@ export default function ViewProfile() {
         }
     }
 
-    const joinTeam = async () => {
+    const joinTeam = async () => { // Handle join team
         try {
-            await updateDoc(doc(db, 'teams', profileID), {
+            await updateDoc(doc(db, 'teams', profileID), { // Update team members with the profile id
                 members: [...playerTeamDetails?.members, user.uid]
             })
             window.location.reload()
@@ -203,11 +203,11 @@ export default function ViewProfile() {
         }
     }
 
-    const getAccounts = async (membersList) => {
+    const getAccounts = async (membersList) => { // Retrieve team members' accounts
         try {
-            const q = query(collection(db, 'accounts'), orderBy('username'))
+            const q = query(collection(db, 'accounts'), orderBy('username')) // Retrieve accounts in alphabetical order
             const data = await getDocs(q)
-            const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => membersList?.members?.includes(item.id))
+            const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => membersList?.members?.includes(item.id)) // Append id to list and filter by team members
             setAccountsList(resList)
         } catch (err) {
             console.error(err)
@@ -217,7 +217,7 @@ export default function ViewProfile() {
     const viewAccount = async (id) => { // Handle view record by populating data to modal
         setOpenViewModal(true)
         try {
-            const resList = await getDoc(doc(db, 'accounts', id))
+            const resList = await getDoc(doc(db, 'accounts', id)) // Retrieve account info with the id
             const appendID = resList.data()
             appendID.id = id // Append id to list
             setAccountDetails(appendID)
@@ -226,10 +226,10 @@ export default function ViewProfile() {
         }
     }
 
-    const leaveTeam = async () => {
+    const leaveTeam = async () => { // Handle leave team
         try {
-            await updateDoc(doc(db, 'teams', playerTeamDetails?.id), {
-                members: playerTeamDetails?.members.filter(member => member !== user.uid)
+            await updateDoc(doc(db, 'teams', playerTeamDetails?.id), { // Update team members with the profile id
+                members: playerTeamDetails?.members.filter(member => member !== user.uid) // Filter out the user's id from the team members and update
             })
             alert('You have left the team')
             window.location.reload()
@@ -238,10 +238,12 @@ export default function ViewProfile() {
         }
     }
 
+    // Sort tournament dates and scores for the performance chart
     const datePointsArray = Object.entries(tournamentDatePoints).sort((a, b) => new Date(a[0]) - new Date(b[0]))
     const sortedDates = (datePointsArray.map(([date]) => date))
     const sortedScores = (datePointsArray.map(([, score]) => score))
 
+    // Data for the performance chart
     const graphData = ({
         labels: sortedDates,
         datasets: [{
@@ -253,22 +255,23 @@ export default function ViewProfile() {
             borderWidth: 2,
         }]
     })
+    // Configuration for the performance chart
     const graphConfig = ({
         type: 'line',
         graphData,
         options: {
             scales: {
-                x: {
+                x: { // X-axis configuration
                     title: {
                         display: true,
                         text: 'Date',
                     },
                     autoSkip: false,
                 },
-                y: {
+                y: { // Y-axis configuration
                     beginAtZero: true,
                     stepSize: 1,
-                    max: sortedScores.length > 0 ? Math.max(...sortedScores)+1 : 1,
+                    max: sortedScores.length > 0 ? Math.max(...sortedScores)+1 : 1, // Set the maximum value of the Y-axis to the highest score + 1 for clearer visualization
                     title: {
                         display: true,
                         text: 'Total points',

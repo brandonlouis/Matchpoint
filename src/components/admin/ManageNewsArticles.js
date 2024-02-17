@@ -33,19 +33,19 @@ export default function ManageNewsArticles() {
         getNewsArticles()
     }, [])
 
-    const processDate = (article) => {
+    const processDate = (article) => { // Process date to be displayed in a more readable format
         const date = article.date.toDate().toDateString().split(' ').slice(1)
 
-        return {
+        return { // Append date to article
             ...article,
             date
         }
     }
-    const processListDate = (list) => {
+    const processListDate = (list) => { // Process date to be displayed in a more readable format for list
         const updatedNewsArticleList = list.map((newsArticle) => {
             const date = newsArticle.date.toDate().toDateString().split(' ').slice(1)
 
-            return {
+            return { // Append date to list
                 ...newsArticle,
                 date
             }
@@ -56,19 +56,19 @@ export default function ManageNewsArticles() {
     const viewNewsArticle = async (id) => { // Handle view record by populating data to modal
         setOpenModal(true)
         try {
-            const resList = await getDoc(doc(db, 'newsArticles', id))
+            const resList = await getDoc(doc(db, 'newsArticles', id)) // Retrieve record by id
             const appendID = resList.data()
             appendID.id = id // Append id to list
-            setNewsArticleDetails(processDate(appendID))
-            getAuthorName(appendID.author)
+            setNewsArticleDetails(processDate(appendID)) // Append date to list
+            getAuthorName(appendID.author) // Retrieve author name
         } catch (err) {
             console.error(err)
         }
     }
 
-    const getAuthorName = async (author) => {
+    const getAuthorName = async (author) => { // Handle retrieving author name
         try {
-            const res = await getDoc(doc(db, 'accounts', author))
+            const res = await getDoc(doc(db, 'accounts', author)) // Retrieve author name by id
             const resList = res.data()
             setAuthorName(resList.fullName)
         } catch (err) {
@@ -76,9 +76,9 @@ export default function ManageNewsArticles() {
         }
     }
 
-    const deleteNewsArticle = async (id) => {
+    const deleteNewsArticle = async (id) => { // Handle delete functionality
         try {
-            await deleteDoc(doc(db, 'newsArticles', id))
+            await deleteDoc(doc(db, 'newsArticles', id)) // Delete record by id
             alert('News Article deleted successfully')
             window.location.reload()
         } catch (err) {
@@ -87,12 +87,12 @@ export default function ManageNewsArticles() {
     }
 
     const searchNewsArticle = async (e) => { // Handle search functionality
-        e.preventDefault()
+        e.preventDefault() // Prevent page from refreshing
         try {
-            const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc'))
+            const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
             const data = await getDocs(q)
             const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
-            const filteredList = resList.filter((newsArticle) => newsArticle.title.toLowerCase().includes(searchCriteria.toLowerCase()) || newsArticle.sport === searchCriteria.toLowerCase())
+            const filteredList = resList.filter((newsArticle) => newsArticle.title.toLowerCase().includes(searchCriteria.toLowerCase())) // Filter list by search criteria
             
             setNewsArticleList(processListDate(filteredList))
         } catch (err) {

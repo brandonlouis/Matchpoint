@@ -58,10 +58,10 @@ export default function Navbar() {
     const [errorMessage, setErrorMessage] = useState('')
 
 
-    useEffect(() => {
-        const getSports = async () => {
+    useEffect(() => { // On page load
+        const getSports = async () => { // Get sports list
             try {
-                const q = query(collection(db, 'sports'), orderBy('name'))
+                const q = query(collection(db, 'sports'), orderBy('name')) // Get sports list in alphabetical order
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data()}))
                 setSportsList(resList)
@@ -72,7 +72,7 @@ export default function Navbar() {
         getSports()
     }, [])
 
-    const concatSports = (e) => {
+    const concatSports = (e) => { // Concatenate selected sports into an array
         const {target: {value}} = e;
         setRegSports(
             typeof value === 'string' ? value.split(',') : value,
@@ -92,17 +92,17 @@ export default function Navbar() {
         try {
             const checkUsername = await getDocs(query(collection(db, 'accounts'), where('username', '==', regUsername.toLowerCase()))) // Check if username is already in use
 
-            if (regEmail.toLowerCase().includes('@matchpoint.com')) {
+            if (regEmail.toLowerCase().includes('@matchpoint.com')) { // Check if email is a staff email
                 setErrorMessage(errorMessageContent['staff-email'])
-            } else if (regPassword != regConfirmPassword) {
+            } else if (regPassword != regConfirmPassword) { // Check if passwords match
                 setErrorMessage(errorMessageContent['mismatched-passwords'])
-            } else if (checkUsername.empty === false) {
+            } else if (checkUsername.empty === false) { // Check if username is already in use
                 setErrorMessage(errorMessageContent['invalid-username'])
-            } else if (regPassword.length < 6 || regConfirmPassword.length < 6) {
+            } else if (regPassword.length < 6 || regConfirmPassword.length < 6) { // Check if password is at least 6 characters long
                 setErrorMessage(errorMessageContent['auth/weak-password'])
             } else {
-                await createUser(regEmail.toLowerCase(), regPassword).then((userCredential) => {
-                    setDoc(doc(db, "accounts", userCredential.user.uid), {
+                await createUser(regEmail.toLowerCase(), regPassword).then((userCredential) => { // Create account
+                    setDoc(doc(db, "accounts", userCredential.user.uid), { // Set account details
                         username: regUsername.toLowerCase(),
                         fullName: regFullName.trim().toLowerCase(),
                         email: regEmail.toLowerCase(),
@@ -110,7 +110,7 @@ export default function Navbar() {
                         region: regRegion,
                         sportInterests: regSports.slice().sort()
                     })
-                    setDoc(doc(db, "profiles", userCredential.user.uid), {
+                    setDoc(doc(db, "profiles", userCredential.user.uid), { // Set profile details
                         first: 0,
                         second: 0,
                         third: 0,
@@ -130,7 +130,7 @@ export default function Navbar() {
     const handleLogin = async (e) => { // User login
         e.preventDefault()
         try {
-            await login(loginEmail, loginPassword)
+            await login(loginEmail, loginPassword) // Login
             window.location.reload()
         } catch (err) {
             setErrorMessage(errorMessageContent[err.code])
@@ -140,7 +140,7 @@ export default function Navbar() {
     const handleLogout = async () => { // User logout
         try {
             await logout()
-            window.location.href = '/'
+            window.location.href = '/' // Redirect to home page after logout
         } catch (err) {
             console.error(err)
         }

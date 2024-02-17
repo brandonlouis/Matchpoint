@@ -55,20 +55,20 @@ export default function EditTournament() {
     const [sportList, setSportList] = useState([])
     
 
-    useEffect(() => {
-        const getSports = async () => {
+    useEffect(() => { // On page load
+        const getSports = async () => { // Get sports list
             try {
-                const q = query(collection(db, 'sports'), orderBy('name'))
+                const q = query(collection(db, 'sports'), orderBy('name')) // Retrieve sports data in alphabetical order
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to data
                 setSportList(resList)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getTournament = async () => {
+        const getTournament = async () => { // Get tournament details
             try {
-                const res = await getDoc(doc(db, 'tournaments', location.state.id))
+                const res = await getDoc(doc(db, 'tournaments', location.state.id)) // Retrieve tournament details from passed id
                 const resList = res.data()
 
                 setOriginalDetails(resList)
@@ -88,15 +88,15 @@ export default function EditTournament() {
                 setThirdPrize(resList.prizes.third)
 
                 try {
-                    const res = await getDoc(doc(db, 'matches', location.state.id))
+                    const res = await getDoc(doc(db, 'matches', location.state.id)) // Retrieve matches data from passed id
                     const resList = res.data()
                     let matchesPerRound = []
 
-                    setOriginalNoRounds(Object.keys(resList.round).length)
+                    setOriginalNoRounds(Object.keys(resList.round).length) // Set number of rounds
                     setNoRounds(Object.keys(resList.round).length)
 
                     for (let i = 0; i < Object.keys(resList.round).length; i++) {
-                        matchesPerRound.push(Object.keys(resList.round[parseInt(i+1)].match).length)
+                        matchesPerRound.push(Object.keys(resList.round[parseInt(i+1)].match).length) // Set matches per round
                     }
                     setOriginalMatchesPerRound(matchesPerRound)
                     setMatchesPerRound(matchesPerRound)
@@ -114,53 +114,55 @@ export default function EditTournament() {
         getCustomFormats()
     }, [])
 
-    useEffect(() => {
-        if (parseInt(maxParticipants) === 1 || parseInt(maxParticipants) === 0) {
+    useEffect(() => { // On format change
+        if (parseInt(maxParticipants) === 1 || parseInt(maxParticipants) === 0) { // If max participants is 1 or 0
             setNoRounds(0)
             setMatchesPerRound([])
             return
         }
 
-        if (format === 'single-elimination') {
-            if (parseInt(maxParticipants) === 2) {
+        if (format === 'single-elimination') { // If format is single elimination
+            if (parseInt(maxParticipants) === 2) { // If max participants is 2, set number of rounds to 1 and matches per round to [1]
                 setNoRounds(1)
                 setMatchesPerRound([1])
                 return
-            } else if (parseInt(maxParticipants) === 3) {
+            } else if (parseInt(maxParticipants) === 3) { // If max participants is 3, set number of rounds to 2 and matches per round to [2, 1]
                 setNoRounds(2)
                 setMatchesPerRound([2, 1])
                 return
             }
 
             if ((maxParticipants & (maxParticipants - 1)) === 0 && maxParticipants !== 0) {
-                const noRoundsGenerated = Math.ceil(Math.log2(maxParticipants))
+                const noRoundsGenerated = Math.ceil(Math.log2(maxParticipants)) // Calculate number of rounds
                 setNoRounds(noRoundsGenerated)
 
-                let matchesPerRoundGenerated = []
+                let matchesPerRoundGenerated = [] // Calculate matches per round
                 for (let i = 0; i < noRoundsGenerated; i++) {
-                    matchesPerRoundGenerated.push((maxParticipants / Math.pow(2, i)) / 2)
+                    matchesPerRoundGenerated.push((maxParticipants / Math.pow(2, i)) / 2) // Calculate matches per round based on number of rounds
                 }
                 setMatchesPerRound(matchesPerRoundGenerated)
 
             } else {
-                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants))
-                let firstRound = (maxParticipants - (nextPowerOfTwo - maxParticipants)) / 2
-                const remainingParticipants = maxParticipants - firstRound
+                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants)) // Calculate next power of 2
+                let firstRound = (maxParticipants - (nextPowerOfTwo - maxParticipants)) / 2 // Calculate first round
+                const remainingParticipants = maxParticipants - firstRound // Calculate remaining participants
                 
-                const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants))
-                setNoRounds(noRoundsGenerated+1)
+                const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants)) // Calculate number of rounds
+                setNoRounds(noRoundsGenerated+1) // Set number of rounds +1 because of the first round
 
                 let matchesPerRoundGenerated = []
-                matchesPerRoundGenerated[0] = firstRound
+                matchesPerRoundGenerated[0] = firstRound // Set matches per round for the first round already calculated previously
 
                 for (let i = 1; i < noRoundsGenerated+1; i++) {
-                    matchesPerRoundGenerated.push((remainingParticipants / Math.pow(2, i-1)) / 2)
+                    matchesPerRoundGenerated.push((remainingParticipants / Math.pow(2, i-1)) / 2) // Calculate matches per round for the remaining rounds based on remaining participants
                 }
                 setMatchesPerRound(matchesPerRoundGenerated)
             }
 
-        } else if (format === 'double-elimination') {
+        } else if (format === 'double-elimination') { // For double elimination format
             let winnerBracket = []
+
+            // For winner bracket
             if ((maxParticipants & (maxParticipants - 1)) === 0 && maxParticipants !== 0) {
                 const noRoundsGenerated = Math.ceil(Math.log2(maxParticipants))
 
@@ -171,7 +173,7 @@ export default function EditTournament() {
                 winnerBracket = matchesPerRoundGenerated
 
             } else {
-                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants))
+                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants)) // Calculate next power of 2
                 let firstRound = (maxParticipants - (nextPowerOfTwo - maxParticipants)) / 2
                 const remainingParticipants = maxParticipants - firstRound
                 const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants))
@@ -227,7 +229,7 @@ export default function EditTournament() {
             combinedBracket.push(matchesThisRnd) 
 
             let z = 2
-            //Min Rnds
+            //Min rounds
             for (let q = 0; q < z; q++) {
                 combinedBracket.push(1) 
                 winnerBracket.push(1) 
@@ -239,29 +241,29 @@ export default function EditTournament() {
             setNoRounds(combinedBracket.length)
             setMatchesPerRound(combinedBracket)
 
-        } else if (format === 'round-robin') {
-            const noOfRoundsGeneratedEven = maxParticipants - 1
-            const noOfRoundsGeneratedOdd = maxParticipants
+        } else if (format === 'round-robin') { // For round robin format
+            const noOfRoundsGeneratedEven = maxParticipants - 1 // Even number of rounds
+            const noOfRoundsGeneratedOdd = maxParticipants // Odd number of rounds
 
             let matchesPerRoundGenerated = []
 
-            if (maxParticipants % 2 === 0) {
+            if (maxParticipants % 2 === 0) { // If max participants is even
                 const Evenmatches = Math.ceil(maxParticipants / 2)
                 for (let i = 0; i < noOfRoundsGeneratedEven; i++) {
                 matchesPerRoundGenerated.push(Evenmatches)
                 }
-            } else if (maxParticipants % 2 === 1) {
+            } else if (maxParticipants % 2 === 1) { // If max participants is odd
                 const Oddmatches = Math.floor(maxParticipants / 2)
                 for (let i = 0; i < noOfRoundsGeneratedOdd; i++) {
                 matchesPerRoundGenerated.push(Oddmatches)
                 }
             }
 
-            setNoRounds(maxParticipants % 2 === 0 ? noOfRoundsGeneratedEven : noOfRoundsGeneratedOdd)
+            setNoRounds(maxParticipants % 2 === 0 ? noOfRoundsGeneratedEven : noOfRoundsGeneratedOdd) // Set number of rounds based on max participants being even or odd
             setMatchesPerRound(matchesPerRoundGenerated)
             
-        } else if (format === 'custom') {
-            if (customFormatDetails.length === 0) {
+        } else if (format === 'custom') { // For custom format
+            if (customFormatDetails.length === 0) { // If custom format details is empty, set number of rounds to empty and matches per round to an empty array
                 setNoRounds('')
                 setMatchesPerRound([])
             } else {
@@ -271,13 +273,12 @@ export default function EditTournament() {
         }
     }, [format, maxParticipants])
 
-    const getCustomFormats = async () => {
+    const getCustomFormats = async () => { // Get custom formats
         try {
-            const res = await getDoc(doc(db, 'customFormats', user.uid))
-            
-            if (!res.data()) {
+            const res = await getDoc(doc(db, 'customFormats', user.uid)) // Retrieve custom formats from the database by current user id
+            if (!res.data()) { // If no custom formats are found under the user id
                 try {
-                    await setDoc(doc(db, 'customFormats', user.uid), {
+                    await setDoc(doc(db, 'customFormats', user.uid), { // Add a fresh set of empty custom format record under the same user id. Every user should have a set of custom format record under their user id even if empty array
                         formats: []
                     })
                 } catch (err) {
@@ -293,27 +294,29 @@ export default function EditTournament() {
         }
     }
 
-    const saveCustomFormat = async (e) => {
-        e.preventDefault()
-        if (noRounds === '' || parseInt(noRounds) === 0) {
+    const saveCustomFormat = async (e) => { // Handle saving custom format
+        e.preventDefault() // Prevent page from refreshing
+        if (noRounds === '' || parseInt(noRounds) === 0) { // If number of rounds is empty or 0
             setErrorMessage('Number of rounds cannot be empty or 0')
+        } else if (parseInt(maxParticipants) === 1) { // If max participants is 1
+            setErrorMessage('Number of participants have to be more than 1')
         } else {
             try {
-                const res = await getDoc(doc(db, 'customFormats', user.uid))
+                const res = await getDoc(doc(db, 'customFormats', user.uid)) // Retrieve custom formats from the database by current user id
                 const resList = res.data().formats
-                const formatExists = resList.some((format) => format?.name === newCustomFormatName)
+                const formatExists = resList.some((format) => format?.name === newCustomFormatName) // Check if format name already exists
 
-                if (formatExists) {
+                if (formatExists) { // If format name already exists
                     setErrorMessage('Format name already exists')
                 } else {
-                    const newFormat = {
+                    const newFormat = { // Create a new custom format object
                         name: newCustomFormatName,
                         rounds: noRounds,
                         matchesPerRound: matchesPerRound,
                     }
                     resList.push(newFormat)
     
-                    await updateDoc(doc(db, 'customFormats', user.uid), {
+                    await updateDoc(doc(db, 'customFormats', user.uid), { // Update custom formats in the database by current user id
                         formats: resList
                     })
     
@@ -326,22 +329,22 @@ export default function EditTournament() {
         }
     }
 
-    const searchFormat = async (e) => {
-        e.preventDefault()
+    const searchFormat = async (e) => { // Handle searching custom format
+        e.preventDefault() // Prevent page from refreshing
         try {
-            const res = await getDoc(doc(db, 'customFormats', user.uid))
-            const resList = res.data().formats.filter((format) => format.name.toLowerCase().includes(searchCriteria.toLowerCase()))
+            const res = await getDoc(doc(db, 'customFormats', user.uid)) // Retrieve custom formats from the database by current user id
+            const resList = res.data().formats.filter((format) => format.name.toLowerCase().includes(searchCriteria.toLowerCase())) // Filter custom formats based on search criteria
             setCustomFormatList(resList)
         } catch (err) {
             console.error(err)
         }
     }
 
-    const viewCustomFormat = async (formatName) => {
+    const viewCustomFormat = async (formatName) => { // Handle viewing custom format
         try {
-            const res = await getDoc(doc(db, 'customFormats', user.uid))
+            const res = await getDoc(doc(db, 'customFormats', user.uid)) // Retrieve custom formats from the database by current user id
             const resList = res.data().formats
-            const formatDetails = resList.find((formatDetails) => formatDetails.name === formatName)
+            const formatDetails = resList.find((formatDetails) => formatDetails.name === formatName) // Find custom format details based on format name selected
             setCustomFormatDetails(formatDetails)
             setOpenViewModal(true)
         } catch (err) {
@@ -349,12 +352,12 @@ export default function EditTournament() {
         }
     }
 
-    const saveChanges = async (e) => {
-        e.preventDefault()
+    const saveChanges = async (e) => { // Handle saving changes
+        e.preventDefault() // Prevent page from refreshing
 
-        const formatChanged = (originalNoRounds !== noRounds || originalMatchesPerRound !== matchesPerRound)
+        const formatChanged = (originalNoRounds !== noRounds || originalMatchesPerRound !== matchesPerRound) // Check if format is changed
 
-        let roundDict = {}
+        let roundDict = {} // Create a new round dictionary to clear existing data
         for (let i = 1; i <= noRounds; i++) {
             const matchesDict = {}
             const matchInfo = [{},{},{victor: ''}]
@@ -369,19 +372,19 @@ export default function EditTournament() {
         }
 
         try {
-            // Set start date to 00:00:00
+            // Set start date to 00:00:00 as default is 08:00:00
             const formattedStartDate = new Date(startDate)
             formattedStartDate.setHours(0)
             formattedStartDate.setMinutes(0)
             formattedStartDate.setSeconds(0)
 
-            // Set end date to 23:59:59
+            // Set end date to 23:59:59 as default is 08:00:00
             const formattedEndDate = new Date(endDate)
             formattedEndDate.setHours(23)
             formattedEndDate.setMinutes(59)
             formattedEndDate.setSeconds(59)
 
-            await updateDoc(doc(db, 'tournaments', location.state.id), {
+            await updateDoc(doc(db, 'tournaments', location.state.id), { // Update tournament details in the database by passed id
                 format: format,
                 sport: sport,
                 title: title,
@@ -409,7 +412,7 @@ export default function EditTournament() {
                 const statisticsData = resList.statistics
 
                 let resetZero = {}
-                for (const key in statisticsData) {
+                for (const key in statisticsData) { // Create a new statistics dictionary to clear existing data
                     resetZero[key] = {
                         wins: 0,
                         losses: 0,
@@ -424,9 +427,9 @@ export default function EditTournament() {
             }
 
             if (bannerImg) { // If new banner image is uploaded
-                await uploadBytes(ref(getStorage(), `tournaments/${location.state.id}-banner`), bannerImg).then((snapshot) => {
-                    getDownloadURL(snapshot.ref).then(function(downloadURL) {
-                        updateDoc(doc(db, 'tournaments', location.state.id), {
+                await uploadBytes(ref(getStorage(), `tournaments/${location.state.id}-banner`), bannerImg).then((snapshot) => { // Upload new banner image to storage
+                    getDownloadURL(snapshot.ref).then(function(downloadURL) { // Get download URL of the new banner image
+                        updateDoc(doc(db, 'tournaments', location.state.id), { // Update tournament image using the download URL
                             imgURL: downloadURL
                         })
                         alert('Tournament updated successfully')

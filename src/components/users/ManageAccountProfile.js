@@ -44,7 +44,7 @@ export default function ManageAccountProfile() {
     const genders = ["male", "female"]
     const regions = ["North", "Central", "East", "West", "North-East"]
 
-    const errorMessageContent = {
+    const errorMessageContent = { // Mapping of custom error messages from firebase's format
         'invalid-username': "Username already in use",
         'invalid-email': 'Email already in use',
         'staff-email': 'Invalid Email address',
@@ -54,18 +54,18 @@ export default function ManageAccountProfile() {
     const [errorMessage, setErrorMessage] = useState('')
 
     
-    useEffect(() => {
+    useEffect(() => { // Retrieve account, profile, team, match, and tournament details from the database on page load
         const getTournament = async () => {            
-            const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', user.uid))
+            const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', user.uid)) // Retrieve tournaments from the database where the current user is a participant
             const data = await getDocs(q)
             const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
             setTournamentList(processDate([...resList]))                
         }
-        const processDate = (list) => {
+        const processDate = (list) => { // Process date to be displayed in a more readable format
             const updatedTournamentList = list.map((tournament) => {
                 const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
                 const endDate = tournament.date.end.toDate().toDateString().split(' ').slice(1) 
-                return {
+                return { // Append string date details to each tournament
                     ...tournament,
                     stringDate: {                        
                         start: startDate,
@@ -75,19 +75,19 @@ export default function ManageAccountProfile() {
             })
             return updatedTournamentList
         }        
-        const getMatch = async () => {
+        const getMatch = async () => { // Retrieve match details from the database
             try {
-                const q = query(collection(db, 'matches'), where('participants', 'array-contains', user.uid))
+                const q = query(collection(db, 'matches'), where('participants', 'array-contains', user.uid)) // Retrieve matches from the database where the current user is a participant
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append match id to each match
                 setmatchInfo(resList)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getSports = async () => {
+        const getSports = async () => { // Retrieve sports details from the database
             try {
-                const q = query(collection(db, 'sports'), orderBy('name'))
+                const q = query(collection(db, 'sports'), orderBy('name')) // Retrieve sports from the database in alphabetical order
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data()}))
                 setSportsList(resList)
@@ -95,14 +95,14 @@ export default function ManageAccountProfile() {
                 console.error(err)
             }
         }
-        const getAccount = async () => {
+        const getAccount = async () => { // Retrieve account details from the database
             try {
-                const res = await getDoc(doc(db, 'accounts', user.uid))
+                const res = await getDoc(doc(db, 'accounts', user.uid)) // Retrieve account details from the database by current user id
                 const resList = res.data()
                 setOriginalDetails(resList)
 
                 setUsername(resList.username)
-                setFullName(resList.fullName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '))
+                setFullName(resList.fullName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')) // Capitalize each word in the full name
                 setEmail(resList.email)
                 setGender(resList.gender)
                 setRegion(resList.region)
@@ -111,20 +111,20 @@ export default function ManageAccountProfile() {
                 console.error(err)
             }
         }
-        const getProfile = async () => {
+        const getProfile = async () => { // Retrieve profile details from the database
             try {
-                const res = await getDoc(doc(db, 'profiles', user.uid))
+                const res = await getDoc(doc(db, 'profiles', user.uid)) // Retrieve profile details from the database by current user id
                 const resList = res.data()
                 setProfileInfo(resList)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getTeam = async () => {
+        const getTeam = async () => { // Retrieve team details from the database
             try {
-                const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
+                const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid)) // Retrieve teams from the database where the current user is a member
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append team id to team record
                 setTeamInfo(resList)
             } catch (err) {
                 console.error(err)
@@ -138,45 +138,45 @@ export default function ManageAccountProfile() {
         getTournament()
     }, [])
 
-    useEffect(() => {
+    useEffect(() => { // Update profile statistics based on tournament results
         const datePointsDict = {}
         const placementDict = {first: 0, second: 0, third: 0, tournamentsParticipated: 0}
 
         tournamentList.forEach((tournament) => {
             matchInfo.forEach((match) => {
-                if (match.id === tournament.id) {
-                    if (tournament.date?.end.toDate() < Date.now()) {
-                        const sortedUsers = Object.entries(match.statistics).sort((a, b) => b[1].points - a[1].points)
-                        const userIndex = sortedUsers.findIndex(([id, _]) => id === user.uid)
+                if (match.id === tournament.id) { // If the user participated in the tournament
+                    if (tournament.date?.end.toDate() < Date.now()) { // And the tournament has ended
+                        const sortedUsers = Object.entries(match.statistics).sort((a, b) => b[1].points - a[1].points) // Sort users by points
+                        const userIndex = sortedUsers.findIndex(([id, _]) => id === user.uid) // Find the user's index in the sorted list
                         
-                        placementDict.tournamentsParticipated += 1
+                        placementDict.tournamentsParticipated += 1 // Increment the number of tournaments participated in
 
-                        const dateKey = tournament.stringDate?.end.join(' ')
-                        if (userIndex === 0) {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 4
-                            placementDict.first += 1
+                        const dateKey = tournament.stringDate?.end.join(' ') // Create a key for the date of the tournament
+                        if (userIndex === 0) { // If the user placed first
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 4 // Increment the user's points by 4 for the date
+                            placementDict.first += 1 // Increment the number of first place finishes
                         } else if (userIndex === 1) {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 3
-                            placementDict.second += 1
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 3 // Increment the user's points by 3 for the date
+                            placementDict.second += 1 // Increment the number of second place finishes
                         } else if (userIndex === 2) {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 2
-                            placementDict.third += 1
-                        } else {
-                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 1
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 2 // Increment the user's points by 2 for the date
+                            placementDict.third += 1 // Increment the number of third place finishes
+                        } else { // If the user is not in the top 3
+                            datePointsDict[dateKey] = (datePointsDict[dateKey] || 0) + 1 // Increment the user's points by 1 for the date
                         }
                     }
                 }
             })
             setTournamentDatePoints(datePointsDict)
         })
-        if (Object.keys(datePointsDict).length > 0) {
+        if (Object.keys(datePointsDict).length > 0) { // Only if the user has participated in any tournaments
             updateStatistics(placementDict)
         }
     }, [tournamentList, matchInfo])
 
-    const updateStatistics = async (placementParam) => {
+    const updateStatistics = async (placementParam) => { // Update the user's profile statistics in the database
         try {
-            await updateDoc(doc(db, 'profiles', user.uid), {
+            await updateDoc(doc(db, 'profiles', user.uid), { // Update the user's profile statistics in the database by current user id
                 first: placementParam.first,
                 second: placementParam.second,
                 third: placementParam.third,
@@ -187,17 +187,17 @@ export default function ManageAccountProfile() {
         }
     }
 
-    const concatSports = (e) => {
+    const concatSports = (e) => { // Concatenate sports selected by the user
         const {target: {value}} = e
         setSports(
             typeof value === 'string' ? value.split(',') : value,
         )
     }
 
-    const updateAccount = async (e) => {
-        e.preventDefault()
+    const updateAccount = async (e) => { // Update account details in the database
+        e.preventDefault() // Prevent page from refreshing
         try {
-            if (email.toLowerCase().includes('@matchpoint.com')) {
+            if (email.toLowerCase().includes('@matchpoint.com')) { // If the email is a staff email
                 setErrorMessage(errorMessageContent['staff-email'])
             } else {
                 if (username.toLowerCase() !== originalDetails.username) { // If username is changed
@@ -217,11 +217,11 @@ export default function ManageAccountProfile() {
                 }
 
                 if (newPassword !== '' || confirmPassword !== '') { // If password is changed
-                    if (newPassword !== confirmPassword) {
+                    if (newPassword !== confirmPassword) { // If passwords do not match
                         setErrorMessage(errorMessageContent['mismatched-passwords'])
                         return
                     } else {
-                        if (newPassword.length < 6) {
+                        if (newPassword.length < 6) { // If password is too short
                             setErrorMessage(errorMessageContent['weak-password'])
                             return
                         }
@@ -229,9 +229,9 @@ export default function ManageAccountProfile() {
                 }
 
                 try {
-                    await changeEmail(email.toLowerCase())
-                    await changePassword(newPassword)
-                    await updateDoc(doc(db, 'accounts', user.uid), {
+                    await changeEmail(email.toLowerCase()) // Change email in the database
+                    await changePassword(newPassword) // Change password in the database
+                    await updateDoc(doc(db, 'accounts', user.uid), { // Update account details in the database by current user id
                         username: username.toLowerCase(),
                         fullName: fullName.trim().toLowerCase(),
                         email: email.toLowerCase(),
@@ -250,7 +250,7 @@ export default function ManageAccountProfile() {
         }
     }
 
-    const revertChanges = () => {
+    const revertChanges = () => { // Revert changes made to account details when edit mode is toggled off
         setUsername(originalDetails.username)
         setFullName(originalDetails.fullName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '))
         setEmail(originalDetails.email)
@@ -259,26 +259,28 @@ export default function ManageAccountProfile() {
         setSports(originalDetails.sportInterests)
     }
 
-    const toggleEditMode = (val) => {
+    const toggleEditMode = (val) => { // Toggle edit mode
         setErrorMessage('')
         setNewPassword('')
         setConfirmPassword('')
         setEditMode(val)
     }
-    const toggleAccountProfileMode = (val) => {
+    const toggleAccountProfileMode = (val) => { // Toggle account/profile mode
         toggleEditMode(false)
         setAccountProfileMode(val)
     }
 
-    const verifyEmail = async () => {
+    const verifyEmail = async () => { // Send verification email to the user
         await emailVerification(user)
         alert(`Verification email has been sent to ${moreUserInfo.email}`)
     }
 
+    // Sort tournament dates and scores for the performance chart
     const datePointsArray = Object.entries(tournamentDatePoints).sort((a, b) => new Date(a[0]) - new Date(b[0]))
     const sortedDates = (datePointsArray.map(([date]) => date))
     const sortedScores = (datePointsArray.map(([, score]) => score))
 
+    // Data for the performance chart
     const graphData = ({
         labels: sortedDates,
         datasets: [{
@@ -290,21 +292,22 @@ export default function ManageAccountProfile() {
             borderWidth: 2,
         }]
     })
+    // Configuration for the performance chart
     const graphConfig = ({
         type: 'line',
         graphData,
         options: {
             scales: {
-                x: {
+                x: { // X-axis configuration
                     title: {
                         display: true,
                         text: 'Date',
                     },
                 },
-                y: {
+                y: { // Y-axis configuration
                     beginAtZero: true,
                     stepSize: 1,
-                    max: sortedScores.length > 0 ? Math.max(...sortedScores)+1 : 1,
+                    max: sortedScores.length > 0 ? Math.max(...sortedScores)+1 : 1, // Set the maximum value of the Y-axis to the highest score + 1 for clearer visualization
                     title: {
                         display: true,
                         text: 'Total points',

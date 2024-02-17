@@ -22,49 +22,49 @@ export default function MyTournaments() {
     
 
     useEffect(() => { // Handle retrieving tournament list on initial load
-        const getHosted = async () => {
+        const getHosted = async () => { // Get tournaments hosted by user
             try {
-                const q = query(collection(db, 'tournaments'), where('host', '==', user.uid))
+                const q = query(collection(db, 'tournaments'), where('host', '==', user.uid)) // Query tournaments where host is current user
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each tournament object
                 setTournamentList(processDate(sortTournaments(resList)))
             } catch (err) {
                 console.error(err)
             }
         }
-        const getCollaborating = async () => {
+        const getCollaborating = async () => { // Get tournaments where user is a collaborator
             try {
-                const q = query(collection(db, 'tournaments'), where('collaborators', 'array-contains', user.uid))
+                const q = query(collection(db, 'tournaments'), where('collaborators', 'array-contains', user.uid)) // Query tournaments where current user is a collaborator
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each tournament object
                 setTournamentList(processDate(sortTournaments(resList)))
             } catch (err) {
                 console.error(err)
             }
         }
-        const getParticipating = async () => {
+        const getParticipating = async () => { // Get tournaments where user is a participant
             try {
                 let teamResList = []
                 try {
-                    const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid))
+                    const q = query(collection(db, 'teams'), where('members', 'array-contains', user.uid)) // Query teams where current user is a member
                     const data = await getDocs(q)
-                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each team object
                     setTeamID(resList[0]?.id)
 
                     if (resList.length !== 0) {
-                        const teamQ = query(collection(db, 'tournaments'), where('participants', 'array-contains', resList[0].id))
+                        const teamQ = query(collection(db, 'tournaments'), where('participants', 'array-contains', resList[0].id)) // Query tournaments where current user's team is a participant
                         const teamData = await getDocs(teamQ)
-                        teamResList = teamData.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                        teamResList = teamData.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each tournament object
                     }
                 } catch (err) {
                     console.error(err)
                 }
 
-                const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', user.uid))
+                const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', user.uid)) // Query tournaments where current user is a participant
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each tournament object
 
-                setTournamentList(processDate(sortTournaments([...resList, ...teamResList])))
+                setTournamentList(processDate(sortTournaments([...resList, ...teamResList]))) // Combine and sort both lists
             } catch (err) {
                 console.error(err)
             }
@@ -79,7 +79,7 @@ export default function MyTournaments() {
         }
     }, [tournamentTab])
 
-    const sortTournaments = (list) => {
+    const sortTournaments = (list) => { // Sort tournaments by live status and end date
         return list.sort((a, b) => {
             const now = new Date()
             const aEndDate = new Date(a.date.end.toDate())
@@ -110,12 +110,12 @@ export default function MyTournaments() {
         })
     }
 
-    const processDate = (list) => {
+    const processDate = (list) => { // Process date to be displayed in a more readable format
         const updatedTournamentList = list.map((tournament) => {
             const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
             const endDate = tournament.date.end.toDate().toDateString().split(' ').slice(1)
 
-            return {
+            return { // Append string date to each tournament object
                 ...tournament,
                 stringDate: {
                   start: startDate,
@@ -126,35 +126,35 @@ export default function MyTournaments() {
         return updatedTournamentList
     }
 
-    const searchTournament = async (e) => {
-        e.preventDefault()
+    const searchTournament = async (e) => { // Handle searching for tournaments
+        e.preventDefault() // Prevent page refresh
         try {
-            if (tournamentTab === 'participating') {
-                const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', user.uid))
+            if (tournamentTab === 'participating') { // If user is a participant
+                const q = query(collection(db, 'tournaments'), where('participants', 'array-contains', user.uid)) // Query tournaments where current user is a participant
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each tournament object
 
-                if (teamID !== undefined) {
-                    const teamQ = query(collection(db, 'tournaments'), where('participants', 'array-contains', teamID))
+                if (teamID !== undefined) { // If user is a member of a team
+                    const teamQ = query(collection(db, 'tournaments'), where('participants', 'array-contains', teamID)) // Query tournaments where current user's team is a participant
                     const teamData = await getDocs(teamQ)
-                    const teamResList = teamData.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                    const teamResList = teamData.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each tournament object
     
-                    const filteredCombinedList = [...resList, ...teamResList].filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport === searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
+                    const filteredCombinedList = [...resList, ...teamResList].filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()))) // Filter out tournaments that are cancelled
                     setTournamentList(processDate(sortTournaments(filteredCombinedList)))
                 } else {
-                    const filteredList = resList.filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport === searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
+                    const filteredList = resList.filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()))) // Filter out tournaments that are cancelled
                     setTournamentList(processDate(sortTournaments(filteredList)))
                 }
             } else {
                 let q
                 if (tournamentTab === 'hosted') {
-                    q = query(collection(db, 'tournaments'), where('host', '==', user.uid))
+                    q = query(collection(db, 'tournaments'), where('host', '==', user.uid)) // Query tournaments where host is current user
                 } else if (tournamentTab === 'collaborating') {
-                    q = query(collection(db, 'tournaments'), where('collaborators', 'array-contains', user.uid))
+                    q = query(collection(db, 'tournaments'), where('collaborators', 'array-contains', user.uid)) // Query tournaments where current user is a collaborator
                 }
     
-                const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()) || tournament.sport === searchCriteria.toLowerCase())) // Filter out tournaments that are cancelled
+                const data = await getDocs(q) // Get data from query
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()))) // Filter out tournaments that are cancelled
                 
                 setTournamentList(processDate(sortTournaments(resList)))
             }

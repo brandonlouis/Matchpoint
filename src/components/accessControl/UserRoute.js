@@ -5,7 +5,7 @@ import { UserAuth } from '../../config/authContext';
 const UserRoute = ({ children }) => {
     const { user } = UserAuth()
 
-    if (!user) {
+    if (!user) { // Check if user is not logged in
         return <Navigate to='/' />
     }
     return children

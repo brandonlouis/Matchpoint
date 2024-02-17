@@ -12,6 +12,8 @@ export default function PlayersTeams() {
 
     const { user, moreUserInfo } = UserAuth()
 
+    const [isLoading, setIsLoading] = useState(true)
+
     const [resultList, setResultList] = useState([])
     const [personalizedPlayersTeamsList, setPersonalizedPlayersTeamsList] = useState([])
 
@@ -23,27 +25,28 @@ export default function PlayersTeams() {
     useEffect(() => { // Handle retrieving tournament list on initial load
         const getTeams = async () => {
             try {
-                const q = query(collection(db, 'teams'), orderBy('handle'))
+                const q = query(collection(db, 'teams'), orderBy('handle')) // Retrieve all team records in alphabetical order
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => item.privacy === 'public') // Filter out private teams
                 setResultList(resList)
+                setIsLoading(false)
             } catch (err) {
                 console.error(err)
             }
         }
         getTeams()
 
-        user && !user.email.includes('@matchpoint.com') && setPersonalizedFilter(true)
+        user && !user.email.includes('@matchpoint.com') && setPersonalizedFilter(true) // If user is logged in and not an admin, set personalized filter to true
     }, [])
 
     useEffect(() => { // Handle filtering players & teams based on filter criteria
-        const getTeams = async () => {
+        const getTeams = async () => { // Retrieve all team records
             if (personalizedFilter) {
                 try {
-                    const q = query(collection(db, 'teams'), orderBy('handle'))
+                    const q = query(collection(db, 'teams'), orderBy('handle')) // Retrieve all team records in alphabetical order
                     const data = await getDocs(q)
     
-                    const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.privacy === 'public' && (moreUserInfo?.gender === item.genderReq || item.genderReq === 'mixed') && moreUserInfo?.sportInterests.some((interest) => item.sports.includes(interest)) && moreUserInfo?.region === item.region)
+                    const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.privacy === 'public' && (moreUserInfo?.gender === item.genderReq || item.genderReq === 'mixed') && moreUserInfo?.sportInterests.some((interest) => item.sports.includes(interest)) && moreUserInfo?.region === item.region) // Filter out private teams and teams that don't match user's profile
 
                     setResultList(resList)
                     setPersonalizedPlayersTeamsList(resList)
@@ -52,7 +55,7 @@ export default function PlayersTeams() {
                 }
             } else { // If personalized filter is off, retrieve all players & teams
                 try {
-                    const q = query(collection(db, 'teams'), orderBy('handle'))
+                    const q = query(collection(db, 'teams'), orderBy('handle')) // Retrieve all team records in alphabetical order
                     const data = await getDocs(q)
                     const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => item.privacy === 'public') // Filter out private teams
                     setResultList(resList)
@@ -65,12 +68,12 @@ export default function PlayersTeams() {
     }, [personalizedFilter, moreUserInfo])
 
     const searchPlayerTeam = async (e) => { // Handle search functionality
-        e.preventDefault()
+        e.preventDefault() // Prevent page from refreshing
 
-        if (personalizedFilter) {
+        if (personalizedFilter) { // If personalized filter is on, filter players & teams based on personalized criteria
             try {
                 searchCriteria === '' ? setResultList(personalizedPlayersTeamsList) : setResultList(personalizedPlayersTeamsList.filter((item) => {
-                    return (
+                    return ( // Filter out players & teams that don't match search criteria
                         item?.username?.includes(searchCriteria.toLowerCase()) || item?.fullName?.toLowerCase().includes(searchCriteria.toLowerCase()) || item?.handle?.includes(searchCriteria.toLowerCase()) || item?.name?.toLowerCase().includes(searchCriteria.toLowerCase())
                     )
                 }))
@@ -85,16 +88,16 @@ export default function PlayersTeams() {
                     const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => item.privacy === 'public') // Filter out private teams
                     setResultList(resList)
                 } else {
-                    const accQ = query(collection(db, 'accounts'), orderBy('username'))
+                    const accQ = query(collection(db, 'accounts'), orderBy('username')) // Retrieve all account records in alphabetical order
                     const accData = await getDocs(accQ)
-                    const teamQ = query(collection(db, 'teams'), orderBy('handle'))
+                    const teamQ = query(collection(db, 'teams'), orderBy('handle')) // Retrieve all team records in alphabetical order
                     const teamData = await getDocs(teamQ)
     
-                    const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.type !== 'admin')
+                    const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.type !== 'admin') // Filter out admin accounts
                     const teamList = teamData.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.privacy === 'public') // Filter out private teams
     
                     const filteredList = [...accList, ...teamList].filter((item) => {
-                        return (
+                        return ( // Filter out players & teams that don't match search criteria
                             item?.username?.includes(searchCriteria.toLowerCase()) || item?.fullName?.toLowerCase().includes(searchCriteria.toLowerCase()) || item?.handle?.includes(searchCriteria.toLowerCase()) || item?.name?.toLowerCase().includes(searchCriteria.toLowerCase())
                         )
                     })
@@ -169,7 +172,7 @@ export default function PlayersTeams() {
                     }
                     
                 </Box>
-                {resultList.length === 0 ?
+                {resultList.length === 0 && !isLoading ?
                     <Stack height='150px' marginTop='50px' alignItems='center' justifyContent='center'>
                         <Typography variant='h5'>No results found</Typography>
                     </Stack>

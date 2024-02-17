@@ -49,68 +49,70 @@ export default function CreateTournament() {
     const [sportList, setSportList] = useState([])
     
 
-    useEffect(() => {
+    useEffect(() => { // Handle sports and custom formats on page load
         const getSports = async () => {
             try {
-                const q = query(collection(db, 'sports'), orderBy('name'))
+                const q = query(collection(db, 'sports'), orderBy('name')) // Retrieve all sports from the database and order them by name
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append the id of each sport to the data
                 setSportList(resList)
             } catch (err) {
                 console.error(err)
             }
         }
         getSports()
-        getCustomFormats()
+        getCustomFormats() // Retrieve all custom formats from the database
     }, [])
 
-    useEffect(() => {
-        if (parseInt(maxParticipants) === 1 || parseInt(maxParticipants) === 0) {
+    useEffect(() => { // Generate number of rounds and matches per round based on format and max participants on change
+        if (parseInt(maxParticipants) === 1 || parseInt(maxParticipants) === 0) { // If max participants is 1 or 0, set number of rounds to 0 and matches per round to an empty array
             setNoRounds(0)
             setMatchesPerRound([])
             return
         }
 
-        if (format === 'single-elimination') {
-            if (parseInt(maxParticipants) === 2) {
+        if (format === 'single-elimination') { // For single elimination format
+            if (parseInt(maxParticipants) === 2) { // If max participants is 2, set number of rounds to 1 and matches per round to [1]
                 setNoRounds(1)
                 setMatchesPerRound([1])
                 return
-            } else if (parseInt(maxParticipants) === 3) {
+            } else if (parseInt(maxParticipants) === 3) { // If max participants is 3, set number of rounds to 2 and matches per round to [2, 1]
                 setNoRounds(2)
                 setMatchesPerRound([2, 1])
                 return
             }
 
             if ((maxParticipants & (maxParticipants - 1)) === 0 && maxParticipants !== 0) {
-                const noRoundsGenerated = Math.ceil(Math.log2(maxParticipants))
+                const noRoundsGenerated = Math.ceil(Math.log2(maxParticipants)) // Calculate number of rounds
                 setNoRounds(noRoundsGenerated)
 
-                let matchesPerRoundGenerated = []
+                let matchesPerRoundGenerated = [] // Calculate matches per round
                 for (let i = 0; i < noRoundsGenerated; i++) {
-                    matchesPerRoundGenerated.push((maxParticipants / Math.pow(2, i)) / 2)
+                    matchesPerRoundGenerated.push((maxParticipants / Math.pow(2, i)) / 2) // Calculate matches per round based on number of rounds
                 }
                 setMatchesPerRound(matchesPerRoundGenerated)
 
-            } else {
-                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants))
-                let firstRound = (maxParticipants - (nextPowerOfTwo - maxParticipants)) / 2
-                const remainingParticipants = maxParticipants - firstRound
+            } else { // If max participants is not a power of 2
+                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants)) // Calculate next power of 2
+                let firstRound = (maxParticipants - (nextPowerOfTwo - maxParticipants)) / 2 // Calculate first round
+                const remainingParticipants = maxParticipants - firstRound // Calculate remaining participants
                 
-                const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants))
-                setNoRounds(noRoundsGenerated + 1)
+                const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants)) // Calculate number of rounds
+                setNoRounds(noRoundsGenerated + 1) // Set number of rounds +1 because of the first round
 
                 let matchesPerRoundGenerated = []
-                matchesPerRoundGenerated[0] = firstRound
+                matchesPerRoundGenerated[0] = firstRound // Set matches per round for the first round already calculated previously
 
                 for (let i = 1; i < noRoundsGenerated+1; i++) {
-                    matchesPerRoundGenerated.push((remainingParticipants / Math.pow(2, i-1)) / 2)
+                    matchesPerRoundGenerated.push((remainingParticipants / Math.pow(2, i-1)) / 2) // Calculate matches per round for the remaining rounds based on remaining participants
                 }
                 setMatchesPerRound(matchesPerRoundGenerated)
             }
 
-        } else if (format === 'double-elimination') {
+        } else if (format === 'double-elimination') { // For double elimination format
             let winnerBracket = []
+
+            // For winner bracket
             if ((maxParticipants & (maxParticipants - 1)) === 0 && maxParticipants !== 0) {
                 const noRoundsGenerated = Math.ceil(Math.log2(maxParticipants))
 
@@ -121,7 +123,7 @@ export default function CreateTournament() {
                 winnerBracket = matchesPerRoundGenerated
 
             } else {
-                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants))
+                const nextPowerOfTwo = maxParticipants <= 0 ? 1 : 2 ** Math.ceil(Math.log2(maxParticipants)) // Calculate next power of 2
                 let firstRound = (maxParticipants - (nextPowerOfTwo - maxParticipants)) / 2
                 const remainingParticipants = maxParticipants - firstRound
                 const noRoundsGenerated = Math.ceil(Math.log2(remainingParticipants))
@@ -136,8 +138,8 @@ export default function CreateTournament() {
             }
 
             let combinedBracket = [] 
-            let loserBracket = [] // Calculate Loser Rnds
-            let addParticipants= 0 
+            let loserBracket = [] // Calculate loser bracket
+            let addParticipants = 0 
             let prevWinner = 0 
             let participants = 0 
             combinedBracket.push(winnerBracket[0]) 
@@ -177,7 +179,7 @@ export default function CreateTournament() {
             combinedBracket.push(matchesThisRnd) 
 
             let z = 2
-            //Min Rnds
+            //Min rounds
             for (let q = 0; q < z; q++) {
                 combinedBracket.push(1) 
                 winnerBracket.push(1) 
@@ -189,30 +191,31 @@ export default function CreateTournament() {
             setNoRounds(combinedBracket.length)
             setMatchesPerRound(combinedBracket)
 
-        } else if (format === 'round-robin') {
-            const noOfRoundsGeneratedEven = maxParticipants - 1
-            const noOfRoundsGeneratedOdd = maxParticipants
+        } else if (format === 'round-robin') { // For round robin format
+            const noOfRoundsGeneratedEven = maxParticipants - 1 // Even number of rounds
+            const noOfRoundsGeneratedOdd = maxParticipants // Odd number of rounds
 
             let matchesPerRoundGenerated = []
 
-            if (maxParticipants % 2 === 0) {
-                const Evenmatches = Math.ceil(maxParticipants / 2)
+            if (maxParticipants % 2 === 0) { // If max participants is even
+                const EvenMatches = Math.ceil(maxParticipants / 2)
+
                 for (let i = 0; i < noOfRoundsGeneratedEven; i++) {
-                matchesPerRoundGenerated.push(Evenmatches)
+                    matchesPerRoundGenerated.push(EvenMatches)
                 }
-            } else if (maxParticipants % 2 === 1) {
-                const Oddmatches = Math.floor(maxParticipants / 2)
+            } else if (maxParticipants % 2 === 1) { // If max participants is odd
+                const OddMatches = Math.floor(maxParticipants / 2)
+
                 for (let i = 0; i < noOfRoundsGeneratedOdd; i++) {
-                matchesPerRoundGenerated.push(Oddmatches)
+                    matchesPerRoundGenerated.push(OddMatches)
                 }
             }
 
-            setNoRounds(maxParticipants % 2 === 0 ? noOfRoundsGeneratedEven : noOfRoundsGeneratedOdd)
+            setNoRounds(maxParticipants % 2 === 0 ? noOfRoundsGeneratedEven : noOfRoundsGeneratedOdd) // Set number of rounds based on max participants being even or odd
             setMatchesPerRound(matchesPerRoundGenerated)
-
            
-        } else if (format === 'custom') {
-            if (customFormatDetails.length === 0) {
+        } else if (format === 'custom') { // For custom format
+            if (customFormatDetails.length === 0) { // If custom format details is empty, set number of rounds to empty and matches per round to an empty array
                 setNoRounds('')
                 setMatchesPerRound([])
             } else {
@@ -223,12 +226,12 @@ export default function CreateTournament() {
         }
     }, [format, maxParticipants])
 
-    const getCustomFormats = async () => {
+    const getCustomFormats = async () => { // Handle retrieving custom formats
         try {
-            const res = await getDoc(doc(db, 'customFormats', user.uid))
-            if (!res.data()) {
+            const res = await getDoc(doc(db, 'customFormats', user.uid)) // Retrieve custom formats from the database by current user id
+            if (!res.data()) { // If no custom formats are found under the user id
                 try {
-                    await setDoc(doc(db, 'customFormats', user.uid), {
+                    await setDoc(doc(db, 'customFormats', user.uid), { // Add a fresh set of empty custom format record under the same user id. Every user should have a set of custom format record under their user id even if empty array
                         formats: []
                     })
                 } catch (err) {
@@ -244,29 +247,29 @@ export default function CreateTournament() {
         }
     }
 
-    const saveCustomFormat = async (e) => {
-        e.preventDefault()
-        if (noRounds === '' || parseInt(noRounds) === 0) {
+    const saveCustomFormat = async (e) => { // Handle saving custom format
+        e.preventDefault() // Prevent page from refreshing
+        if (noRounds === '' || parseInt(noRounds) === 0) { // If number of rounds is empty or 0
             setErrorMessage('Number of rounds cannot be empty or 0')
-        } else if (parseInt(maxParticipants) === 1) {
+        } else if (parseInt(maxParticipants) === 1) { // If max participants is 1
             setErrorMessage('Number of participants have to be more than 1')
         } else {
             try {
-                const res = await getDoc(doc(db, 'customFormats', user.uid))
+                const res = await getDoc(doc(db, 'customFormats', user.uid)) // Retrieve custom formats from the database by current user id
                 const resList = res.data().formats
-                const formatExists = resList.some((format) => format.name === newCustomFormatName)
+                const formatExists = resList.some((format) => format.name === newCustomFormatName) // Check if format name already exists
 
-                if (formatExists) {
+                if (formatExists) { // If format name already exists
                     setErrorMessage('Format name already exists')
                 } else {
-                    const newFormat = {
+                    const newFormat = { // Create a new custom format object
                         name: newCustomFormatName,
                         rounds: noRounds,
                         matchesPerRound: matchesPerRound,
                     }
                     resList.push(newFormat)
     
-                    await updateDoc(doc(db, 'customFormats', user.uid), {
+                    await updateDoc(doc(db, 'customFormats', user.uid), { // Update custom formats in the database by current user id
                         formats: resList
                     })
     
@@ -279,22 +282,22 @@ export default function CreateTournament() {
         }
     }
 
-    const searchFormat = async (e) => {
-        e.preventDefault()
+    const searchFormat = async (e) => { // Handle searching custom format
+        e.preventDefault() // Prevent page from refreshing
         try {
-            const res = await getDoc(doc(db, 'customFormats', user.uid))
-            const resList = res.data().formats.filter((format) => format.name.toLowerCase().includes(searchCriteria.toLowerCase()))
+            const res = await getDoc(doc(db, 'customFormats', user.uid)) // Retrieve custom formats from the database by current user id
+            const resList = res.data().formats.filter((format) => format.name.toLowerCase().includes(searchCriteria.toLowerCase())) // Filter custom formats based on search criteria
             setCustomFormatList(resList)
         } catch (err) {
             console.error(err)
         }
     }
 
-    const viewCustomFormat = async (formatName) => {
+    const viewCustomFormat = async (formatName) => { // Handle viewing custom format
         try {
-            const res = await getDoc(doc(db, 'customFormats', user.uid))
+            const res = await getDoc(doc(db, 'customFormats', user.uid)) // Retrieve custom formats from the database by current user id
             const resList = res.data().formats
-            const formatDetails = resList.find((formatDetails) => formatDetails.name === formatName)
+            const formatDetails = resList.find((formatDetails) => formatDetails.name === formatName) // Find custom format details based on format name selected
             setCustomFormatDetails(formatDetails)
             setOpenViewModal(true)
         } catch (err) {
@@ -302,11 +305,11 @@ export default function CreateTournament() {
         }
     }
 
-    const createTournament = async (e) => {
-        e.preventDefault()
+    const createTournament = async (e) => { // Handle creating tournament
+        e.preventDefault() // Prevent page from refreshing
         
         let roundDict = {}
-        for (let i = 1; i <= noRounds; i++) {
+        for (let i = 1; i <= noRounds; i++) { // Create a placeholder empty dictionary of rounds and matches
             const matchesDict = {}
             const matchInfo = [{},{},{victor: ''}]
 
@@ -320,19 +323,19 @@ export default function CreateTournament() {
         }
 
         try {
-            // Set start date to 00:00:00
+            // Set start date to 00:00:00, as default is 08:00:00
             const formattedStartDate = new Date(startDate)
             formattedStartDate.setHours(0)
             formattedStartDate.setMinutes(0)
             formattedStartDate.setSeconds(0)
 
-            // Set end date to 23:59:59
+            // Set end date to 23:59:59, as default is 08:00:00
             const formattedEndDate = new Date(endDate)
             formattedEndDate.setHours(23)
             formattedEndDate.setMinutes(59)
             formattedEndDate.setSeconds(59)
 
-            const docRef = await addDoc(collection(db, 'tournaments'), {
+            const docRef = await addDoc(collection(db, 'tournaments'), { // Add tournament to the database
                 format: format,
                 sport: sport,
                 title: title,
@@ -358,16 +361,16 @@ export default function CreateTournament() {
                 host: user.uid,
             })
 
-            await setDoc(doc(db, 'matches', docRef.id), {
+            await setDoc(doc(db, 'matches', docRef.id), { // Add matches to the database
                 participants: [],
                 round: roundDict,
                 statistics: {},
             })
 
-            const snapshot = await uploadBytes(ref(getStorage(), `tournaments/${docRef.id}-banner`), bannerImg)
-            const downloadURL = await getDownloadURL(snapshot.ref)
+            const snapshot = await uploadBytes(ref(getStorage(), `tournaments/${docRef.id}-banner`), bannerImg) // Upload banner image to storage
+            const downloadURL = await getDownloadURL(snapshot.ref) // Get download URL of banner image
           
-            await updateDoc(docRef, {
+            await updateDoc(docRef, { // Update tournament in the database with banner image URL
                 imgURL: downloadURL,
             })
           

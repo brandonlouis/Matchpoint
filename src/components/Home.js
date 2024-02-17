@@ -19,7 +19,7 @@ export default function Home() {
     useEffect(() => { // Handle retrieving tournament and news article list on load
         const getTournaments = async () => {
             try {
-                const q = query(collection(db, 'tournaments'))
+                const q = query(collection(db, 'tournaments')) // Retrieve all tournaments
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && tournament.date.end.toDate() > new Date()) // Filter out tournaments that have already ended or are cancelled
 
@@ -38,37 +38,38 @@ export default function Home() {
                 console.error(err)
             }
         }
-        const getNewsArticles = async () => {
+        const getNewsArticles = async () => { // Retrieve all news articles
             try {
                 const q = query(collection(db, 'newsArticles'), orderBy('date', 'desc')) // Order list by date in descending order
                 const data = await getDocs(q)
-                const articles = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const articles = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to each article
         
+                // To ensure sports diversity, articles will be grouped by sport and the most diverse set of 4 articles will be selected
                 // Group articles by sport
-                const groupedArticles = articles.reduce((acc, article) => {
+                const groupedArticles = articles.reduce((acc, article) => { // Group articles by sport
                     const sport = article.sport
-                    if (!acc[sport]) {
+                    if (!acc[sport]) { // If sport does not exist in accumulator, create a new array
                         acc[sport] = []
                     }
-                    acc[sport].push(article)
+                    acc[sport].push(article) // Append article to sport array
                     return acc
                 }, {})
         
                 // Get most diverse set of 4 articles
                 let diverseArticles = []
-                const remainingArticles = Object.values(groupedArticles).flat()
-                while (diverseArticles.length < 4 && remainingArticles.length > 0) {
+                const remainingArticles = Object.values(groupedArticles).flat() // Flatten grouped articles
+                while (diverseArticles.length < 4 && remainingArticles.length > 0) { // While there are less than 4 diverse articles and there are remaining articles
                     const nextArticle = remainingArticles.shift()
-                    if (!diverseArticles.some(article => article.sport === nextArticle.sport)) {
+                    if (!diverseArticles.some(article => article.sport === nextArticle.sport)) { // If the next article's sport is not in the diverse set, add it
                         diverseArticles.push(nextArticle)
                     }
                 }
 
                 // If there are less than 4 sports, fill the rest with the latest articles
                 if (diverseArticles.length < 4) {
-                    const diverseArticleIds = new Set(diverseArticles.map(article => article.id))
-                    const remainingArticles = articles.filter(article => !diverseArticleIds.has(article.id))
-                    diverseArticles = [...diverseArticles, ...remainingArticles.slice(0, 4 - diverseArticles.length)]
+                    const diverseArticleIds = new Set(diverseArticles.map(article => article.id)) // Create a set of diverse article ids
+                    const remainingArticles = articles.filter(article => !diverseArticleIds.has(article.id)) // Filter out articles that are already in the diverse set
+                    diverseArticles = [...diverseArticles, ...remainingArticles.slice(0, 4 - diverseArticles.length)] // Fill the rest with the latest articles
                 }
         
                 setNewsArticleList(processArticleDate(diverseArticles))
@@ -80,7 +81,7 @@ export default function Home() {
         getNewsArticles()
     }, [])
 
-    const sortTournaments = (list) => {
+    const sortTournaments = (list) => { // Sort tournaments by live status and date
         return list.sort((a, b) => {
             const now = new Date()
             const aEndDate = new Date(a.date.end.toDate())
@@ -107,7 +108,7 @@ export default function Home() {
         }).slice(0, 3) // Limit to 3 tournaments
     }
 
-    const processArticleDate = (list) => {
+    const processArticleDate = (list) => { // Process article date to be displayed in a more readable format
         const updatedNewsArticleList = list.map((newsArticle) => {
             const date = newsArticle.date.toDate().toDateString().split(' ').slice(1)
 
@@ -118,12 +119,12 @@ export default function Home() {
         })
         return updatedNewsArticleList
     }
-    const processTournamentDate = (list) => {
+    const processTournamentDate = (list) => { // Process tournament date to be displayed in a more readable format
         const updatedTournamentList = list.map((tournament) => {
             const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
             const endDate = tournament.date.end.toDate().toDateString().split(' ').slice(1)
 
-            return {
+            return { // Append formatted date to tournament object
                 ...tournament,
                 stringDate: {
                   start: startDate,

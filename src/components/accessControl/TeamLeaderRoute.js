@@ -9,7 +9,7 @@ const TeamLeaderRoute = ({ children }) => {
     const [isLeader, setIsLeader] = React.useState(true)
 
     useEffect(() => {
-        const getTeams = async () => {
+        const getTeams = async () => { // Retrieve all teams from the database where the user is a leader
             try {
                 const data = await getDocs(collection(db, 'teams'))
                 const leaderList = data.docs.map((doc) => doc.data().leader)
@@ -21,9 +21,9 @@ const TeamLeaderRoute = ({ children }) => {
         getTeams()
     }, [])
 
-    if (!user) {
+    if (!user) { // Check if user is not logged in
         return <Navigate to='/' />
-    } else if (!isLeader) {
+    } else if (!isLeader) { // Check if user is not a team leader
         return <Navigate to='/'/>
     }
     return children

@@ -39,39 +39,39 @@ export default function ViewMatch() {
     
 
     useEffect(() => { // Handle retrieving tournament list on initial load
-        const getTournament = async () => {
+        const getTournament = async () => { // Get tournament details
             try {
-                const res = await getDoc(doc(db, 'tournaments', matchID))
+                const res = await getDoc(doc(db, 'tournaments', matchID)) // Get tournament details by ID
                 const resList = { ...res.data(), id: res.id }
 
-                if (resList.host === undefined) {
+                if (resList.host === undefined) { // If tournament does not exist
                     setTournamentDetails({})
                     setIsLoading(false)
                     return
                 }
 
                 setTournamentDetails(resList)
-                if (user && (user.uid === resList.host || resList.collaborators?.includes(user.uid))) {
+                if (user && (user.uid === resList.host || resList.collaborators?.includes(user.uid))) { // If user is host or collaborator
                     setViewerType('host&collab')
                 }
             } catch (err) {
                 console.error(err)
             }
         }
-        const getMatch = async () => {
+        const getMatch = async () => { // Get match details
             try {
-                const res = await getDoc(doc(db, 'matches', matchID))
+                const res = await getDoc(doc(db, 'matches', matchID)) // Get match details by ID
                 const resList = res.data()
 
-                if (resList === undefined) {
+                if (resList === undefined) { // If match does not exist
                     setMatchList({})
                     setIsLoading(false)
                     return
                 }
 
-                getParticipants(resList)
+                getParticipants(resList) // Get participants details
                 
-                Object.entries(resList.round).forEach(([key, value]) => {
+                Object.entries(resList.round).forEach(([key, value]) => { // Revert display fields of scores and victor
                     const roundTime = value.time.toDate()
             
                     resList.round[key].time = roundTime
@@ -84,17 +84,17 @@ export default function ViewMatch() {
                 console.error(err)
             }
         }
-        const getParticipants = async (list) => {
+        const getParticipants = async (list) => { // Get participants details
             try {
-                const accQ = query(collection(db, 'accounts'), orderBy('username'))
+                const accQ = query(collection(db, 'accounts'), orderBy('username')) // Retrieve all accounts in alphabetical order
                 const accData = await getDocs(accQ)
-                const teamQ = query(collection(db, 'teams'), orderBy('handle'))
+                const teamQ = query(collection(db, 'teams'), orderBy('handle')) // Retrieve all teams in alphabetical order
                 const teamData = await getDocs(teamQ)
 
-                const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-                const teamList = teamData.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                const accList = accData.docs.map((doc) => ({ ...doc.data(), id: doc.id })) // Append ID to each account
+                const teamList = teamData.docs.map((doc) => ({ ...doc.data(), id: doc.id })) // Append ID to each team
 
-                const filteredList = [...accList, ...teamList].filter((item) => list.participants?.includes(item.id))
+                const filteredList = [...accList, ...teamList].filter((item) => list.participants?.includes(item.id)) // Filter out participants not in the match
                 setParticipantDetails(filteredList)
             } catch (err) {
                 console.error(err)
@@ -104,12 +104,12 @@ export default function ViewMatch() {
         getMatch()
     }, [])
 
-    const updateMatchUp = (e) => {
-        const [round, match, team] = e.target.name.split(':')
+    const updateMatchUp = (e) => { // Update match-up
+        const [round, match, team] = e.target.name.split(':') // Extract round, match, and team from the name attribute
         const [key, value] = Object.entries(matchList.round[round].match[match])[team]
 
         const newMatchList = { ...matchList }
-        if (e.target.value === '') {
+        if (e.target.value === '') { // If the participant is removed from the match
             newMatchList.round[round].match[match][key] = {}
             newMatchList.round[round].match[match][2].victor = ''
         } else {
@@ -117,53 +117,53 @@ export default function ViewMatch() {
         }
         setMatchList(newMatchList)
     }
-    const updateScore = (e) => {
-        const [round, match, team] = e.target.id.split(':')
+    const updateScore = (e) => { // Update score
+        const [round, match, team] = e.target.id.split(':') // Extract round, match, and team from the id attribute
         const [key, value] = Object.entries(matchList.round[round].match[match])[team]
 
         const newMatchList = { ...matchList }
 
-        const participantID = Object.keys(newMatchList.round[round].match[match][key])[0]
-        newMatchList.round[round].match[match][key][participantID] = e.target.value
+        const participantID = Object.keys(newMatchList.round[round].match[match][key])[0] // Get the participant ID
+        newMatchList.round[round].match[match][key][participantID] = e.target.value // Update the score
 
         setMatchList(newMatchList)
     }
-    const updateVictor = (e) => {
-        const [round, match, team] = e.currentTarget.id.split(':')
+    const updateVictor = (e) => { // Update victor
+        const [round, match, team] = e.currentTarget.id.split(':') // Extract round, match, and team from the id attribute
 
         const newMatchList = { ...matchList }
-        if (newMatchList.round[round].match[match][2].victor === e.currentTarget.name || (Object.keys(newMatchList.round[round].match[match][0]).length === 0) || (Object.keys(newMatchList.round[round].match[match][1]).length === 0)) {
-            newMatchList.round[round].match[match][2].victor = ''
+        if (newMatchList.round[round].match[match][2].victor === e.currentTarget.name || (Object.keys(newMatchList.round[round].match[match][0]).length === 0) || (Object.keys(newMatchList.round[round].match[match][1]).length === 0)) { // If the victor is the same as the current victor, or if one of the participants is empty
+            newMatchList.round[round].match[match][2].victor = '' // Remove the victor
         } else {
-            newMatchList.round[round].match[match][2].victor = e.currentTarget.name
+            newMatchList.round[round].match[match][2].victor = e.currentTarget.name // Set the victor
         }
 
         setMatchList(newMatchList)
     }
-    const updateRoundTime = (e) => {
+    const updateRoundTime = (e) => { // Update round time
         const newMatchList = { ...matchList }
-        newMatchList.round[e.target.id].time = new Date(e.target.value)
+        newMatchList.round[e.target.id].time = new Date(e.target.value) // Update the time
         
         setMatchList(newMatchList)
     }
-    const updateMatchHighlights = (e) => {
+    const updateMatchHighlights = (e) => { // Update match highlights
         setYoutubeURL(e.target.value.split('\n'))
     }
 
-    function formatDateTime(date) {
+    function formatDateTime(date) { // Format date and time to be compatible with the input type datetime-local
         const year = date.getFullYear()
         const month = String(date.getMonth() + 1).padStart(2, '0')
         const day = String(date.getDate()).padStart(2, '0')
         const hours = String(date.getHours()).padStart(2, '0')
         const minutes = String(date.getMinutes()).padStart(2, '0')
         
-        return `${year}-${month}-${day}T${hours}:${minutes}`
+        return `${year}-${month}-${day}T${hours}:${minutes}` // Return formatted date and time
     }
 
-    const revertChanges = async () => {
+    const revertChanges = async () => { // Revert changes when the user cancels
         setErrorMessage('')
         try {
-            const res = await getDoc(doc(db, 'matches', matchID))
+            const res = await getDoc(doc(db, 'matches', matchID)) // Get match details by ID
             const resList = res.data()
             Object.entries(resList.round).forEach(([key, value]) => { // Revert display fields of scores and victor
                 const roundTime = value.time.toDate()
@@ -177,7 +177,7 @@ export default function ViewMatch() {
         }
     }
 
-    const saveChanges = async () => {
+    const saveChanges = async () => { // Save changes when the user confirms
         if (!youtubeURL?.filter(str => str.trim() !== "").every(url => url.includes("www.youtube.com"))) { // Check for invalid youtube URL amidst empty strings
             setErrorMessage('Invalid YouTube URL')
             return
@@ -185,21 +185,21 @@ export default function ViewMatch() {
         
         const newMatchList = { ...matchList }
 
-        Object.entries(newMatchList.statistics).forEach(([key, value]) => {            
+        Object.entries(newMatchList.statistics).forEach(([key, value]) => {
             let wins = 0
             let losses = 0
             let points = 0
 
-            Object.entries(matchList.round).map(([keyRound, valueRound]) => { // To calculate wins, losses, and points
+            Object.entries(matchList.round).map(([keyRound, valueRound]) => { // To calculate wins, losses, and points for statistic table
                 Object.entries(valueRound.match).map(([keyMatch, valueMatch]) => {
                     if (valueMatch.some(dict => dict.hasOwnProperty(key))) { // If the participant is in the match
-                        if (valueMatch[2].victor === key) {
+                        if (valueMatch[2].victor === key) { // If the participant is the victor
                             wins += 1
-                        } else if (valueMatch[2].victor !== '' && valueMatch[2].victor !== key) {
+                        } else if (valueMatch[2].victor !== '' && valueMatch[2].victor !== key) { // If the participant is not the victor
                             losses += 1
                         }
 
-                        valueMatch.map((dict) => {
+                        valueMatch.map((dict) => { // Tally points
                             if (dict.hasOwnProperty(key)) {
                                 points += parseInt(dict[key])
                             }
@@ -213,10 +213,10 @@ export default function ViewMatch() {
         })
 
         try {
-            await updateDoc(doc(db, 'matches', matchID), {
+            await updateDoc(doc(db, 'matches', matchID), { // Update match details by ID
                 round: newMatchList.round,
                 statistics: newMatchList.statistics,                
-                highlights: youtubeURL.map(str => str.trim()).filter(str => str !== ""),
+                highlights: youtubeURL.map(str => str.trim()).filter(str => str !== ""), // Remove empty strings and whitespace
             })
 
             alert('Score, Matchup and Highlights updated successfully')
@@ -323,18 +323,18 @@ export default function ViewMatch() {
                         name = participantType.handle || participantType.username
                     }
 
-                    const calcAvg = () => {
+                    const calcAvg = () => { // Calculate average score
                         const points = parseFloat(matchList.statistics[value].points)
                         const wins = parseFloat(matchList.statistics[value].wins)
                         const losses = parseFloat(matchList.statistics[value].losses)
 
                         let ratio = points / (wins + losses)
-                        ratio = isNaN(ratio) ? 0 : ratio
+                        ratio = isNaN(ratio) ? 0 : ratio // If the ratio is NaN, set it to 0
 
-                        if (Number.isInteger(ratio)) {
-                            return ratio.toFixed(0)
-                        } else {
-                            return ratio.toFixed(2)
+                        if (Number.isInteger(ratio)) { // If the ratio is an integer
+                            return ratio.toFixed(0) // Return the ratio with 0 decimal places
+                        } else { // If the ratio is not an integer
+                            return ratio.toFixed(2) // Return the ratio with 2 decimal places
                         }
                     }
 
@@ -462,9 +462,9 @@ export default function ViewMatch() {
        document.body.removeChild(link)
     }
 
-    const getYoutubeEmbedUrl = (url) => {
+    const getYoutubeEmbedUrl = (url) => { // Get the embed URL of a YouTube video
         const videoId = url.split('v=')[1]
-        return `https://www.youtube.com/embed/${videoId}`
+        return `https://www.youtube.com/embed/${videoId}` // Return the embed URL
     }
 
     

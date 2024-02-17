@@ -28,12 +28,12 @@ export default function WriteNewsArticle() {
     const [errorMessage, setErrorMessage] = useState('')
 
 
-    useEffect(() => {
+    useEffect(() => { // On page load
         const getTournaments = async () => {
             try {
-                const q = query(collection(db, 'tournaments'), where('collaborators', 'array-contains', user.uid))
+                const q = query(collection(db, 'tournaments'), where('collaborators', 'array-contains', user.uid)) // Get tournaments where current user is a collaborator
                 const res = await getDocs(q)
-                const resList = res.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = res.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to the tournament data
                 setTournamentList(resList)
             } catch (err) {
                 console.error(err)
@@ -43,24 +43,24 @@ export default function WriteNewsArticle() {
     }, [])
 
 
-    const searchTournament = async (e) => {
-        e.preventDefault()
+    const searchTournament = async (e) => { // Handle search tournament function
+        e.preventDefault() // Prevent page refresh
         try {
-            const q = query(collection(db, 'tournaments'), where('collaborators', 'array-contains', user.uid))
+            const q = query(collection(db, 'tournaments'), where('collaborators', 'array-contains', user.uid)) // Get tournaments where current user is a collaborator
             const res = await getDocs(q)
-            const resList = res.docs.map((doc) => ({...doc.data(), id: doc.id}))
-            const filteredList = resList.filter((tournament) => tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()))
+            const resList = res.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append id to the tournament data
+            const filteredList = resList.filter((tournament) => tournament.title.toLowerCase().includes(searchCriteria.toLowerCase())) // Filter the tournament list based on the search criteria
             setTournamentList(filteredList)
         } catch (err) {
             console.error(err)
         }
     }
 
-    const publishArticle = async (e) => {
+    const publishArticle = async (e) => { // Handle publish article function
         e.preventDefault()
-        if (selectedTournamentID !== '') {
+        if (selectedTournamentID !== '') { // If a tournament the article is about is selected
             try {
-                const docRef = await addDoc(collection(db, 'newsArticles'), {
+                const docRef = await addDoc(collection(db, 'newsArticles'), { // Add the news article to the database
                     title: title,
                     content: content,
                     date: new Date(),
@@ -70,10 +70,10 @@ export default function WriteNewsArticle() {
                     bannerURL: '',
                 })
 
-                const snapshot = await uploadBytes(ref(getStorage(), `newsArticles/${docRef.id}-banner`), bannerImg)
-                const downloadURL = await getDownloadURL(snapshot.ref)
+                const snapshot = await uploadBytes(ref(getStorage(), `newsArticles/${docRef.id}-banner`), bannerImg) // Upload the banner image to the storage
+                const downloadURL = await getDownloadURL(snapshot.ref) // Get the download URL of the uploaded image
               
-                await updateDoc(docRef, {
+                await updateDoc(docRef, { // Update the news article with the banner image URL
                     bannerURL: downloadURL
                 })
 
@@ -82,7 +82,7 @@ export default function WriteNewsArticle() {
             } catch (err) {
                 console.error(err)
             }
-        } else {
+        } else { // If no tournament is selected
             setErrorMessage('Please select a tournament')
         }
     }

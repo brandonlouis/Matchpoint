@@ -47,7 +47,7 @@ export default function ManageAccounts() {
 
     const deleteAccount = async (id) => {
         try {
-            await axios.post('http://localhost/deleteUser', { id })
+            await axios.post('http://localhost/deleteUser', { id }) // Call API to delete user from Firebase Authentication
             await deleteDoc(doc(db, 'accounts', id))
             await deleteDoc(doc(db, 'profiles', id))
             alert('Account deleted successfully')
@@ -60,7 +60,7 @@ export default function ManageAccounts() {
     const searchAccount = async (e) => { // Handle search record
         e.preventDefault()
         try {
-            const q = query(collection(db, 'accounts'), orderBy('username'))
+            const q = query(collection(db, 'accounts'), orderBy('username')) // Retrieve all accounts from the database
             const data = await getDocs(q)
             const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(account => account.type !== 'admin' && (account.username.includes(searchCriteria.toLowerCase()) || account.fullName.includes(searchCriteria.toLowerCase())))
             

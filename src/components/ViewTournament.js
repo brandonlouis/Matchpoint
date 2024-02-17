@@ -40,13 +40,13 @@ export default function ViewTournament() {
     const [isLoading, setIsLoading] = useState(true)
 
     
-    useEffect(() => {
-        const getTournament = async () => {
+    useEffect(() => { // On page load
+        const getTournament = async () => { // Get tournament details
             try {
-                const res = await getDoc(doc(db, 'tournaments', tournamentID))
-                const resList = { ...res.data(), id: res.id }
+                const res = await getDoc(doc(db, 'tournaments', tournamentID)) // Get tournament details by ID
+                const resList = { ...res.data(), id: res.id } // Append ID to the data
 
-                if (resList.host === undefined) {
+                if (resList.host === undefined) { // If tournament does not exist
                     setTournamentDetails({})
                     setIsLoading(false)
                     return
@@ -54,68 +54,68 @@ export default function ViewTournament() {
 
                 setTournamentDetails(processDate(resList))
                 getHost(resList)
-                if (user) {
+                if (user) { // Get participants and collaborators only if user is logged in
                     getParticipants(resList)
                     getCollaborators(resList)
                 }
-                user?.uid === resList.host && setViewerType('host')
+                user?.uid === resList.host && setViewerType('host') // Set viewer type if user is the host
 
                 setIsLoading(false)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getHost = async (tDetails) => {
+        const getHost = async (tDetails) => { // Get host details
             try {
-                const res = await getDoc(doc(db, 'accounts', tDetails.host))
+                const res = await getDoc(doc(db, 'accounts', tDetails.host)) // Get host details by ID
                 const resList = res.data()
                 setHost(resList.fullName)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getParticipants = async (tDetails) => {
-            if (tDetails.type === 'individual') {
+        const getParticipants = async (tDetails) => { // Get participants and collaborators
+            if (tDetails.type === 'individual') { // If tournament is individual
                 try {
-                    const q = query(collection(db, 'accounts'), orderBy('username'))
+                    const q = query(collection(db, 'accounts'), orderBy('username')) // Get all accounts in alphabetical order
                     const data = await getDocs(q)
-                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => tDetails.participants.includes(item.id))
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => tDetails.participants.includes(item.id)) // Filter accounts by participants
                     
                     setParticipantList(resList)
-                    user?.uid === (resList.find((item) => item.id === user.uid))?.id && setViewerType('participant')
+                    user?.uid === (resList.find((item) => item.id === user.uid))?.id && setViewerType('participant') // Set viewer type if user is a participant
                 } catch (err) {
                     console.error(err)
                 }
-            } else if (tDetails.type === 'team') {
+            } else if (tDetails.type === 'team') { // If tournament is team
                 try {
-                    const q = query(collection(db, 'teams'), orderBy('handle'))
+                    const q = query(collection(db, 'teams'), orderBy('handle')) // Get all teams in alphabetical order
                     const data = await getDocs(q)
-                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => tDetails.participants.includes(item.id))
+                    const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => tDetails.participants.includes(item.id)) // Filter teams by participants
                     
                     setParticipantList(resList)
-                    resList.find((item) => item.members.includes(user.uid)) && setViewerType('participant')
+                    resList.find((item) => item.members.includes(user.uid)) && setViewerType('participant') // Set viewer type if user is a participant
                 } catch (err) {
                     console.error(err)
                 }
             }
         }
-        const getCollaborators = async (tDetails) => {
+        const getCollaborators = async (tDetails) => { // Get collaborators
             try {
-                const q = query(collection(db, 'accounts'), orderBy('username'))
+                const q = query(collection(db, 'accounts'), orderBy('username')) // Get all accounts in alphabetical order
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => tDetails.collaborators.includes(item.id))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter((item) => tDetails.collaborators.includes(item.id)) // Filter accounts by collaborators
 
                 setCollaboratorList(resList)
-                user?.uid === (resList.find((item) => item.id === user.uid))?.id && setViewerType('collaborator')
+                user?.uid === (resList.find((item) => item.id === user.uid))?.id && setViewerType('collaborator') // Set viewer type if user is a collaborator
             } catch (err) {
                 console.error(err)
             }
         }
-        const getUserTeam = async () => {
+        const getUserTeam = async () => { // Get user's team details
             try {
-                const q = query(collection(db, 'teams'), where('members', 'array-contains', user?.uid))
+                const q = query(collection(db, 'teams'), where('members', 'array-contains', user?.uid)) // Get team details where current user is a member
                 const data = await getDocs(q)
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id}))
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})) // Append ID to the data
 
                 setUserTeamDetails(resList[0])
             } catch (err) {
@@ -128,11 +128,11 @@ export default function ViewTournament() {
         }
     }, [])
 
-    const processDate = (tournament) => {
+    const processDate = (tournament) => { // Process date to be displayed in a more readable format
         const startDateList = tournament.date.start.toDate().toDateString().split(' ').slice(1)
         const endDateList = tournament.date.end.toDate().toDateString().split(' ').slice(1)
 
-        return {
+        return { // Append processed date to the data
             ...tournament,
             stringDate: {
               start: startDateList,
@@ -141,25 +141,25 @@ export default function ViewTournament() {
         }
     }
 
-    const viewMatch = (id) => {
-        window.location.href = `/ViewMatch?id=${id}`;
+    const viewMatch = (id) => { // Navigate to match details page
+        window.location.href = `/ViewMatch?id=${id}` // Passing ID in URL
     }
 
-    const viewAccount = async (id) => {
+    const viewAccount = async (id) => { // View account details
         try {
-          const accountDocRef = doc(db, 'accounts', id)
+          const accountDocRef = doc(db, 'accounts', id) // Get account details by ID
           const accountDocSnap = await getDoc(accountDocRef)
       
-          if (accountDocSnap.exists()) {
-            const accountData = { ...accountDocSnap.data(), id: accountDocSnap.id }
+          if (accountDocSnap.exists()) { // If account exists
+            const accountData = { ...accountDocSnap.data(), id: accountDocSnap.id } // Append ID to the data
             setAccountDetails(accountData)
             setOpenViewModal(true)
           } else {
-            const teamDocRef = doc(db, 'teams', id)
+            const teamDocRef = doc(db, 'teams', id) // Get team details by ID
             const teamDocSnap = await getDoc(teamDocRef)
       
-            if (teamDocSnap.exists()) {
-              const teamData = { ...teamDocSnap.data(), id: teamDocSnap.id }
+            if (teamDocSnap.exists()) { // If team exists
+              const teamData = { ...teamDocSnap.data(), id: teamDocSnap.id } // Append ID to the data
               setAccountDetails(teamData)
               setOpenViewModal(true)
             }
@@ -176,18 +176,18 @@ export default function ViewTournament() {
         setOpenAddUserModal(true)
     }
 
-    const searchUser = async (e) => {
-        e.preventDefault()
+    const searchUser = async (e) => { // Handle searching for user
+        e.preventDefault() // Prevent page from refreshing
         if (searchCriteria === '') { // If search criteria is empty, return empty results instead of everything
             setSearchResultList([])
         } else {
-            if (searchMode === 'participants') {
-                if (tournamentDetails.type === 'individual') {
+            if (searchMode === 'participants') { // If searching for participants
+                if (tournamentDetails.type === 'individual') { // And tournament type is individual
                     try {
-                        const q = query(collection(db, 'accounts'), orderBy('username'))
+                        const q = query(collection(db, 'accounts'), orderBy('username')) // Get all accounts in alphabetical order
                         const data = await getDocs(q)
 
-                        const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => 
+                        const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => // Filter accounts by search criteria and matching profile
                             !tournamentDetails.participants.includes(item.id) && 
                             !tournamentDetails.collaborators.includes(item.id) && 
                             item.id !== tournamentDetails.host && 
@@ -200,11 +200,11 @@ export default function ViewTournament() {
                     } catch (err) {
                         console.error(err);
                     }                  
-                } else if (tournamentDetails.type === 'team') {
+                } else if (tournamentDetails.type === 'team') { // And tournament type is team
                     try {
-                        const q = query(collection(db, 'teams'), orderBy('handle'))
+                        const q = query(collection(db, 'teams'), orderBy('handle')) // Get all teams in alphabetical order
                         const data = await getDocs(q)
-                        const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => 
+                        const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => // Filter teams by search criteria and matching profile
                             !tournamentDetails.participants.includes(item.id) && 
                             item.id !== userTeamDetails.id && 
                             (item.handle?.toLowerCase().includes(searchCriteria.toLowerCase()) || item.name?.toLowerCase().includes(searchCriteria.toLowerCase())) &&
@@ -216,11 +216,11 @@ export default function ViewTournament() {
                         console.error(err);
                     }
                 }
-            } else if (searchMode === 'collaborators') {
+            } else if (searchMode === 'collaborators') { // If searching for collaborators
                 try {
-                    const q = query(collection(db, 'accounts'), orderBy('username'))
+                    const q = query(collection(db, 'accounts'), orderBy('username')) // Get all accounts in alphabetical order
                     const data = await getDocs(q)
-                    const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => 
+                    const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => // Filter accounts by search criteria and matching profile
                         !tournamentDetails.collaborators.includes(item.id) && 
                         !tournamentDetails.participants.includes(item.id) && 
                         (item.username?.toLowerCase().includes(searchCriteria.toLowerCase()) || item.fullName?.toLowerCase().includes(searchCriteria.toLowerCase())) && 
@@ -235,14 +235,14 @@ export default function ViewTournament() {
         }
     }
 
-    const addUser = async (id) => {
-        if (searchMode === 'participants') {
-            if (tournamentDetails.participants?.length < tournamentDetails.maxParticipants) {
-                const res = await getDoc(doc(db, 'matches', tournamentID))
+    const addUser = async (id) => { // Handle adding user
+        if (searchMode === 'participants') { // If searching for participants
+            if (tournamentDetails.participants?.length < tournamentDetails.maxParticipants) { // If participants are less than max participants
+                const res = await getDoc(doc(db, 'matches', tournamentID)) // Get match details by ID
                 const resList = res.data()
                 const matchStatistics = resList.statistics
 
-                let addedParticipantStatistics = matchStatistics
+                let addedParticipantStatistics = matchStatistics // Append empty participant statistics to the data
                 addedParticipantStatistics[id] = {
                     wins: 0,
                     losses: 0,
@@ -250,10 +250,10 @@ export default function ViewTournament() {
                 }
 
                 try {
-                    await updateDoc(doc(db, 'tournaments', tournamentID), {
+                    await updateDoc(doc(db, 'tournaments', tournamentID), { // Add participant to tournament
                         participants: [...tournamentDetails.participants, id]
                     })
-                    await updateDoc(doc(db, 'matches', tournamentID), {
+                    await updateDoc(doc(db, 'matches', tournamentID), { // Add participant to match
                         participants: [...tournamentDetails.participants, id],
                         statistics: addedParticipantStatistics
                     })
@@ -263,9 +263,9 @@ export default function ViewTournament() {
                     console.error(err)
                 }
             }
-        } else if (searchMode === 'collaborators') {
+        } else if (searchMode === 'collaborators') { // If searching for collaborators
             try {
-                await updateDoc(doc(db, 'tournaments', tournamentID), {
+                await updateDoc(doc(db, 'tournaments', tournamentID), { // Add collaborator to tournament
                     collaborators: [...tournamentDetails.collaborators, id]
                 })
                 alert('Collaborator added successfully')
@@ -276,8 +276,8 @@ export default function ViewTournament() {
         }
     }
 
-    const removeUser = async (id) => {
-        if (tournamentDetails.participants?.includes(accountDetails.id)) {
+    const removeUser = async (id) => { // Handle removing user
+        if (tournamentDetails.participants?.includes(accountDetails.id)) { // If participant is in the tournament
             try {
                 const res = await getDoc(doc(db, 'matches', tournamentID)) // To remove the participant from statistics
                 const resList = res.data()
@@ -295,16 +295,16 @@ export default function ViewTournament() {
 
                             newMatchList.round[keyRound].match[keyMatch][2].victor = ''
 
-                            if (newMatchList.round[keyRound].match[keyMatch][0].hasOwnProperty(accountDetails.id)) {
+                            if (newMatchList.round[keyRound].match[keyMatch][0].hasOwnProperty(accountDetails.id)) { // Remove the participant from the first slot of the match
                                 newMatchList.round[keyRound].match[keyMatch][0] = {}
-                            } else if (newMatchList.round[keyRound].match[keyMatch][1].hasOwnProperty(accountDetails.id)) {
+                            } else if (newMatchList.round[keyRound].match[keyMatch][1].hasOwnProperty(accountDetails.id)) { // Remove the participant from the second slot match
                                 newMatchList.round[keyRound].match[keyMatch][1] = {}
                             }
                         }
                     })
                 })
 
-                await updateDoc(doc(db, 'matches', tournamentID), {
+                await updateDoc(doc(db, 'matches', tournamentID), { // Update the match list with the removed participant
                     participants: tournamentDetails.participants.filter(participant => participant !== id),
                     round: newMatchList.round,
                     statistics: removedParticipant
@@ -314,9 +314,9 @@ export default function ViewTournament() {
             } catch (err) {
                 console.error(err)
             }
-        } else if (tournamentDetails.collaborators?.includes(accountDetails.id)) {
+        } else if (tournamentDetails.collaborators?.includes(accountDetails.id)) { // If collaborator is in the tournament
             try {
-                await updateDoc(doc(db, 'tournaments', tournamentID), {
+                await updateDoc(doc(db, 'tournaments', tournamentID), { // Remove the collaborator from the tournament
                     collaborators: tournamentDetails.collaborators.filter(collaborator => collaborator !== id)
                 })
                 alert('Collaborator removed successfully')
@@ -327,13 +327,13 @@ export default function ViewTournament() {
         }
     }
 
-    const editTournament = (param) =>{
+    const editTournament = (param) => { // Navigate to edit tournament page
         navigate('/EditTournament', {state:{id:param}}) // Handle navigation while passing ID as hidden parameter
     }
 
-    const suspendTournament = async () => {
+    const suspendTournament = async () => { // Handle suspending tournament
         try {
-            await updateDoc(doc(db, 'tournaments', tournamentID), {
+            await updateDoc(doc(db, 'tournaments', tournamentID), { // Suspend the tournament by setting status to 0 by tournament ID
                 status: 0
             })
             alert('Tournament suspended successfully')
@@ -343,34 +343,34 @@ export default function ViewTournament() {
         }
     }
 
-    const copyToClipboard = () => {
-        const currentUrl = window.location.href
+    const copyToClipboard = () => { // Copy URL to clipboard
+        const currentUrl = window.location.href // Get current URL
     
-        const textarea = document.createElement('textarea')
+        const textarea = document.createElement('textarea') // Create a textarea element
         textarea.value = currentUrl
-        document.body.appendChild(textarea)
+        document.body.appendChild(textarea) // Append the textarea to the body
     
-        textarea.select()
+        textarea.select() // Select the textarea
         textarea.setSelectionRange(0, 99999) // For mobile devices
     
-        document.execCommand('copy')
-        document.body.removeChild(textarea)
+        document.execCommand('copy') // Copy the selected text to clipboard
+        document.body.removeChild(textarea) // Remove the textarea
     
         alert('URL copied to clipboard!')
     }
 
-    const registerTournament = async () => {
-        if (!user.emailVerified) {
+    const registerTournament = async () => { // Handle registering for tournament
+        if (!user.emailVerified) { // If user is not verified
             alert('Please verify your account before registering for this tournament')
             return
         }
-        if (tournamentDetails.participants?.length < tournamentDetails.maxParticipants) {
-            if (tournamentDetails.type === 'individual') {
+        if (tournamentDetails.participants?.length < tournamentDetails.maxParticipants) { // If participants are less than max participants
+            if (tournamentDetails.type === 'individual') { // If tournament type is individual
                 try {
-                    await updateDoc(doc(db, 'tournaments', tournamentID), {
+                    await updateDoc(doc(db, 'tournaments', tournamentID), { // Add participant to tournament
                         participants: [...tournamentDetails.participants, user.uid]
                     })
-                    await updateDoc(doc(db, 'matches', tournamentID), {
+                    await updateDoc(doc(db, 'matches', tournamentID), { // Add participant to match
                         participants: [...tournamentDetails.participants, user.uid],
                         statistics: {
                             [user.uid]: {
@@ -385,15 +385,15 @@ export default function ViewTournament() {
                 } catch (err) {
                     console.error(err)
                 }
-            } else if (tournamentDetails.type === 'team') {
+            } else if (tournamentDetails.type === 'team') { // If tournament type is team
                 try {
-                    const data = await getDocs(collection(db, 'teams'))
-                    const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.leader === user.uid)
+                    const data = await getDocs(collection(db, 'teams')) // Get all teams
+                    const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.leader === user.uid) // Filter teams by leader
     
-                    await updateDoc(doc(db, 'tournaments', tournamentID), {
+                    await updateDoc(doc(db, 'tournaments', tournamentID), { // Add team to tournament
                         participants: [...tournamentDetails.participants, resList[0].id]
                     })
-                    await updateDoc(doc(db, 'matches', tournamentID), {
+                    await updateDoc(doc(db, 'matches', tournamentID), { // Add team to match
                         participants: [...tournamentDetails.participants, resList[0].id],
                         statistics: {
                             [resList[0].id]: {

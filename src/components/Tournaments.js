@@ -12,6 +12,8 @@ export default function Tournaments() {
 
     const { user, moreUserInfo } = UserAuth()
 
+    const [isLoading, setIsLoading] = useState(true)
+
     const [tournamentList, setTournamentList] = useState([])
     const [personalizedTournamentList, setPersonalizedTournamentList] = useState([])
     const [sports, setSports] = useState([])
@@ -27,17 +29,18 @@ export default function Tournaments() {
     useEffect(() => { // Handle retrieving tournament list on initial load
         const getTournaments = async () => {
             try {
-                const data = await getDocs(collection(db, 'tournaments'))
+                const data = await getDocs(collection(db, 'tournaments')) // Retrieve all tournaments
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0) // Filter out tournaments that are cancelled
                 
                 setTournamentList(processDate(sortTournaments(resList)))
+                setIsLoading(false)
             } catch (err) {
                 console.error(err)
             }
         }
-        const getSports = async () => {
+        const getSports = async () => { // Handle retrieving sports list on initial load
             try {
-                const q = query(collection(db, 'sports'), orderBy('name'))
+                const q = query(collection(db, 'sports'), orderBy('name')) // Retrieve all sports in alphabetical order
                 const data = await getDocs(q)
                 const resList = data.docs.map((doc) => ({...doc.data()}))
                 setSportsList(resList)
@@ -48,11 +51,11 @@ export default function Tournaments() {
         getTournaments()
         getSports()
 
-        user && !user.email.includes('@matchpoint.com') && setPersonalizedFilter(true)
+        user && !user.email.includes('@matchpoint.com') && setPersonalizedFilter(true) // If user is logged in and not an admin, set personalized filter to true
     }, [])
 
     useEffect(() => { // Handle filtering tournaments based on filter criteria
-        const getTournaments = async () => {
+        const getTournaments = async () => { // Handle retrieving tournaments based on personalized filter
             if (personalizedFilter) {
                 try {
                     const data = await getDocs(collection(db, 'tournaments'))
@@ -68,7 +71,7 @@ export default function Tournaments() {
                     const filteredList = resList.filter((tournament) => {
                         const isMixed = tournament.gender === 'mixed' // Handle if tournament gender is 'mixed'
                         const isUserGenderMatch = tournament.gender === updatedUserGender
-                        return (isMixed || isUserGenderMatch) && tournament.region === moreUserInfo?.region && moreUserInfo.sportInterests.includes(tournament.sport)
+                        return (isMixed || isUserGenderMatch) && tournament.region === moreUserInfo?.region && moreUserInfo.sportInterests.includes(tournament.sport) // Filter out tournaments that do not match user profile
                     })
 
                     setTournamentList(processDate(sortTournaments(filteredList)))
@@ -78,7 +81,7 @@ export default function Tournaments() {
                 }
             } else { // If personalized filter is off, retrieve all tournaments
                 try {
-                    const data = await getDocs(collection(db, 'tournaments'))
+                    const data = await getDocs(collection(db, 'tournaments')) // Retrieve all tournaments
                     const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0) // Filter out tournaments that are cancelled
                     
                     setTournamentList(processDate(sortTournaments(resList)))
@@ -90,7 +93,7 @@ export default function Tournaments() {
         getTournaments()
     }, [personalizedFilter, moreUserInfo])
 
-    const sortTournaments = (list) => {
+    const sortTournaments = (list) => { // Handle sorting tournaments based on live status and date
         return list.sort((a, b) => {
             const now = new Date()
             const aEndDate = new Date(a.date.end.toDate())
@@ -117,7 +120,7 @@ export default function Tournaments() {
         })
     }
 
-    const processDate = (list) => {
+    const processDate = (list) => { // Process date to be displayed in a more readable format
         const updatedTournamentList = list.map((tournament) => {
             const startDate = tournament.date.start.toDate().toDateString().split(' ').slice(1)
             const endDate = tournament.date.end.toDate().toDateString().split(' ').slice(1)
@@ -133,13 +136,13 @@ export default function Tournaments() {
         return updatedTournamentList
     }
 
-    const concatSports = async (e) => {
+    const concatSports = async (e) => { // Concatenantes sports selected in dropdown list
         const {target: {value}} = e;
         setSports(
             typeof value === 'string' ? value.split(',') : value,
         )
 
-        if (value.length > 0) {
+        if (value.length > 0) { // If sports are selected, immediately filter tournaments based on sports
             try {
                 const data = await getDocs(collection(db, 'tournaments'))
                 const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && value.includes(tournament.sport) && tournament.title.toLowerCase().includes(filterSearch?.toLowerCase())) // Filter out tournaments that are cancelled and search criteria if not empty string
@@ -150,7 +153,7 @@ export default function Tournaments() {
             }
         } else {
             try {
-                if (filterSearch === '') {
+                if (filterSearch === '') { // If no sports are selected and search criteria is empty, retrieve all tournaments
                     const data = await getDocs(collection(db, 'tournaments'))
                     const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0) // Filter out tournaments that are cancelled
                     
@@ -164,21 +167,21 @@ export default function Tournaments() {
         }
     }
 
-    const searchTournament = async (e) => {
-        e.preventDefault()
+    const searchTournament = async (e) => { // Handle searching tournaments
+        e.preventDefault() // Prevent page from refreshing
         setSports([])
         setFilterSearch(searchCriteria)
 
-        if (personalizedFilter) {
+        if (personalizedFilter) { // If personalized filter is on, filter tournaments based on search criteria
             try {
-                searchCriteria === '' ? setTournamentList(personalizedTournamentList) : setTournamentList(processDate(sortTournaments(personalizedTournamentList.filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()))))))
+                searchCriteria === '' ? setTournamentList(personalizedTournamentList) : setTournamentList(processDate(sortTournaments(personalizedTournamentList.filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase())))))) // Filter out tournaments that are cancelled and search criteria if not empty string
             } catch (err) {
                 console.error(err)
             }
         } else {
             try {
-                const data = await getDocs(collection(db, 'tournaments'))
-                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()))) // Filter out tournaments that are cancelled
+                const data = await getDocs(collection(db, 'tournaments')) // Retrieve all tournaments
+                const resList = data.docs.map((doc) => ({...doc.data(), id: doc.id})).filter(tournament => tournament.status !== 0 && (tournament.title.toLowerCase().includes(searchCriteria.toLowerCase()))) // Filter out tournaments that are cancelled and search criteria if not empty string
                 
                 setSearchResults(processDate(sortTournaments(resList)))
                 setTournamentList(processDate(sortTournaments(resList)))
@@ -286,7 +289,7 @@ export default function Tournaments() {
                     }
                     
                 </Box>
-                {tournamentList.length === 0 ? 
+                {tournamentList.length === 0 && !isLoading ? 
                     <Stack height='150px' marginTop='50px' alignItems='center' justifyContent='center'>
                         <Typography variant='h5'>No results found</Typography>
                     </Stack>
