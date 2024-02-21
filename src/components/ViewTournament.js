@@ -223,6 +223,7 @@ export default function ViewTournament() {
                     const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => // Filter accounts by search criteria and matching profile
                         !tournamentDetails.collaborators.includes(item.id) && 
                         !tournamentDetails.participants.includes(item.id) && 
+                        item.id !== tournamentDetails.host &&
                         (item.username?.toLowerCase().includes(searchCriteria.toLowerCase()) || item.fullName?.toLowerCase().includes(searchCriteria.toLowerCase())) && 
                         item.type !== 'admin' &&
                         item.sportInterests.includes(tournamentDetails.sport))
