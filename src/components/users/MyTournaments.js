@@ -188,7 +188,7 @@ export default function MyTournaments() {
                                 <Typography variant='h3'>{tournamentTab} Tournaments</Typography>
                                 {tournamentTab === 'hosted' && user.emailVerified ? 
                                     <Button style={{ height: '45px', width: '65px' }} onClick={() => (window.location.href = '/CreateTournament')} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
-                                    :
+                                    : tournamentTab === 'hosted' &&
                                     <Button style={{ height: '45px', width: '65px' }} onClick={() => alert("Please verify your account before hosting a tournament")} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
                                 }
                             </Box>
@@ -203,7 +203,7 @@ export default function MyTournaments() {
                         <Box display='flex' alignItems='center' gap='15px'>
                             {tournamentTab === 'hosted' && user.emailVerified ? 
                                 <Button style={{ height: '45px', width: '65px' }} onClick={() => (window.location.href = '/CreateTournament')} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
-                                :
+                                : tournamentTab === 'hosted' &&
                                 <Button style={{ height: '45px', width: '65px' }} onClick={() => alert("Please verify your account before hosting a tournament")} variant='green'><AddIcon sx={{ fontSize: '35px' }} /></Button>
                             }
                             <form style={{display:'flex'}} onSubmit={searchTournament}>

@@ -206,9 +206,9 @@ export default function ViewTournament() {
                         const data = await getDocs(q)
                         const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => // Filter teams by search criteria and matching profile
                             !tournamentDetails.participants.includes(item.id) && 
-                            item.id !== userTeamDetails.id && 
+                            item.id !== userTeamDetails?.id && 
                             (item.handle?.toLowerCase().includes(searchCriteria.toLowerCase()) || item.name?.toLowerCase().includes(searchCriteria.toLowerCase())) &&
-                            item.sports.includes(tournamentDetails.sport) &&
+                            item.sports?.includes(tournamentDetails.sport) &&
                             ((tournamentDetails.gender === "mens" && item.genderReq === "male") || (tournamentDetails.gender === "womens" && item.genderReq === "female") || (tournamentDetails.gender === "mixed" && item.genderReq === "mixed")))
 
                         setSearchResultList(resList)
@@ -367,19 +367,24 @@ export default function ViewTournament() {
         }
         if (tournamentDetails.participants?.length < tournamentDetails.maxParticipants) { // If participants are less than max participants
             if (tournamentDetails.type === 'individual') { // If tournament type is individual
+                const res = await getDoc(doc(db, 'matches', tournamentID)) // Get match details by ID
+                const resList = res.data()
+                const matchStatistics = resList.statistics
+
+                let addedParticipantStatistics = matchStatistics // Append empty participant statistics to the data
+                addedParticipantStatistics[user.uid] = {
+                    wins: 0,
+                    losses: 0,
+                    points: 0,
+                }
+
                 try {
                     await updateDoc(doc(db, 'tournaments', tournamentID), { // Add participant to tournament
                         participants: [...tournamentDetails.participants, user.uid]
                     })
                     await updateDoc(doc(db, 'matches', tournamentID), { // Add participant to match
                         participants: [...tournamentDetails.participants, user.uid],
-                        statistics: {
-                            [user.uid]: {
-                                wins: 0,
-                                losses: 0,
-                                points: 0,
-                            }
-                        }
+                        statistics: addedParticipantStatistics
                     })
                     alert('You have successfully registered')
                     window.location.reload()
@@ -390,19 +395,24 @@ export default function ViewTournament() {
                 try {
                     const data = await getDocs(collection(db, 'teams')) // Get all teams
                     const resList = data.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((item) => item.leader === user.uid) // Filter teams by leader
+
+                    const res = await getDoc(doc(db, 'matches', tournamentID)) // Get match details by ID
+                    const resListMatch = res.data()
+                    const matchStatistics = resListMatch.statistics
+    
+                    let addedParticipantStatistics = matchStatistics // Append empty participant statistics to the data
+                    addedParticipantStatistics[resList[0].id] = {
+                        wins: 0,
+                        losses: 0,
+                        points: 0,
+                    }
     
                     await updateDoc(doc(db, 'tournaments', tournamentID), { // Add team to tournament
                         participants: [...tournamentDetails.participants, resList[0].id]
                     })
                     await updateDoc(doc(db, 'matches', tournamentID), { // Add team to match
                         participants: [...tournamentDetails.participants, resList[0].id],
-                        statistics: {
-                            [resList[0].id]: {
-                                wins: 0,
-                                losses: 0,
-                                points: 0,
-                            }
-                        }
+                        statistics: addedParticipantStatistics
                     })
 
                     alert('Your team has been successfully registered')

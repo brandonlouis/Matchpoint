@@ -78,7 +78,7 @@ export default function CreateTournament() {
                 return
             } else if (parseInt(maxParticipants) === 3) { // If max participants is 3, set number of rounds to 2 and matches per round to [2, 1]
                 setNoRounds(2)
-                setMatchesPerRound([2, 1])
+                setMatchesPerRound([1, 1])
                 return
             }
 

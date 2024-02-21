@@ -59,7 +59,7 @@ export default function CreateTeam() {
             } else {
                 await addDoc(collection(db, 'teams'), { // Add team to the database
                     handle: handle.toLowerCase(),
-                    name: name.trim().toLowerCase(),
+                    name: name.trim(),
                     region: region,
                     sports: sports.slice().sort(),
                     genderReq: gender.toLowerCase(),

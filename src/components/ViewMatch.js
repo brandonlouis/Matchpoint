@@ -37,7 +37,6 @@ export default function ViewMatch() {
 
     const [isLoading, setIsLoading] = useState(true)
     
-
     useEffect(() => { // Handle retrieving tournament list on initial load
         const getTournament = async () => { // Get tournament details
             try {
@@ -77,7 +76,12 @@ export default function ViewMatch() {
                     resList.round[key].time = roundTime
                 })
                 setMatchList(resList)
-                setYoutubeURL(resList.highlights)
+
+                if(resList.highlights === undefined) {
+                    setYoutubeURL([])
+                } else {
+                    setYoutubeURL(resList.highlights)
+                }
 
                 setIsLoading(false)
             } catch (err) {
@@ -179,7 +183,8 @@ export default function ViewMatch() {
 
     const saveChanges = async () => { // Save changes when the user confirms
         let errorOccured = false
-        if (youtubeURL != '' && !youtubeURL?.filter(str => str.trim() !== "").every(url => url.includes("www.youtube.com"))) { // Check for invalid youtube URL amidst empty strings
+
+        if (!youtubeURL?.filter(str => str.trim() !== "").every(url => url.includes("www.youtube.com"))) { // Check for invalid youtube URL amidst empty strings
             setErrorMessage('Invalid YouTube URL')
             errorOccured = true
             return
@@ -569,8 +574,8 @@ export default function ViewMatch() {
                             </TableHead>
                             <TableBody>
                                 {matchList.participants !== undefined && Object.entries(matchList.participants).sort((a, b) => {
-                                    const pointsA = parseFloat(matchList.statistics[a[1]].points)
-                                    const pointsB = parseFloat(matchList.statistics[b[1]].points)
+                                    const pointsA = parseFloat(matchList.statistics[a[1]]?.points)
+                                    const pointsB = parseFloat(matchList.statistics[b[1]]?.points)
 
                                     return pointsB - pointsA // Sort in descending order based on points
                                 })
@@ -590,9 +595,9 @@ export default function ViewMatch() {
                                     }
 
                                     const calcAvg = (value) => {
-                                        const points = parseFloat(matchList.statistics[value].points)
-                                        const wins = parseFloat(matchList.statistics[value].wins)
-                                        const losses = parseFloat(matchList.statistics[value].losses)
+                                        const points = parseFloat(matchList.statistics[value]?.points)
+                                        const wins = parseFloat(matchList.statistics[value]?.wins)
+                                        const losses = parseFloat(matchList.statistics[value]?.losses)
 
                                         let ratio = points / (wins + losses)
                                         ratio = isNaN(ratio) ? 0 : ratio
@@ -617,9 +622,9 @@ export default function ViewMatch() {
                                         {index + 1}
                                         </TableCell>
                                         <TableCell style={{maxWidth:'150px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', fontWeight:'600'}}><a href={`/ViewProfile?id=${id}`}>{name}</a></TableCell>
-                                        <TableCell>{matchList.statistics[value].wins}/{matchList.statistics[value].losses}</TableCell>
+                                        <TableCell>{matchList.statistics[value]?.wins}/{matchList.statistics[value]?.losses}</TableCell>
                                         <TableCell>{calcAvg(value)}</TableCell>
-                                        <TableCell>{matchList.statistics[value].points}</TableCell>
+                                        <TableCell>{matchList.statistics[value]?.points}</TableCell>
                                     </TableRow>
                                     )
                                 })}
@@ -638,7 +643,7 @@ export default function ViewMatch() {
                                         <TextField type="datetime-local" id={key} variant='outlined' className='inputTextField' size='small' sx={{width:'250px'}} onChange={updateRoundTime} value={formatDateTime(new Date(value.time))}
                                             InputProps={{
                                                 inputProps: {
-                                                    min: tournamentDetails.date?.start.toDate().toISOString().slice(0, 16),
+                                                    min: new Date(new Date(tournamentDetails.date?.start.toDate()).getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
                                                     max: tournamentDetails.date?.end.toDate().toISOString().slice(0, 16),
                                                 },
                                         }} 
